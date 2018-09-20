@@ -1,0 +1,4 @@
+#!/bin/sh
+
+g++ -fPIC -I../TokenLib -shared "./TokenBank.cpp" "../TokenLib/TokenLib.cpp" -o "/tmp/TokenBank.so"
+

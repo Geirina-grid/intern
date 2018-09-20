@@ -1,0 +1,231 @@
+I0814 10:19:12.647756 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:19:24.099006 103283 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 10:19:24.102056 103283 serviceapi.cpp:561] Request|default,65538:RESTPP_1_1:1534267164098:NN,2000,|Start_RunUDF
+I0814 10:19:24.102093 103283 gtimer.cpp:75] |default,65538:RESTPP_1_1:1534267164098:NN,2000,|UDF::Start
+I0814 10:19:24.102249 103283 gtimer.cpp:47] (0.143 ms) |default,65538:RESTPP_1_1:1534267164098:NN,2000,|UDF::Initialization
+I0814 10:19:24.123235 103283 gtimer.cpp:47] (20.990 ms) |default,65538:RESTPP_1_1:1534267164098:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 13.737 ms), 11103 vertex reduces (in 7.194 ms), and activated 11103 vertices.
+I0814 10:19:24.292475 103283 gtimer.cpp:47] (169.240 ms) |default,65538:RESTPP_1_1:1534267164098:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 168.039 ms), 11103 vertex reduces (in 1.17 ms), and activated 11103 vertices.
+I0814 10:19:24.305671 103283 gtimer.cpp:47] (203.572 ms) |default,65538:RESTPP_1_1:1534267164098:NN,2000,|UDF::End
+I0814 10:19:24.305685 103283 serviceapi.cpp:564] Request|default,65538:RESTPP_1_1:1534267164098:NN,2000,|Stop_RunUDF|203ms
+I0814 10:19:24.305913 103283 enginejobrunner.cpp:266] Request|default,65538:RESTPP_1_1:1534267164098:NN,2000,|Finished in 206.937 ms|Response 41 bytes|Id conversion 0
+I0814 10:19:24.712750 103283 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 10:19:24.714778 103283 serviceapi.cpp:561] Request|default,131074:RESTPP_1_1:1534267164712:NN,2000,|Start_RunUDF
+I0814 10:19:24.714807 103283 gtimer.cpp:75] |default,131074:RESTPP_1_1:1534267164712:NN,2000,|UDF::Start
+I0814 10:19:24.714929 103283 gtimer.cpp:47] (0.108 ms) |default,131074:RESTPP_1_1:1534267164712:NN,2000,|UDF::Initialization
+I0814 10:19:24.735024 103283 gtimer.cpp:47] (20.102 ms) |default,131074:RESTPP_1_1:1534267164712:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 13.456 ms), 11103 vertex reduces (in 6.61 ms), and activated 11103 vertices.
+I0814 10:19:24.898496 103283 gtimer.cpp:47] (163.459 ms) |default,131074:RESTPP_1_1:1534267164712:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 162.316 ms), 11103 vertex reduces (in 1.107 ms), and activated 11103 vertices.
+I0814 10:19:24.911614 103283 gtimer.cpp:47] (196.800 ms) |default,131074:RESTPP_1_1:1534267164712:NN,2000,|UDF::End
+I0814 10:19:24.911628 103283 serviceapi.cpp:564] Request|default,131074:RESTPP_1_1:1534267164712:NN,2000,|Stop_RunUDF|196ms
+I0814 10:19:24.911670 103283 enginejobrunner.cpp:266] Request|default,131074:RESTPP_1_1:1534267164712:NN,2000,|Finished in 199.043 ms|Response 41 bytes|Id conversion 0
+I0814 10:19:25.315117 103283 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 10:19:25.316699 103283 serviceapi.cpp:561] Request|default,196611:RESTPP_1_1:1534267165314:NN,2000,|Start_RunUDF
+I0814 10:19:25.316721 103283 gtimer.cpp:75] |default,196611:RESTPP_1_1:1534267165314:NN,2000,|UDF::Start
+I0814 10:19:25.316846 103283 gtimer.cpp:47] (0.111 ms) |default,196611:RESTPP_1_1:1534267165314:NN,2000,|UDF::Initialization
+I0814 10:19:25.335602 103283 gtimer.cpp:47] (18.758 ms) |default,196611:RESTPP_1_1:1534267165314:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 12.117 ms), 11103 vertex reduces (in 6.615 ms), and activated 11103 vertices.
+I0814 10:19:25.495877 103283 gtimer.cpp:47] (160.277 ms) |default,196611:RESTPP_1_1:1534267165314:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 159.159 ms), 11103 vertex reduces (in 1.083 ms), and activated 11103 vertices.
+I0814 10:19:25.508705 103283 gtimer.cpp:47] (191.978 ms) |default,196611:RESTPP_1_1:1534267165314:NN,2000,|UDF::End
+I0814 10:19:25.508718 103283 serviceapi.cpp:564] Request|default,196611:RESTPP_1_1:1534267165314:NN,2000,|Stop_RunUDF|192ms
+I0814 10:19:25.508762 103283 enginejobrunner.cpp:266] Request|default,196611:RESTPP_1_1:1534267165314:NN,2000,|Finished in 193.762 ms|Response 41 bytes|Id conversion 0
+I0814 10:19:25.928956 103283 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 10:19:25.930548 103283 serviceapi.cpp:561] Request|default,3:RESTPP_1_1:1534267165928:NN,2000,|Start_RunUDF
+I0814 10:19:25.930572 103283 gtimer.cpp:75] |default,3:RESTPP_1_1:1534267165928:NN,2000,|UDF::Start
+I0814 10:19:25.930685 103283 gtimer.cpp:47] (0.099 ms) |default,3:RESTPP_1_1:1534267165928:NN,2000,|UDF::Initialization
+I0814 10:19:25.950203 103283 gtimer.cpp:47] (19.528 ms) |default,3:RESTPP_1_1:1534267165928:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 12.858 ms), 11103 vertex reduces (in 6.642 ms), and activated 11103 vertices.
+I0814 10:19:26.110236 103283 gtimer.cpp:47] (160.027 ms) |default,3:RESTPP_1_1:1534267165928:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 158.904 ms), 11103 vertex reduces (in 1.092 ms), and activated 11103 vertices.
+I0814 10:19:26.123250 103283 gtimer.cpp:47] (192.671 ms) |default,3:RESTPP_1_1:1534267165928:NN,2000,|UDF::End
+I0814 10:19:26.123263 103283 serviceapi.cpp:564] Request|default,3:RESTPP_1_1:1534267165928:NN,2000,|Stop_RunUDF|192ms
+I0814 10:19:26.123306 103283 enginejobrunner.cpp:266] Request|default,3:RESTPP_1_1:1534267165928:NN,2000,|Finished in 194.493 ms|Response 41 bytes|Id conversion 0
+I0814 10:19:26.521102 103283 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 10:19:26.523129 103283 serviceapi.cpp:561] Request|default,65539:RESTPP_1_1:1534267166520:NN,2000,|Start_RunUDF
+I0814 10:19:26.523157 103283 gtimer.cpp:75] |default,65539:RESTPP_1_1:1534267166520:NN,2000,|UDF::Start
+I0814 10:19:26.523310 103283 gtimer.cpp:47] (0.137 ms) |default,65539:RESTPP_1_1:1534267166520:NN,2000,|UDF::Initialization
+I0814 10:19:26.547014 103283 gtimer.cpp:47] (23.714 ms) |default,65539:RESTPP_1_1:1534267166520:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 15.324 ms), 11103 vertex reduces (in 8.355 ms), and activated 11103 vertices.
+I0814 10:19:26.706310 103283 gtimer.cpp:47] (159.289 ms) |default,65539:RESTPP_1_1:1534267166520:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 158.128 ms), 11103 vertex reduces (in 1.129 ms), and activated 11103 vertices.
+I0814 10:19:26.719002 103283 gtimer.cpp:47] (195.838 ms) |default,65539:RESTPP_1_1:1534267166520:NN,2000,|UDF::End
+I0814 10:19:26.719017 103283 serviceapi.cpp:564] Request|default,65539:RESTPP_1_1:1534267166520:NN,2000,|Stop_RunUDF|195ms
+I0814 10:19:26.719072 103283 enginejobrunner.cpp:266] Request|default,65539:RESTPP_1_1:1534267166520:NN,2000,|Finished in 198.11 ms|Response 41 bytes|Id conversion 0
+I0814 10:19:36.491186 103283 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 10:19:36.493115 103283 serviceapi.cpp:561] Request|default,131075:RESTPP_1_1:1534267176490:NN,2000,|Start_RunUDF
+I0814 10:19:36.493144 103283 gtimer.cpp:75] |default,131075:RESTPP_1_1:1534267176490:NN,2000,|UDF::Start
+I0814 10:19:36.493274 103283 gtimer.cpp:47] (0.117 ms) |default,131075:RESTPP_1_1:1534267176490:NN,2000,|UDF::Initialization
+I0814 10:19:36.514015 103283 gtimer.cpp:47] (20.747 ms) |default,131075:RESTPP_1_1:1534267176490:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 12.945 ms), 11103 vertex reduces (in 7.766 ms), and activated 11103 vertices.
+I0814 10:19:36.682181 103283 gtimer.cpp:47] (168.164 ms) |default,131075:RESTPP_1_1:1534267176490:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 167.033 ms), 11103 vertex reduces (in 1.1 ms), and activated 11103 vertices.
+I0814 10:19:36.696081 103283 gtimer.cpp:47] (202.932 ms) |default,131075:RESTPP_1_1:1534267176490:NN,2000,|UDF::End
+I0814 10:19:36.696096 103283 serviceapi.cpp:564] Request|default,131075:RESTPP_1_1:1534267176490:NN,2000,|Stop_RunUDF|202ms
+I0814 10:19:36.696143 103283 enginejobrunner.cpp:266] Request|default,131075:RESTPP_1_1:1534267176490:NN,2000,|Finished in 205.119 ms|Response 41 bytes|Id conversion 0
+I0814 10:19:37.097427 103283 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 10:19:37.099143 103283 serviceapi.cpp:561] Request|default,196612:RESTPP_1_1:1534267177096:NN,1999,|Start_RunUDF
+I0814 10:19:37.099166 103283 gtimer.cpp:75] |default,196612:RESTPP_1_1:1534267177096:NN,1999,|UDF::Start
+I0814 10:19:37.099280 103283 gtimer.cpp:47] (0.099 ms) |default,196612:RESTPP_1_1:1534267177096:NN,1999,|UDF::Initialization
+I0814 10:19:37.121785 103283 gtimer.cpp:47] (22.514 ms) |default,196612:RESTPP_1_1:1534267177096:NN,1999,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 15.903 ms), 11103 vertex reduces (in 6.582 ms), and activated 11103 vertices.
+I0814 10:19:37.284212 103283 gtimer.cpp:47] (162.415 ms) |default,196612:RESTPP_1_1:1534267177096:NN,1999,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 161.034 ms), 11103 vertex reduces (in 1.353 ms), and activated 11103 vertices.
+I0814 10:19:37.296862 103283 gtimer.cpp:47] (197.688 ms) |default,196612:RESTPP_1_1:1534267177096:NN,1999,|UDF::End
+I0814 10:19:37.296877 103283 serviceapi.cpp:564] Request|default,196612:RESTPP_1_1:1534267177096:NN,1999,|Stop_RunUDF|197ms
+I0814 10:19:37.296921 103283 enginejobrunner.cpp:266] Request|default,196612:RESTPP_1_1:1534267177096:NN,1999,|Finished in 199.612 ms|Response 41 bytes|Id conversion 0
+I0814 10:19:37.701572 103283 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 10:19:37.703831 103283 serviceapi.cpp:561] Request|default,4:RESTPP_1_1:1534267177701:NN,2000,|Start_RunUDF
+I0814 10:19:37.703866 103283 gtimer.cpp:75] |default,4:RESTPP_1_1:1534267177701:NN,2000,|UDF::Start
+I0814 10:19:37.704058 103283 gtimer.cpp:47] (0.177 ms) |default,4:RESTPP_1_1:1534267177701:NN,2000,|UDF::Initialization
+I0814 10:19:37.724989 103283 gtimer.cpp:47] (20.939 ms) |default,4:RESTPP_1_1:1534267177701:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 13.289 ms), 11103 vertex reduces (in 7.607 ms), and activated 11103 vertices.
+I0814 10:19:37.948930 103283 gtimer.cpp:47] (223.936 ms) |default,4:RESTPP_1_1:1534267177701:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 222.787 ms), 11103 vertex reduces (in 1.115 ms), and activated 11103 vertices.
+I0814 10:19:37.961843 103283 gtimer.cpp:47] (257.970 ms) |default,4:RESTPP_1_1:1534267177701:NN,2000,|UDF::End
+I0814 10:19:37.961876 103283 serviceapi.cpp:564] Request|default,4:RESTPP_1_1:1534267177701:NN,2000,|Stop_RunUDF|258ms
+I0814 10:19:37.961922 103283 enginejobrunner.cpp:266] Request|default,4:RESTPP_1_1:1534267177701:NN,2000,|Finished in 260.499 ms|Response 41 bytes|Id conversion 0
+I0814 10:19:38.355662 103283 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 10:19:38.357115 103283 serviceapi.cpp:561] Request|default,65540:RESTPP_1_1:1534267178355:NN,2000,|Start_RunUDF
+I0814 10:19:38.357142 103283 gtimer.cpp:75] |default,65540:RESTPP_1_1:1534267178355:NN,2000,|UDF::Start
+I0814 10:19:38.357261 103283 gtimer.cpp:47] (0.106 ms) |default,65540:RESTPP_1_1:1534267178355:NN,2000,|UDF::Initialization
+I0814 10:19:38.376680 103283 gtimer.cpp:47] (19.428 ms) |default,65540:RESTPP_1_1:1534267178355:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 12.472 ms), 11103 vertex reduces (in 6.924 ms), and activated 11103 vertices.
+I0814 10:19:38.537747 103283 gtimer.cpp:47] (161.058 ms) |default,65540:RESTPP_1_1:1534267178355:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 159.9 ms), 11103 vertex reduces (in 1.125 ms), and activated 11103 vertices.
+I0814 10:19:38.550453 103283 gtimer.cpp:47] (193.305 ms) |default,65540:RESTPP_1_1:1534267178355:NN,2000,|UDF::End
+I0814 10:19:38.550469 103283 serviceapi.cpp:564] Request|default,65540:RESTPP_1_1:1534267178355:NN,2000,|Stop_RunUDF|193ms
+I0814 10:19:38.550523 103283 enginejobrunner.cpp:266] Request|default,65540:RESTPP_1_1:1534267178355:NN,2000,|Finished in 194.977 ms|Response 41 bytes|Id conversion 0
+I0814 10:19:38.948575 103283 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 10:19:38.950079 103283 serviceapi.cpp:561] Request|default,131076:RESTPP_1_1:1534267178948:NN,2000,|Start_RunUDF
+I0814 10:19:38.950110 103283 gtimer.cpp:75] |default,131076:RESTPP_1_1:1534267178948:NN,2000,|UDF::Start
+I0814 10:19:38.950223 103283 gtimer.cpp:47] (0.099 ms) |default,131076:RESTPP_1_1:1534267178948:NN,2000,|UDF::Initialization
+I0814 10:19:38.969650 103283 gtimer.cpp:47] (19.437 ms) |default,131076:RESTPP_1_1:1534267178948:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 13.033 ms), 11103 vertex reduces (in 6.375 ms), and activated 11103 vertices.
+I0814 10:19:39.127388 103283 gtimer.cpp:47] (157.728 ms) |default,131076:RESTPP_1_1:1534267178948:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 156.593 ms), 11103 vertex reduces (in 1.104 ms), and activated 11103 vertices.
+I0814 10:19:39.140010 103283 gtimer.cpp:47] (189.890 ms) |default,131076:RESTPP_1_1:1534267178948:NN,2000,|UDF::End
+I0814 10:19:39.140024 103283 serviceapi.cpp:564] Request|default,131076:RESTPP_1_1:1534267178948:NN,2000,|Stop_RunUDF|189ms
+I0814 10:19:39.140067 103283 enginejobrunner.cpp:266] Request|default,131076:RESTPP_1_1:1534267178948:NN,2000,|Finished in 191.616 ms|Response 41 bytes|Id conversion 0
+I0814 10:19:42.651047 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:20:12.654256 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:20:42.657701 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:21:12.660987 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:21:42.664052 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:22:12.667282 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:22:42.670634 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:23:12.673810 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:23:42.677181 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:24:12.680485 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:24:42.683468 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:25:12.686574 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:25:42.689996 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:26:12.693265 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:26:42.696317 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:27:12.699503 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:27:41.455790 101235 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/INFO.20180813-144917.222539
+I0814 10:27:41.455919 101235 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/INFO.20180813-152221.9790
+I0814 10:27:41.456254 101235 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/WARNING.20180813-144917.222539
+I0814 10:27:41.456290 101235 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/WARNING.20180813-152221.9790
+I0814 10:27:41.456627 101235 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/ERROR.20180813-144917.222539
+I0814 10:27:41.456665 101235 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/ERROR.20180813-152221.9790
+I0814 10:27:42.702726 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:28:12.705960 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:28:42.709293 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:29:12.712599 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:29:42.715759 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:30:12.719060 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:30:42.722137 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:31:12.725160 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:31:42.728387 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:32:12.731809 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:32:42.735188 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:33:12.738193 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:33:42.741267 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:34:12.744325 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:34:42.747510 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:35:12.750533 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:35:42.753823 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:36:12.756810 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:36:42.759984 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:37:12.763411 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+W0814 10:37:41.600252 101239 command_cleaner.cpp:128] Fetch done command id failed. Rc:kNotFound
+I0814 10:37:42.766295 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:38:12.769325 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:38:42.772321 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:39:12.775487 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:39:42.778754 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:40:12.781970 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:40:42.784973 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:41:12.788188 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:41:42.791471 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:42:12.794680 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:42:42.797623 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:43:12.800555 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:43:42.803524 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:44:12.806533 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:44:42.809568 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:45:12.812566 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:45:42.815737 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:46:12.818809 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:46:42.821689 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:47:12.824715 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:47:42.827873 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:48:12.830747 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:48:42.833665 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:49:12.836624 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:49:42.839541 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:50:12.842483 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:50:42.845495 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:51:12.848417 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:51:42.851598 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:52:12.854595 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:52:42.857309 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:53:12.860313 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:53:42.863245 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:54:12.866333 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:54:42.869361 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:55:12.872306 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:55:42.875425 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:56:12.878466 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:56:42.881621 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:57:12.884548 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+W0814 10:57:41.599673 101239 command_cleaner.cpp:128] Fetch done command id failed. Rc:kNotFound
+I0814 10:57:42.887776 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:58:12.890874 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:58:42.893594 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:59:12.896559 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:59:42.899629 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:00:12.902891 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:00:42.905951 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:01:12.908937 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:01:42.912173 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:02:12.915166 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:02:42.918195 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:03:12.921409 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:03:42.924950 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:04:12.927903 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:04:42.931185 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:05:12.934490 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:05:42.938010 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:06:12.941023 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:06:42.943861 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:07:12.947098 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:07:42.950261 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:08:12.953238 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:08:42.956185 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:09:12.959252 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:09:42.962242 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:10:12.965360 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:10:42.968258 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:11:12.971280 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:11:42.974246 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:12:12.977319 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:12:42.980525 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:13:12.983373 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:13:42.986171 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:14:12.989004 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:14:42.991902 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:15:12.994725 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:15:43.001195 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:16:13.003965 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:16:43.006733 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:17:13.009490 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+W0814 11:17:41.599329 101239 command_cleaner.cpp:128] Fetch done command id failed. Rc:kNotFound
+I0814 11:17:43.012636 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:18:13.015601 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:18:43.018764 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:19:13.021736 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:19:43.024755 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:20:13.027667 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:20:43.030939 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:21:13.034133 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:21:43.037230 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:22:13.040274 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:22:43.043296 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:23:13.046330 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:23:43.049296 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:24:13.052333 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 11:24:43.055392 101274 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called

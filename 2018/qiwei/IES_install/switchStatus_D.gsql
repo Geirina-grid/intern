@@ -1,0 +1,31 @@
+drop query switchstatus_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query switchstatus_D ()
+for graph powerflow_graph {
+	
+    TYPEDEF TUPLE <string switch_name, string from_bus, string to_bus, string status, string startnode> row;
+	SetAccum<row> @@switch_List;
+	SumAccum<int> @@id = 0;
+	string switch_name;
+	string from_bus;
+	string to_bus;
+	string status;
+	string startnode;
+	
+	T0 = {switchnode_D.*};
+	T1 = SELECT s
+	FROM T0:s
+	  POST-ACCUM		  
+	    @@switch_List+= row(s.exId, s.from_bus, s.to_bus, s.switch_status, s.startnode);
+ 		  
+	foreach x in @@switch_List do
+	print  x.switch_name, x.from_bus, x.to_bus, x.status, x.startnode;
+	end;
+    
+		 
+}
+
+//install query switchstatus_D

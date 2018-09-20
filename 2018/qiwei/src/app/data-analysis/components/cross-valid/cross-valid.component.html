@@ -1,0 +1,67 @@
+<p-dialog header="请选择一个用户" [(visible)]="display" width=600 height=500 [(positionTop)]="top_position" 
+[(positionLeft)]="left_position">
+<div [ngStyle]="{'overflow': 'scroll', 'height':scroll_sh}">
+    <chart [options]="options2">
+       <series>
+        <point (select)="onPointSelect($event)"></point>
+      </series>
+    </chart>
+</div>
+</p-dialog>
+
+<div class="ui-g">
+    <div class="ui-g-4">
+        <div class="algoTab">
+            <p-tabView (onChange)="onTabChange($event)" styleClass="tabview">
+                <p-tabPanel header="视在功率"></p-tabPanel>
+                <p-tabPanel header="功率因数"></p-tabPanel>
+                <p-tabPanel header="电功"></p-tabPanel>
+            </p-tabView>
+        </div>
+    </div>
+    <div class="ui-g-4">
+        起始日期:
+        <p-calendar [(ngModel)]="sdate" [showIcon]="true" [defaultDate]="defaultDates"></p-calendar>
+    </div>
+    <div class="ui-g-4">
+        终止日期:
+        <p-calendar [(ngModel)]="edate" [showIcon]="true" [defaultDate]="defaultDatee"></p-calendar>
+    </div>
+    <div class="ui-g-5">
+        选择用户:
+        <p-dropdown [options]="types" [(ngModel)]="selectedType" placeholder="选择排序方式" 
+        (onChange)="onChangeType($event)" (onFocus)="onFocus($event)" (onBlur)="onBlur($event)"></p-dropdown>
+        &nbsp;&nbsp;或用户ID：
+        <p-dropdown [options]="meters" [(ngModel)]="user" [style]="{'width':'100px'}" editable="editable" placeholder="Select ID" (onChange)="onChangeUser($event)" ></p-dropdown>
+    </div>
+    <div class="ui-g-3">
+        选择相:
+        <p-dropdown [options]="phases" [(ngModel)]="selectedPhase" placeholder="选择相" 
+        (onChange)="onChangePhase($event)"></p-dropdown>
+    </div>
+    <div class="ui-g-4">
+        <button pButton type="button" label="展示" (click)="showres()" style="font-size: 1.1em"></button>
+    </div>
+    <div class="ui-g-9">
+        <chart type="StockChart" [options]="options">
+        </chart>
+    </div>
+    <div class="ui-g-3">
+        <div class="ui-g-12">
+            <p-dataTable [value]="statis" [metaKeySelection]="false" [paginator]="false">
+                <p-header>交叉检验总体统计信息</p-header>
+                <p-column field="name" header="统计量"></p-column>
+                <p-column field="value" header="数值"></p-column>
+            </p-dataTable>
+        </div>
+        <div class="ui-g-12">
+            <div style="text-align:right">
+                <p-dataTable #t1 [value]="diffrank_user" selectionMode="single" [metaKeySelection]="false" [paginator]="true" [rows]="10"
+                (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
+                    <p-header>差值排序</p-header>
+                    <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header" [sortable]="true"></p-column>
+                </p-dataTable>
+            </div>
+        </div>
+    </div>
+</div>

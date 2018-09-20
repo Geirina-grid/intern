@@ -1,0 +1,138 @@
+<div>
+    <div class="ui-g-12 ui-g-nopad">
+        <h2>训练新模型-模型训练参数设置</h2>
+    </div>
+    <div>
+        仪表编号: {{selectedmeter}}
+    </div>
+    <div class="ui-g-6 ui-g-nopad">
+        <h4>请选择训练数据的预处理参数</h4>
+        <div class=preprocessoptions>
+            <ul>
+                <li>
+                    <span>
+                        <b>定义负荷有效数据</b> 最小值:&nbsp;
+                        <input type="number" [(ngModel)]="outlierMin" style="width:90px;height:20px;border:1px solid #e6e6e6;text-align:center" /> &nbsp;&nbsp; &nbsp;&nbsp;最大值:
+                        <input type="number" [(ngModel)]="outlierMax" style="width:90px;height:20px;border:1px solid #e6e6e6;text-align:center" placeholder="Optional"
+                        />
+                    </span>
+                </li>
+                <li>
+                    <span>
+                        <b>训练数据时间范围</b>:
+                        <input type="text" name="daterangeInput" daterangepicker [options]="options" (selected)="selectedDate($event)"
+                        />
+                    </span>
+                </li>
+                <li>
+                    <span>
+                        <b>数据标准化方式:</b>
+                        <ul style="margin-top:0">
+                            <li>
+                                <span>
+                                    数值数据:
+                                    <p-dropdown [options]="scalerChoices" [(ngModel)]="numNormalizer" [style]="{'width':'110px','height':'23px','font-size':'12px','text-align':'center'}"></p-dropdown>
+                                </span>
+                            </li>
+                            <li>
+                                <span>
+                                    分类数据:
+                                    <p-dropdown [options]="scalerChoices" [(ngModel)]="catNormalizer" [style]="{'width':'110px','height':'23px','font-size':'12px','text-align':'center'}"></p-dropdown>
+                                </span>
+                            </li>
+                        </ul>
+                    </span>
+                </li>
+                <li>
+                    <b>特征选取:</b>
+                    <ul style="margin-top:0">
+                        <li>
+                            <span>
+                                时间特征:
+                                <p-multiSelect [options]="timeChoices" [(ngModel)]="timeFeatures" [showToggleAll]="true" [maxSelectedLabels]=2 [style]="{'width':'150px','height':'23px','font-size':'12px','text-align':'center', 'vertical-align':'middle'}"
+                                    autoWidth="false"></p-multiSelect>
+                            </span>
+                        </li>
+                        <li>
+                            <span>
+                                天气数据特征:
+                                <p-multiSelect [options]="weatherChoices" [(ngModel)]="weatherFeatures" [showToggleAll]="true" [maxSelectedLabels]=2 [style]="{'width':'150px','height':'23px','font-size':'12px','text-align':'center', 'vertical-align':'middle'}"
+                                    autoWidth="false"></p-multiSelect>
+                            </span>
+                        </li>
+                        <li>
+                            <span>
+                                历史负荷数据:
+                                <ul style="margin-top:0">
+                                    <li>
+                                        <span>
+                                            包含前n小时的负荷数据:
+                                            <input type="text" [(ngModel)]="prevhr" style="max-width:75%;height:20px;border:1px solid #e6e6e6;text-align:center" />
+                                        </span>
+                                    </li>
+                                    <li>
+                                        <span>
+                                            包含前n小时的平均负荷:
+                                            <input type="text" [(ngModel)]="prevhravg" style="max-width:90px;height:20px;border:1px solid #e6e6e6;text-align:center"
+                                                placeholder="Optional" />
+                                        </span>
+                                    </li>
+                                    <li>
+                                        <span>
+                                            包含前n小时的最大/最小负荷:
+                                            <input type="text" [(ngModel)]="prevhrmaxmin" style="width:90px;height:20px;border:1px solid #e6e6e6;text-align:center" placeholder="Optional"
+                                            />
+                                        </span>
+                                    </li>
+                                </ul>
+                            </span>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="ui-g-6 ui-g-nopad">
+        <h4>请选择训练模型参数</h4>
+        <div style="position:relative">
+            <div class="preprocessoptions">
+                <ul>
+                    <li>
+                        <b>负荷模型算法:</b>&nbsp;&nbsp;&nbsp;
+                        <p-dropdown [options]="models" [(ngModel)]="selectedModel" [style]="{'width':'230px'}" editable="editable" placeholder="Select model"></p-dropdown>
+                    </li>
+                    <li>
+                        <span>
+                            <b>最大训练时间:</b>&nbsp;&nbsp;&nbsp;
+                            <input type="number" [(ngModel)]="maxTrainTime" style="width:200px;height:20px;border:1px solid #e6e6e6;text-align:center"
+                                placeholder="Optional (unit:seconds)" />
+                        </span>
+                    </li>
+                    <li>
+                        <span>
+                            <b>训练所用处理器核数</b>&nbsp;&nbsp;&nbsp;
+                            <input type="number" [(ngModel)]="njobs" style="width:75px;height:20px;border:1px solid #e6e6e6;text-align:center" />
+                        </span>
+                    </li>
+                    <li>
+                        <b>Hyper Parameters设置:</b>
+                        <br>
+                        <form>
+                            <span>
+                                <input type="radio" [(ngModel)]="hyperParamSetting" value="0" checked="true" name="hyperParamSetting"> 使用默认值
+                            </span>
+                            <br>
+                            <span>
+                                <input type="radio" [(ngModel)]="hyperParamSetting" value="1" name="hyperParamSetting"> 通过交叉验证选择最优参数
+                            </span>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+    <div>
+        <button mat-raised-button color="primary" style="margin-left:85%" (click)="run()">开始训练</button>
+    </div>
+</div>

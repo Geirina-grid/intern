@@ -1,0 +1,20 @@
+<div style="max-width: 2000px; margin: 0 auto; overflow: hidden;">
+  <div class="ui-g">
+    <div class="ui-g-12 ui-g-nopad">
+      <!-- <div class="ui-g-12">
+        聚类数：
+        <input type="text" pInputText placeholder="" [(ngModel)]="nclus"> &emsp;&emsp;&emsp;
+        <button pButton type="button" style="font-size: 1.1em" label="运行算法" (click)="runal()"></button>
+      </div> -->
+      <p-dialog header="典型用电曲线kkk" [(visible)]="display" width=700 height=700>
+        <app-popup [options1]="options1" [options2]="options2" [clusterinfo]="clusterinfo" [userinfo]="userinfo"></app-popup>
+      </p-dialog>
+      <div *ngFor="let x of grid" [class]="x.size" style="text-align:center">
+        <chart [options]="x.options">
+          <series (click)="onSeriesSelect($event)">
+          </series>
+        </chart>
+      </div>
+    </div>
+  </div>
+</div>

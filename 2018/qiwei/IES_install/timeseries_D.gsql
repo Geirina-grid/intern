@@ -1,0 +1,40 @@
+drop query timeseries_D
+
+CREATE query timeseries_D (vertex<bus_D> nodepoint, string read_type) 
+for graph powerflow_graph api("v1") {
+        ListAccum<DATAOFDay> @timeseries_results;
+        ListAccum<VERTEX>  @date;
+		T1 = {DIndex.*};
+		
+        CASE WHEN (read_type=="voltA") THEN		
+          T0 = SELECT nodeid
+          FROM T1:daynode -(VoltageA:e)- :nodeid
+		  WHERE nodeid == nodepoint
+            ACCUM 
+                nodeid.@timeseries_results += e.voltageA,
+			    nodeid.@date += daynode;
+		END;
+		
+        CASE WHEN (read_type=="voltB") THEN		
+          T0 = SELECT nodeid
+          FROM T1:daynode -(VoltageB:e)- :nodeid
+		  WHERE nodeid == nodepoint
+            ACCUM 
+                nodeid.@timeseries_results += e.voltageB,
+			    nodeid.@date += daynode;
+		END;
+		
+        CASE WHEN (read_type=="voltC") THEN		
+          T0 = SELECT nodeid
+          FROM T1:daynode -(VoltageC:e)- :nodeid
+		  WHERE nodeid == nodepoint
+            ACCUM 
+                nodeid.@timeseries_results += e.voltageC,
+			    nodeid.@date += daynode;
+		END;
+		
+        print T0;
+}
+
+//install query -ui timeseries_D
+

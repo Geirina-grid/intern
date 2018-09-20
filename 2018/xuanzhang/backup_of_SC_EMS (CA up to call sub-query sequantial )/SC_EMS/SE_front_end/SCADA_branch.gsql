@@ -1,0 +1,81 @@
+// Developed for SCADA measurement page in state estimation front-end web
+// Developed by: Chen Yuan, chen.yuan@geirina.net
+// History:
+// 05/30/2018 [Chen Yuan] This query is created and developed for SCADA measurement visualization for branch info in EMS state estimation front-end web
+
+
+drop query SCADA_branch
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query SCADA_branch ()
+for graph gsql_EMS {
+	
+
+	ListAccum<edge> @@edgeList;
+	
+	T0 = {TopoND.*};
+	
+	 T0 = select t 
+      from T0:s -(topo_connect:e)->TopoND:t
+	  //WHERE s.island == 1 and t.island == 1
+	  accum
+		//double newG = 0,
+		//double newB = 0,
+		double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+		double tap_ratio_square = abs((e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount)),
+		// case when (e.transformer_final_turns_ratio == 0 or abs(e.transformer_final_turns_ratio) == 1) then
+			// s.@cal_P += s.M_Vm*t.M_Vm * (-1*e.G*cos((s.M_Va-t.M_Va)*@@PI/180) + e.B * sin((s.M_Va - t.M_Va)*@@PI/180)),
+			// s.@cal_Q += s.M_Vm*t.M_Vm * (-1*e.G*sin((s.M_Va-t.M_Va)*@@PI/180) - e.B * cos((s.M_Va - t.M_Va)*@@PI/180))
+			// //log(false, "e.B and e.G", s.exId, t.exId, e.G, e.B)
+		
+		// else
+			// newG = e.G/abs(tap_ratio),
+			// newB = e.B/abs(tap_ratio),
+			// s.@cal_P += s.M_Vm*t.M_Vm * (-1*newG*cos((s.M_Va-t.M_Va)*@@PI/180) + newB * sin((s.M_Va - t.M_Va)*@@PI/180)),
+			// s.@cal_Q += s.M_Vm*t.M_Vm * (-1*newG*sin((s.M_Va-t.M_Va)*@@PI/180) - newB * cos((s.M_Va - t.M_Va)*@@PI/180))
+			// //log(false, "e.B and e.G", s.exId, t.exId, newG, newB)             
+		// end,
+
+			//[Chen Yuan] Testing for Transmission Line Power Flow for Visualization
+			// Receiving end P = Vs*Vr*sin(theta_s - theta_r)/X, Q = Vs*(Vs-Vr)*cos(theta_s - theta_r)/X,
+			//e.P_TLPF = s.Vm * t.Vm * sin((s.Va - t.Va)*@@PI/180)* e.BIJ, // Transmission line active power flow
+			
+			// [Chen Yuan]
+			case when (e.transformer_final_turns_ratio == 0) then
+				e.P_TLPF = s.SE_Vm * t.SE_Vm * sin(s.SE_Va - t.SE_Va)* e.B + (s.SE_Vm*s.SE_Vm - s.SE_Vm*t.SE_Vm*cos(s.SE_Va - t.SE_Va)) * e.G,
+				e.Q_TLPF = - s.SE_Vm * s.SE_Vm * (-e.B + 0.5*e.hB) - s.SE_Vm * t.SE_Vm * (e.G*sin(s.SE_Va - t.SE_Va) - (-e.B)*cos(s.SE_Va - t.SE_Va))
+			when (e.transformer_final_turns_ratio > 0) then
+				e.P_TLPF = s.SE_Vm * s.SE_Vm * (e.G/tap_ratio_square) - s.SE_Vm * t.SE_Vm * ((e.G/tap_ratio)*cos(s.SE_Va - t.SE_Va) + (-e.B/tap_ratio)*sin(s.SE_Va - t.SE_Va)),
+				e.Q_TLPF = - s.SE_Vm * s.SE_Vm * (-e.B + 0.5*e.hB) / tap_ratio_square - s.SE_Vm * t.SE_Vm * ((e.G/tap_ratio)*sin(s.SE_Va - t.SE_Va) - (-e.B/tap_ratio)*cos(s.SE_Va - t.SE_Va))
+			else
+				e.P_TLPF = s.SE_Vm * s.SE_Vm * e.G - s.SE_Vm * t.SE_Vm * ((e.G/tap_ratio)*cos(s.SE_Va - t.SE_Va) + (-e.B/tap_ratio)*sin(s.SE_Va - t.SE_Va)),
+				e.Q_TLPF = - s.SE_Vm * s.SE_Vm * (-e.B + 0.5*e.hB) - s.SE_Vm * t.SE_Vm * ((e.G/tap_ratio)*sin(s.SE_Va - t.SE_Va) - (-e.B/tap_ratio)*cos(s.SE_Va - t.SE_Va))
+			end;
+			
+	
+	
+	// bus voltage and line list
+    T1 = SELECT s   
+	     FROM T0:s-(topo_connect:e)->TopoND:t
+		 where e.reverse == 1 //and s.island == 1 and t.island == 1
+		 ACCUM
+			e.edge_name = s.bus_name + "->" + t.bus_name,
+			@@edgeList += e,
+			case when (e.transformer_final_turns_ratio != 0) then
+				e.device_type = "变压器"
+			else
+				e.device_type = "AC传输线"
+			end;
+
+	
+	//end;
+	print @@edgeList;
+
+
+	
+		 
+}
+
+//install query SCADA_branch

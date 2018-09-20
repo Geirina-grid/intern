@@ -1,0 +1,123 @@
+drop query branchVio
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query branchVio()
+for graph gsql_EMS {
+	
+	TYPEDEF TUPLE <string edge_name, string Line_trans, string from_name, string to_name, int from_id, int to_id,double MVAmax1, double MVAmax2,double MVAmax3, double MVA, double P_TLPF, double Q_TLPF, double difference, double rating, int CI, string vio_type> branch_vio;
+	SumAccum<int> @@id = 0;
+	
+	ListAccum<branch_vio> @@branchVioList; 
+	MaxAccum<double> @@PI = 3.1415926535898;
+	
+
+	T0 = {TopoND.*};
+	
+	T0 = SELECT s   
+		FROM T0:s-(topo_connect:e)->TopoND:t
+		where e.reverse == 1 //and s.island == 1 and t.island == 1
+		ACCUM
+		e.edge_name = s.bus_name + "->" + t.bus_name,
+		//@@edgeList += e,
+		case when (e.transformer_final_turns_ratio != 0) then
+			e.device_type = "变压器"
+		else
+			e.device_type = "AC传输线"
+		end;
+	
+	T1 = SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t 
+	  accum 
+	  double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+	  double tap_ratio_square = abs((e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount)),
+			case when (e.transformer_final_turns_ratio == 0) then
+				e.P_TLPF = s.M_Vm * t.PF_Vm * sin((s.PF_Va - t.PF_Va)*@@PI/180)* e.B + (s.PF_Vm*s.PF_Vm - s.PF_Vm*t.PF_Vm*cos((s.PF_Va - t.PF_Va)*@@PI/180)) * e.G,
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) - s.PF_Vm * t.PF_Vm * (e.G*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			when (e.transformer_final_turns_ratio > 0) then
+				e.P_TLPF = s.PF_Vm * s.PF_Vm * (e.G/tap_ratio_square) - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) / tap_ratio_square - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			else
+				e.P_TLPF = s.PF_Vm * s.PF_Vm * e.G - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			end;	
+
+    T1 =SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t
+	  accum 
+	  		case when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.th and sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) < e.em) then
+		e.CI = 1
+		when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.em and sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) < e.sh) then
+		e.CI = 2
+		when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.sh) then
+		e.CI = 3
+		else e.CI = 0
+		end;			
+	
+	
+    T1 = SELECT s
+	      FROM T0:s-(topo_connect:e)-> TopoND:t
+		  where s.island == 1 and t.island == 1
+        //  where e.flag == 0
+        // where e.Min_tap != 0
+		  ACCUM 
+		    string Line_trans="None",
+			string vio_type="Normal",
+			double difference=0,
+			double rating=0,
+			double MVA=0,
+			double MVAmax1=150,
+			double MVAmax2=250,
+			double MVAmax3=350,
+			// log(true, s.exId, t.exId),
+			
+            int minValue = e.kcount - 1,
+            IF (minValue < 0) THEN
+                minValue = 0
+            END,
+		 
+            
+			MVA=sqrt(e.P_TLPF*e.P_TLPF+e.Q_TLPF*e.Q_TLPF)*100,
+			
+			
+			case when (MVA>MVAmax1 and MVA<MVAmax2) then
+	             vio_type="1级越限",
+				 difference=MVA-MVAmax1,
+				 rating=difference/MVAmax1*100
+				
+	        when (MVA>=MVAmax2 and MVA<MVAmax3) then
+	             vio_type="2级越限",
+				 difference=MVA-MVAmax2,
+			     rating=difference/MVAmax2*100
+				
+	        when (MVA>=MVAmax3) then
+	             vio_type="3级越限",
+				 difference=MVA-MVAmax3,
+			     rating=difference/MVAmax3*100
+				 
+	        end,
+			case when (e.flag == 0) then 
+			     Line_trans="线路"
+		    when (e.flag != 0) then
+			     Line_trans="变压器"
+			end,
+			FOREACH i in range[0, minValue] DO
+	         case when (vio_type != "Normal")  then
+		       @@branchVioList+= branch_vio(e.edge_name, Line_trans, s.bus_name,  t.bus_name, s.exId, t.exId, MVAmax1, MVAmax2, MVAmax3, MVA, e.P_TLPF, e.Q_TLPF, difference, rating, e.CI, vio_type)
+	         end
+			END
+			;
+			
+		  			
+			// log(true,@@edgeList);
+			
+	foreach x in @@branchVioList do       		
+			print x.edge_name, x.Line_trans, x.from_name, x.to_name, x.from_id, x.to_id, x.MVAmax1, x.MVAmax2, x.MVAmax3 ,x.MVA, x.difference, x.rating, x.vio_type;
+	
+	end;
+	
+	  //print @@branchVioList;		 
+}
+
+//install query branchVio

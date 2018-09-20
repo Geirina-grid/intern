@@ -1,0 +1,127 @@
+hr {
+    margin-bottom:0.5em;
+    margin-top:0.5em;
+}
+
+.charts {
+    width:68%;
+    position:relative;
+}
+
+.buttons {
+    margin-bottom:10px;
+}
+
+.tables {
+    width:32%;
+    text-align: center;
+    justify-content: center;
+}
+
+.modelselection {
+    display:inline;
+    padding-bottom:15px;
+}
+
+.confirmbutton {
+    font-size:1.2em;
+    text-align: right;
+    margin-top:0.5em;
+    /* position:absolute; */
+    /* top:0;
+    right:0; */
+    /* border: 1px solid black; */
+    /* width:100%; */
+}
+
+.trainchart {
+    width:100%;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+   opacity: 1;
+}
+
+.detailChart {
+    width:68%;
+    height:530px;
+    position:relative;
+}
+
+.detailTable {
+    width:32%;
+}
+
+.inlistbutton {
+    background-color: white;
+    border: none;
+    color: rgb(4, 111, 199);
+    padding: 0px 0px;
+    text-align: center;
+    text-decoration: underline;
+    display: inline-block;
+    margin: 0px 0px;
+    cursor: pointer;
+    font-style:italic;
+}
+
+.minerr {
+    margin-top:5px;
+}
+
+.maxerr {
+    margin:0
+}
+
+/* .header {
+    font-size:1.2em;
+    margin-top:5px;
+    margin-bottom:0.3em;
+    margin-left: 0px;
+    background-color: #f2f2f2;
+    border-radius: 10px;
+    padding-left:10px;
+    width:8em;
+}
+
+ul { 
+    display: block;
+    list-style-type: disc;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 40px;
+}
+
+.inlistbutton {
+    background-color: white;
+    border: none;
+    color: rgb(4, 111, 199);
+    padding: 0px 0px;
+    text-align: center;
+    text-decoration: underline;
+    display: inline-block;
+    margin: 0px 0px;
+    cursor: pointer;
+    font-style:italic;
+}
+
+.left .options .text {
+    font-size:1.2em;
+}
+
+.left .checkbox {
+    text-align:right;
+}
+
+#saveddetails {
+    margin-top:0.5em;
+    padding-left:40px;
+}
+
+.left .options {
+    font-size:1em;
+    margin-top:0px;
+} */

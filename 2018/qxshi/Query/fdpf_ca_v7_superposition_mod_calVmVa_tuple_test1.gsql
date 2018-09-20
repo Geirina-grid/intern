@@ -1,0 +1,101 @@
+// **********************************************************************************************************************************
+// Developed by: Yiting Zhao, yitingzhao6777@gmail.com
+// Version 7 (testing version) *require schema version flowSchema_CA.ddl
+// History:
+// 03/28/2018 [Yiting Zhao] 
+// 1.	Implemented superposition method in GSQL
+// 2.	Directly call ExprFunction “fdpf_ca_superposition_solve7”, in the Accum-Block of main query for higher parallel efficiency. 
+// 3.	All the required input data has been saved in Status Graph of base case. It minimizes the input data convert and processing from GSQL to ExprFunction.
+// 4.	These three function are screening the CA scenarios, which meet two conditions: 1) Transmission line power flow is not zero; 2) No islanding.
+// **********************************************************************************************************************************
+
+// Drop previous queries
+drop query fdpf_ca_v7_superposition_tuple
+
+// ================================================================================
+//		                          Main Function of the Code
+// ================================================================================
+// for test single CA mode
+// create query fdpf_ca_v7_superposition (int from_bus, int to_bus, double max_change_in, int InMaxIteration, string outputFile, double max_deltaP)
+// for test parallel mode
+// create query fdpf_ca_v7_superposition (double max_change_in, int InMaxIteration, string outputFile, double max_deltaP)
+create query fdpf_ca_v7_superposition_tuple ()
+for graph gsql_EMS {
+  
+// ---------------------------------------------------------------------------------
+// 				Define variables and arrays
+// ---------------------------------------------------------------------------------
+
+//   MapAccum<string, double> @@ca_result;
+   // MapAccum<int, double> @@ca_result;
+   ListAccum<ca_linedetail> @@ca_result;
+   ListAccum<bool> @@edgeDecision;
+   SumAccum<double> @@deltaP_vt;
+   MaxAccum<double> @@non_linear_S;
+   MaxAccum<double> @@PI = 3.1415926535898;
+  //string line_name;
+  //T1 = {CAParams.*};
+  T0= {TopoND.*};   //start from all grid vertices in the graph
+
+  log(true, "============ CA-superposition_solve start here =================");	
+  T0 = select v
+     from  T0:v-(topo_connect:e)->TopoND:t
+	 // where (v.exId == from_bus and t.exId == to_bus)  // for test single CA mode
+	 where (v.exId > t.exId) and (e.Decision == true) and (v.island == 1 and t.island == 1)  // test parallel mode
+     accum 	 
+	       // e.CA = 0,
+		   double deltaP_vt = 0,
+		   double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+		   double tap_ratio_square = (e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount),
+		   double delta_eB = 0,
+		   double deltaPhi = (v.PF_Va - t.PF_Va)*@@PI/180,
+		   double BranchViolation = 0,
+		   string line_name = "",
+		   		   
+	    // Transmission line active power flow
+		case when (e.transformer_final_turns_ratio == 0) then
+			  delta_eB = e.B,
+			    deltaP_vt = v.PF_Vm * v.PF_Vm * e.G - v.PF_Vm * t.PF_Vm * (e.G*cos(v.PF_Va - t.PF_Va) + (-e.B)*sin(v.PF_Va - t.PF_Va))
+		  when (e.transformer_final_turns_ratio > 0) then
+			  delta_eB = e.B/tap_ratio,
+		        deltaP_vt = v.PF_Vm * v.PF_Vm * (e.G/tap_ratio_square) - v.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos(v.PF_Va - t.PF_Va) + (-e.B/tap_ratio)*sin(v.PF_Va - t.PF_Va))
+		  else
+			  delta_eB = e.B/tap_ratio,
+			    deltaP_vt = v.PF_Vm * v.PF_Vm * e.G - v.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos(v.PF_Va - t.PF_Va) + (-e.B/tap_ratio)*sin(v.PF_Va - t.PF_Va))
+		  end,
+		  // log(false, "CA: from--to", v.exId, t.exId, deltaP_vt, deltaP_tv, e.CA_bridge, e.mainland_side, delta_sumG, delta_sumB,delta_sumBi),
+//		log(true, deltaPhi),
+//		log(true, v.PF_Vm, t.PF_Vm, v.PF_Va, t.PF_Va),
+ 	
+		if (deltaP_vt != 0 and e.CA_bridge == 0) then 		  
+		    @@ca_result += fdpf_ca_superposition_solve7 (v.exId, t.exId, deltaPhi, delta_eB)
+ //          BranchViolation = fdpf_ca_superposition_solve7 (v.exId, t.exId, deltaPhi, delta_eB),
+//	       case when (BranchViolation != 0) then
+//		   line_name = ToString(v.exId) + "-" + ToString(t.exId),
+//	       @@ca_result += (line_name-> BranchViolation),
+//	       log(true, v.exId, t.exId, BranchViolation)
+	       //@@ca_result += (v.exId*1000000+t.exId-> BranchViolation)
+			   // log(true, "CA-superposition:", v.exId, t.exId, deltaP_vt, deltaP_tv, e.CA_bridge, e.mainland_side)
+//		end
+	 end
+  ;
+  T2= {TopoND.*};
+  T2 = select v
+      from  T2:v-(topo_connect:e)-:t
+       where (v.exId > t.exId)
+      accum
+	@@edgeDecision += e.Decision;
+// log(true, "============ CA finished =================");
+
+  print @@ca_result;
+//  print @@edgeDecision;
+
+ // print T1[T1.PwViol, T1.VoltViol, T1.MwTol, T1.MvarTol, T1.VoltMgnTol, T1.VoltPhaTol, T1.max_change_in, T1.max_deltaP];
+ // print T0[T0.exId] > outputFile;
+}
+
+install query -ui fdpf_ca_v7_superposition_tuple
+//install query -optimize
+
+
+

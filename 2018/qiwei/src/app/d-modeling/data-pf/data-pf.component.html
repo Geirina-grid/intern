@@ -1,0 +1,95 @@
+<div #mainScreen class="text-center">
+    <div class="rectangle" id="left" [ngStyle]="style_left" mwlResizable [resizeEdges]="{bottom: false, right: true, top: false, left: false}"
+      [enableGhostResize]="true" (resizeEnd)="onResizeEnd_left($event)" [validateResize]="validate_left">
+      <div class="pad">
+         <app-checklist (itemClickedEvent)="itemClicked($event)" (itemClickedEvent3)="regulatorClicked()" title="调压器" [show]="showRegulator" [listArray]="regulatorList" ></app-checklist>
+        <app-checklist (itemClickedEvent)="itemClicked($event)" (itemClickedEvent2)="itemClicked2($event)" (itemClickedEvent3)="lineClicked()" title="线路" [show]="showLine" [listArray]="lineList"></app-checklist>       
+        <app-checklist (itemClickedEvent)="itemClicked($event)" (itemClickedEvent2)="itemClicked2($event)" (itemClickedEvent3)="svcClicked()" title="电容器" [show]="showSVC" [listArray]="SVCList"></app-checklist>       
+        <app-checklist (itemClickedEvent)="itemClicked($event)" (itemClickedEvent3)="loadClicked()" (itemClickedEvent2)="itemClicked2($event)" title="负荷" [show]="showLoad" [listArray]="loadList"></app-checklist> 
+        <app-checklist (itemClickedEvent)="itemClicked($event)" (itemClickedEvent2)="itemClicked2($event)" (itemClickedEvent3)="batteryClicked()" title="新能源" [show]="showBattery" [listArray]="batteryList"></app-checklist>       
+        <app-checklist (itemClickedEvent)="itemClicked($event)" (itemClickedEvent3)="switchClicked()" title="开关" [show]="showSwitch" [listArray]="switchList"></app-checklist>         
+      </div>
+      
+      <div class="sidebar buttons">
+        <button mat-button id="resetbtn" (click)="reset()">重置</button>
+        <button mat-button id="applybtn" (click)="loadData()">应用</button>
+      </div>
+      </div>
+
+      <div class="rectangle" id="right" [ngStyle]="style_right" mwlResizable [resizeEdges]="{bottom: false, right: false, top: false, left: false}"
+      [enableGhostResize]="true" #rightScreen>
+
+      <div class="content">
+
+          <div class="rectangle" id="top" [ngStyle]="style_top" mwlResizable [resizeEdges]="{bottom: true, right: false, top: false, left: false}"
+          [enableGhostResize]="true" (resizeEnd)="onResizeEnd_top($event)">
+
+        <div class="title">
+          <h1 class="h1">&nbsp;&nbsp;潮流计算输入</h1>
+        </div>
+        <div class="ui-g" #chartView>
+            <div class="rectangle" id="uig_left" [ngStyle]="style_uig_left" mwlResizable [resizeEdges]="{bottom: true, right: true, top: false, left: false}"
+                [enableGhostResize]="true" (resizeEnd)="onResizeEnd_uig_left($event)">
+        <div class="ui-g-8"  #mapre>    <app-draw-line (ppclick)="summaryinfor()"></app-draw-line> 
+
+          <img
+              src="http://i.imgur.com/eqzz2dl.gif"
+              class="resize-handle"
+              mwlResizeHandle
+              [resizeEdges]="{bottom: true, right: true}">
+        </div>
+            </div>
+                    <div class="rectangle" id="uig_right" [ngStyle]="style_uig_right" mwlResizable [resizeEdges]="{bottom: false, right: false, top: false, left: false}"
+                    [enableGhostResize]="true">
+                        <div class="ui-g-4">
+                                <div style="text-align:right">
+                                        <p-dataTable  #dt [value]="sumarrys" exportFilename="System Summary">
+                                            <p-header>
+                                                <div class="ui-helper-clearfix">潮流计算总览</div> 
+                                            </p-header>
+                                            <!-- <p-column field="StartTime" header="仿真开始时间" [sortable]="true"></p-column>
+                                            <p-column field="EndTIme" header="仿真结束时间" [sortable]="true"></p-column> -->
+                                            <p-column field="TimeStep" header="仿真步长" [sortable]="true"></p-column>
+                                            <!-- <p-column field="PFmethod" header="潮流方法" [sortable]="true"></p-column> -->
+                                            <p-column field="Convergence" header="收敛精度" [sortable]="true"></p-column>
+                                            <p-column field="NVoltage" header="额定电压" [sortable]="true"></p-column>
+                                          </p-dataTable>
+
+                                          <p-dataTable #dt [value]="sumarrys" exportFilename="System Summary">
+                                              <p-header>
+                                                  <div class="ui-helper-clearfix">系统总览</div> 
+                                              </p-header>
+                                              <p-column field="Sys_id" header="系统名" [sortable]="true"></p-column>
+                                              <p-column field="NoBS" header="节点数量" [sortable]="true"></p-column>
+                                              <p-column field="NoLN" header="线路数量" [sortable]="true"></p-column>
+                                              <p-column field="NoLD" header="负荷数量" [sortable]="true"></p-column>
+                                              <p-column field="NoPV" header="PV数量" [sortable]="true"></p-column>
+                                              <p-column field="NoWG" header="WG数量" [sortable]="true"></p-column>
+                                              <p-column field="NoES" header="ES数量" [sortable]="true"></p-column>
+
+
+                                         </p-dataTable>
+                                         <chart [options]="options1">
+                                        </chart>
+                                    </div>
+                                    <div *ngIf="ifshowS" id="containerS"></div>
+
+                        </div>
+
+                  </div>
+                </div>
+              </div>
+            <div class="rectangle" id="bottom" [ngStyle]="style_bottom" mwlResizable [resizeEdges]="{bottom: false, right: false, top: false, left: false}"
+            [enableGhostResize]="true">
+
+        <div style="z-index: 1000" class="ta">
+            <app-data-table (ClumnClicked)="test()" [dataSource]="dataSource" [displayedColumns]="displayedColumns" [columns]="columns"></app-data-table>
+            <!-- </div>   -->
+        </div>
+        
+
+      </div>
+    </div>
+  </div>
+  
+  </div>

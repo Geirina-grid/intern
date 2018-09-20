@@ -1,0 +1,212 @@
+I0814 09:37:58.033195 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:37:58.036151 62234 serviceapi.cpp:561] Request|default,131073:RESTPP_1_1:1534264678032:NN,2000,|Start_RunUDF
+I0814 09:37:58.036188 62234 gtimer.cpp:75] |default,131073:RESTPP_1_1:1534264678032:NN,2000,|UDF::Start
+I0814 09:37:58.036341 62234 gtimer.cpp:47] (0.136 ms) |default,131073:RESTPP_1_1:1534264678032:NN,2000,|UDF::Initialization
+I0814 09:37:58.064676 62234 gtimer.cpp:47] (28.342 ms) |default,131073:RESTPP_1_1:1534264678032:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 19.772 ms), 11103 vertex reduces (in 8.548 ms), and activated 11103 vertices.
+I0814 09:37:58.142055 62234 gtimer.cpp:47] (77.377 ms) |default,131073:RESTPP_1_1:1534264678032:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 75.902 ms), 11103 vertex reduces (in 1.442 ms), and activated 11103 vertices.
+I0814 09:37:58.142088 62234 gtimer.cpp:47] (105.896 ms) |default,131073:RESTPP_1_1:1534264678032:NN,2000,|UDF::End
+I0814 09:37:58.142099 62234 serviceapi.cpp:564] Request|default,131073:RESTPP_1_1:1534264678032:NN,2000,|Stop_RunUDF|105ms
+I0814 09:37:58.142714 62234 enginejobrunner.cpp:266] Request|default,131073:RESTPP_1_1:1534264678032:NN,2000,|Finished in 109.192 ms|Response 65 bytes|Id conversion 0
+I0814 09:37:58.324368 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:37:58.538622 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:37:58.540561 62234 serviceapi.cpp:561] Request|default,196610:RESTPP_1_1:1534264678538:NN,2000,|Start_RunUDF
+I0814 09:37:58.540587 62234 gtimer.cpp:75] |default,196610:RESTPP_1_1:1534264678538:NN,2000,|UDF::Start
+I0814 09:37:58.540719 62234 gtimer.cpp:47] (0.116 ms) |default,196610:RESTPP_1_1:1534264678538:NN,2000,|UDF::Initialization
+I0814 09:37:58.563822 62234 gtimer.cpp:47] (23.113 ms) |default,196610:RESTPP_1_1:1534264678538:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 15.057 ms), 11103 vertex reduces (in 8.034 ms), and activated 11103 vertices.
+I0814 09:37:58.638500 62234 gtimer.cpp:47] (74.670 ms) |default,196610:RESTPP_1_1:1534264678538:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 73.219 ms), 11103 vertex reduces (in 1.42 ms), and activated 11103 vertices.
+I0814 09:37:58.638527 62234 gtimer.cpp:47] (97.936 ms) |default,196610:RESTPP_1_1:1534264678538:NN,2000,|UDF::End
+I0814 09:37:58.638537 62234 serviceapi.cpp:564] Request|default,196610:RESTPP_1_1:1534264678538:NN,2000,|Stop_RunUDF|97ms
+I0814 09:37:58.638598 62234 enginejobrunner.cpp:266] Request|default,196610:RESTPP_1_1:1534264678538:NN,2000,|Finished in 100.122 ms|Response 65 bytes|Id conversion 0
+I0814 09:37:59.047365 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:37:59.048959 62234 serviceapi.cpp:561] Request|default,2:RESTPP_1_1:1534264679046:NN,1999,|Start_RunUDF
+I0814 09:37:59.048983 62234 gtimer.cpp:75] |default,2:RESTPP_1_1:1534264679046:NN,1999,|UDF::Start
+I0814 09:37:59.049113 62234 gtimer.cpp:47] (0.114 ms) |default,2:RESTPP_1_1:1534264679046:NN,1999,|UDF::Initialization
+I0814 09:37:59.072082 62234 gtimer.cpp:47] (22.980 ms) |default,2:RESTPP_1_1:1534264679046:NN,1999,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 14.966 ms), 11103 vertex reduces (in 7.992 ms), and activated 11103 vertices.
+I0814 09:37:59.145817 62234 gtimer.cpp:47] (73.722 ms) |default,2:RESTPP_1_1:1534264679046:NN,1999,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 72.322 ms), 11103 vertex reduces (in 1.364 ms), and activated 11103 vertices.
+I0814 09:37:59.145848 62234 gtimer.cpp:47] (96.859 ms) |default,2:RESTPP_1_1:1534264679046:NN,1999,|UDF::End
+I0814 09:37:59.145864 62234 serviceapi.cpp:564] Request|default,2:RESTPP_1_1:1534264679046:NN,1999,|Stop_RunUDF|96ms
+I0814 09:37:59.145926 62234 enginejobrunner.cpp:266] Request|default,2:RESTPP_1_1:1534264679046:NN,1999,|Finished in 98.708 ms|Response 65 bytes|Id conversion 0
+I0814 09:37:59.576833 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:37:59.578408 62234 serviceapi.cpp:561] Request|default,65538:RESTPP_1_1:1534264679576:NN,2000,|Start_RunUDF
+I0814 09:37:59.578433 62234 gtimer.cpp:75] |default,65538:RESTPP_1_1:1534264679576:NN,2000,|UDF::Start
+I0814 09:37:59.578563 62234 gtimer.cpp:47] (0.116 ms) |default,65538:RESTPP_1_1:1534264679576:NN,2000,|UDF::Initialization
+I0814 09:37:59.600699 62234 gtimer.cpp:47] (22.146 ms) |default,65538:RESTPP_1_1:1534264679576:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 14.219 ms), 11103 vertex reduces (in 7.903 ms), and activated 11103 vertices.
+I0814 09:37:59.674819 62234 gtimer.cpp:47] (74.110 ms) |default,65538:RESTPP_1_1:1534264679576:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 72.815 ms), 11103 vertex reduces (in 1.257 ms), and activated 11103 vertices.
+I0814 09:37:59.674856 62234 gtimer.cpp:47] (96.418 ms) |default,65538:RESTPP_1_1:1534264679576:NN,2000,|UDF::End
+I0814 09:37:59.674866 62234 serviceapi.cpp:564] Request|default,65538:RESTPP_1_1:1534264679576:NN,2000,|Stop_RunUDF|96ms
+I0814 09:37:59.674927 62234 enginejobrunner.cpp:266] Request|default,65538:RESTPP_1_1:1534264679576:NN,2000,|Finished in 98.238 ms|Response 65 bytes|Id conversion 0
+I0814 09:38:00.088775 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:38:00.090346 62234 serviceapi.cpp:561] Request|default,131074:RESTPP_1_1:1534264680088:NN,2000,|Start_RunUDF
+I0814 09:38:00.090371 62234 gtimer.cpp:75] |default,131074:RESTPP_1_1:1534264680088:NN,2000,|UDF::Start
+I0814 09:38:00.090502 62234 gtimer.cpp:47] (0.115 ms) |default,131074:RESTPP_1_1:1534264680088:NN,2000,|UDF::Initialization
+I0814 09:38:00.113006 62234 gtimer.cpp:47] (22.515 ms) |default,131074:RESTPP_1_1:1534264680088:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 14.554 ms), 11103 vertex reduces (in 7.939 ms), and activated 11103 vertices.
+I0814 09:38:00.187659 62234 gtimer.cpp:47] (74.640 ms) |default,131074:RESTPP_1_1:1534264680088:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 72.083 ms), 11103 vertex reduces (in 2.523 ms), and activated 11103 vertices.
+I0814 09:38:00.187696 62234 gtimer.cpp:47] (97.316 ms) |default,131074:RESTPP_1_1:1534264680088:NN,2000,|UDF::End
+I0814 09:38:00.188814 62234 serviceapi.cpp:564] Request|default,131074:RESTPP_1_1:1534264680088:NN,2000,|Stop_RunUDF|98ms
+I0814 09:38:00.188886 62234 enginejobrunner.cpp:266] Request|default,131074:RESTPP_1_1:1534264680088:NN,2000,|Finished in 100.253 ms|Response 65 bytes|Id conversion 0
+I0814 09:38:00.606504 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:38:00.608084 62234 serviceapi.cpp:561] Request|default,196611:RESTPP_1_1:1534264680605:NN,1999,|Start_RunUDF
+I0814 09:38:00.608109 62234 gtimer.cpp:75] |default,196611:RESTPP_1_1:1534264680605:NN,1999,|UDF::Start
+I0814 09:38:00.608238 62234 gtimer.cpp:47] (0.113 ms) |default,196611:RESTPP_1_1:1534264680605:NN,1999,|UDF::Initialization
+I0814 09:38:00.630489 62234 gtimer.cpp:47] (22.262 ms) |default,196611:RESTPP_1_1:1534264680605:NN,1999,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 14.397 ms), 11103 vertex reduces (in 7.844 ms), and activated 11103 vertices.
+I0814 09:38:00.703480 62234 gtimer.cpp:47] (72.981 ms) |default,196611:RESTPP_1_1:1534264680605:NN,1999,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 71.501 ms), 11103 vertex reduces (in 1.447 ms), and activated 11103 vertices.
+I0814 09:38:00.703507 62234 gtimer.cpp:47] (95.394 ms) |default,196611:RESTPP_1_1:1534264680605:NN,1999,|UDF::End
+I0814 09:38:00.703516 62234 serviceapi.cpp:564] Request|default,196611:RESTPP_1_1:1534264680605:NN,1999,|Stop_RunUDF|95ms
+I0814 09:38:00.703567 62234 enginejobrunner.cpp:266] Request|default,196611:RESTPP_1_1:1534264680605:NN,1999,|Finished in 97.207 ms|Response 65 bytes|Id conversion 0
+I0814 09:38:01.117969 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:38:01.119403 62234 serviceapi.cpp:561] Request|default,3:RESTPP_1_1:1534264681117:NN,2000,|Start_RunUDF
+I0814 09:38:01.119433 62234 gtimer.cpp:75] |default,3:RESTPP_1_1:1534264681117:NN,2000,|UDF::Start
+I0814 09:38:01.119560 62234 gtimer.cpp:47] (0.112 ms) |default,3:RESTPP_1_1:1534264681117:NN,2000,|UDF::Initialization
+I0814 09:38:01.142510 62234 gtimer.cpp:47] (22.962 ms) |default,3:RESTPP_1_1:1534264681117:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 14.74 ms), 11103 vertex reduces (in 8.197 ms), and activated 11103 vertices.
+I0814 09:38:01.215526 62234 gtimer.cpp:47] (73.007 ms) |default,3:RESTPP_1_1:1534264681117:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 71.626 ms), 11103 vertex reduces (in 1.353 ms), and activated 11103 vertices.
+I0814 09:38:01.215553 62234 gtimer.cpp:47] (96.117 ms) |default,3:RESTPP_1_1:1534264681117:NN,2000,|UDF::End
+I0814 09:38:01.215562 62234 serviceapi.cpp:564] Request|default,3:RESTPP_1_1:1534264681117:NN,2000,|Stop_RunUDF|96ms
+I0814 09:38:01.215617 62234 enginejobrunner.cpp:266] Request|default,3:RESTPP_1_1:1534264681117:NN,2000,|Finished in 97.79 ms|Response 65 bytes|Id conversion 0
+I0814 09:38:16.682111 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:38:16.683593 62234 serviceapi.cpp:561] Request|default,65539:RESTPP_1_1:1534264696681:NN,2000,|Start_RunUDF
+I0814 09:38:16.683620 62234 gtimer.cpp:75] |default,65539:RESTPP_1_1:1534264696681:NN,2000,|UDF::Start
+I0814 09:38:16.683748 62234 gtimer.cpp:47] (0.113 ms) |default,65539:RESTPP_1_1:1534264696681:NN,2000,|UDF::Initialization
+I0814 09:38:16.708180 62234 gtimer.cpp:47] (24.442 ms) |default,65539:RESTPP_1_1:1534264696681:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 16.508 ms), 11103 vertex reduces (in 7.909 ms), and activated 11103 vertices.
+I0814 09:38:16.781283 62234 gtimer.cpp:47] (73.095 ms) |default,65539:RESTPP_1_1:1534264696681:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 71.861 ms), 11103 vertex reduces (in 1.207 ms), and activated 11103 vertices.
+I0814 09:38:16.781311 62234 gtimer.cpp:47] (97.686 ms) |default,65539:RESTPP_1_1:1534264696681:NN,2000,|UDF::End
+I0814 09:38:16.781321 62234 serviceapi.cpp:564] Request|default,65539:RESTPP_1_1:1534264696681:NN,2000,|Stop_RunUDF|97ms
+I0814 09:38:16.781371 62234 enginejobrunner.cpp:266] Request|default,65539:RESTPP_1_1:1534264696681:NN,2000,|Finished in 99.399 ms|Response 65 bytes|Id conversion 0
+I0814 09:38:17.187769 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:38:17.189170 62234 serviceapi.cpp:561] Request|default,131075:RESTPP_1_1:1534264697187:NN,2000,|Start_RunUDF
+I0814 09:38:17.189196 62234 gtimer.cpp:75] |default,131075:RESTPP_1_1:1534264697187:NN,2000,|UDF::Start
+I0814 09:38:17.189327 62234 gtimer.cpp:47] (0.115 ms) |default,131075:RESTPP_1_1:1534264697187:NN,2000,|UDF::Initialization
+I0814 09:38:17.210517 62234 gtimer.cpp:47] (21.200 ms) |default,131075:RESTPP_1_1:1534264697187:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 13.574 ms), 11103 vertex reduces (in 7.593 ms), and activated 11103 vertices.
+I0814 09:38:17.283282 62234 gtimer.cpp:47] (72.758 ms) |default,131075:RESTPP_1_1:1534264697187:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 71.559 ms), 11103 vertex reduces (in 1.172 ms), and activated 11103 vertices.
+I0814 09:38:17.283308 62234 gtimer.cpp:47] (94.108 ms) |default,131075:RESTPP_1_1:1534264697187:NN,2000,|UDF::End
+I0814 09:38:17.283318 62234 serviceapi.cpp:564] Request|default,131075:RESTPP_1_1:1534264697187:NN,2000,|Stop_RunUDF|94ms
+I0814 09:38:17.283365 62234 enginejobrunner.cpp:266] Request|default,131075:RESTPP_1_1:1534264697187:NN,2000,|Finished in 95.723 ms|Response 65 bytes|Id conversion 0
+I0814 09:38:17.687121 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:38:17.688542 62234 serviceapi.cpp:561] Request|default,196612:RESTPP_1_1:1534264697686:NN,2000,|Start_RunUDF
+I0814 09:38:17.688567 62234 gtimer.cpp:75] |default,196612:RESTPP_1_1:1534264697686:NN,2000,|UDF::Start
+I0814 09:38:17.688700 62234 gtimer.cpp:47] (0.121 ms) |default,196612:RESTPP_1_1:1534264697686:NN,2000,|UDF::Initialization
+I0814 09:38:17.710559 62234 gtimer.cpp:47] (21.867 ms) |default,196612:RESTPP_1_1:1534264697686:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 14.225 ms), 11103 vertex reduces (in 7.611 ms), and activated 11103 vertices.
+I0814 09:38:17.782634 62234 gtimer.cpp:47] (72.068 ms) |default,196612:RESTPP_1_1:1534264697686:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 70.875 ms), 11103 vertex reduces (in 1.166 ms), and activated 11103 vertices.
+I0814 09:38:17.782665 62234 gtimer.cpp:47] (94.094 ms) |default,196612:RESTPP_1_1:1534264697686:NN,2000,|UDF::End
+I0814 09:38:17.782675 62234 serviceapi.cpp:564] Request|default,196612:RESTPP_1_1:1534264697686:NN,2000,|Stop_RunUDF|94ms
+I0814 09:38:17.782722 62234 enginejobrunner.cpp:266] Request|default,196612:RESTPP_1_1:1534264697686:NN,2000,|Finished in 95.732 ms|Response 65 bytes|Id conversion 0
+I0814 09:38:18.197002 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:38:18.198477 62234 serviceapi.cpp:561] Request|default,4:RESTPP_1_1:1534264698196:NN,2000,|Start_RunUDF
+I0814 09:38:18.198503 62234 gtimer.cpp:75] |default,4:RESTPP_1_1:1534264698196:NN,2000,|UDF::Start
+I0814 09:38:18.198638 62234 gtimer.cpp:47] (0.121 ms) |default,4:RESTPP_1_1:1534264698196:NN,2000,|UDF::Initialization
+I0814 09:38:18.220464 62234 gtimer.cpp:47] (21.835 ms) |default,4:RESTPP_1_1:1534264698196:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 13.991 ms), 11103 vertex reduces (in 7.81 ms), and activated 11103 vertices.
+I0814 09:38:18.293860 62234 gtimer.cpp:47] (73.378 ms) |default,4:RESTPP_1_1:1534264698196:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 72.152 ms), 11103 vertex reduces (in 1.187 ms), and activated 11103 vertices.
+I0814 09:38:18.293887 62234 gtimer.cpp:47] (95.382 ms) |default,4:RESTPP_1_1:1534264698196:NN,2000,|UDF::End
+I0814 09:38:18.293897 62234 serviceapi.cpp:564] Request|default,4:RESTPP_1_1:1534264698196:NN,2000,|Stop_RunUDF|95ms
+I0814 09:38:18.293946 62234 enginejobrunner.cpp:266] Request|default,4:RESTPP_1_1:1534264698196:NN,2000,|Finished in 97.089 ms|Response 65 bytes|Id conversion 0
+I0814 09:38:18.695430 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:38:18.696890 62234 serviceapi.cpp:561] Request|default,65540:RESTPP_1_1:1534264698694:NN,1999,|Start_RunUDF
+I0814 09:38:18.696914 62234 gtimer.cpp:75] |default,65540:RESTPP_1_1:1534264698694:NN,1999,|UDF::Start
+I0814 09:38:18.697051 62234 gtimer.cpp:47] (0.122 ms) |default,65540:RESTPP_1_1:1534264698694:NN,1999,|UDF::Initialization
+I0814 09:38:18.719184 62234 gtimer.cpp:47] (22.142 ms) |default,65540:RESTPP_1_1:1534264698694:NN,1999,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 13.762 ms), 11103 vertex reduces (in 8.336 ms), and activated 11103 vertices.
+I0814 09:38:18.791743 62234 gtimer.cpp:47] (72.550 ms) |default,65540:RESTPP_1_1:1534264698694:NN,1999,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 71.354 ms), 11103 vertex reduces (in 1.161 ms), and activated 11103 vertices.
+I0814 09:38:18.791769 62234 gtimer.cpp:47] (94.851 ms) |default,65540:RESTPP_1_1:1534264698694:NN,1999,|UDF::End
+I0814 09:38:18.791779 62234 serviceapi.cpp:564] Request|default,65540:RESTPP_1_1:1534264698694:NN,1999,|Stop_RunUDF|94ms
+I0814 09:38:18.791838 62234 enginejobrunner.cpp:266] Request|default,65540:RESTPP_1_1:1534264698694:NN,1999,|Finished in 96.55 ms|Response 65 bytes|Id conversion 0
+I0814 09:38:19.184842 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:38:19.186347 62234 serviceapi.cpp:561] Request|default,131076:RESTPP_1_1:1534264699184:NN,2000,|Start_RunUDF
+I0814 09:38:19.186373 62234 gtimer.cpp:75] |default,131076:RESTPP_1_1:1534264699184:NN,2000,|UDF::Start
+I0814 09:38:19.186517 62234 gtimer.cpp:47] (0.129 ms) |default,131076:RESTPP_1_1:1534264699184:NN,2000,|UDF::Initialization
+I0814 09:38:19.208701 62234 gtimer.cpp:47] (22.193 ms) |default,131076:RESTPP_1_1:1534264699184:NN,2000,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 14.028 ms), 11103 vertex reduces (in 8.13 ms), and activated 11103 vertices.
+I0814 09:38:19.281610 62234 gtimer.cpp:47] (72.901 ms) |default,131076:RESTPP_1_1:1534264699184:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 71.641 ms), 11103 vertex reduces (in 1.218 ms), and activated 11103 vertices.
+I0814 09:38:19.281639 62234 gtimer.cpp:47] (95.262 ms) |default,131076:RESTPP_1_1:1534264699184:NN,2000,|UDF::End
+I0814 09:38:19.281651 62234 serviceapi.cpp:564] Request|default,131076:RESTPP_1_1:1534264699184:NN,2000,|Stop_RunUDF|95ms
+I0814 09:38:19.281704 62234 enginejobrunner.cpp:266] Request|default,131076:RESTPP_1_1:1534264699184:NN,2000,|Finished in 97.018 ms|Response 65 bytes|Id conversion 0
+I0814 09:38:19.705490 62234 <stdin>:1949] launching query fdpf_flat_graphlu_bmk_v8 in Container_Dense mode.
+I0814 09:38:19.706919 62234 serviceapi.cpp:561] Request|default,196613:RESTPP_1_1:1534264699704:NN,1999,|Start_RunUDF
+I0814 09:38:19.706948 62234 gtimer.cpp:75] |default,196613:RESTPP_1_1:1534264699704:NN,1999,|UDF::Start
+I0814 09:38:19.707077 62234 gtimer.cpp:47] (0.113 ms) |default,196613:RESTPP_1_1:1534264699704:NN,1999,|UDF::Initialization
+I0814 09:38:19.728018 62234 gtimer.cpp:47] (20.950 ms) |default,196613:RESTPP_1_1:1534264699704:NN,1999,|UDF::Finished iteration 1 which did 27264 edge maps and 0 vertex maps (in 13.288 ms), 11103 vertex reduces (in 7.631 ms), and activated 11103 vertices.
+I0814 09:38:19.802151 62234 gtimer.cpp:47] (74.127 ms) |default,196613:RESTPP_1_1:1534264699704:NN,1999,|UDF::Finished iteration 2 which did 0 edge maps and 11103 vertex maps (in 72.911 ms), 11103 vertex reduces (in 1.183 ms), and activated 11103 vertices.
+I0814 09:38:19.802176 62234 gtimer.cpp:47] (95.224 ms) |default,196613:RESTPP_1_1:1534264699704:NN,1999,|UDF::End
+I0814 09:38:19.802186 62234 serviceapi.cpp:564] Request|default,196613:RESTPP_1_1:1534264699704:NN,1999,|Stop_RunUDF|95ms
+I0814 09:38:19.802234 62234 enginejobrunner.cpp:266] Request|default,196613:RESTPP_1_1:1534264699704:NN,1999,|Finished in 96.884 ms|Response 65 bytes|Id conversion 0
+I0814 09:38:28.327553 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:38:58.330809 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:39:28.334098 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:39:58.337144 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:40:28.340359 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:40:58.343519 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:41:28.346526 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:41:58.349534 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:42:28.352526 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:42:58.355548 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:43:28.358630 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:43:58.361697 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:44:28.364748 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:44:58.367719 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:45:28.370800 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:45:58.373800 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:46:28.376850 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:46:57.137781 60864 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/INFO.20180813-112323.28026
+I0814 09:46:57.137864 60864 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/INFO.20180813-112343.28999
+I0814 09:46:57.137919 60864 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/INFO.20180813-113432.40279
+I0814 09:46:57.137943 60864 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/INFO.20180813-114026.46960
+I0814 09:46:57.138273 60864 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/WARNING.20180813-112323.28026
+I0814 09:46:57.138311 60864 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/WARNING.20180813-112343.28999
+I0814 09:46:57.138341 60864 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/WARNING.20180813-113432.40279
+I0814 09:46:57.138375 60864 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/WARNING.20180813-114026.46960
+I0814 09:46:57.138680 60864 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/ERROR.20180813-112323.28026
+I0814 09:46:57.138712 60864 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/ERROR.20180813-112343.28999
+I0814 09:46:57.138742 60864 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/ERROR.20180813-113432.40279
+I0814 09:46:57.138772 60864 gdiskutil.cpp:312] System_File|Recycle: delete /home/graphsql/graphsql/logs/GPE_1_1/ERROR.20180813-114027.46960
+I0814 09:46:58.379870 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:47:28.382983 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:47:58.385927 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:48:28.389138 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:48:58.392067 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:49:28.395180 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:49:58.398269 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:50:28.401329 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:50:58.404531 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:51:28.407454 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:51:58.410333 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:52:28.413522 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:52:58.416610 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:53:28.419718 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:53:58.423295 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:54:28.426448 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:54:58.429484 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:55:28.432754 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:55:58.435792 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:56:28.438683 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+W0814 09:56:57.279919 60868 command_cleaner.cpp:128] Fetch done command id failed. Rc:kNotFound
+I0814 09:56:58.441673 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:57:28.444651 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:57:58.447602 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:58:28.450642 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:58:58.453642 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:59:28.456769 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 09:59:58.459844 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:00:28.463107 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:00:58.466331 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:01:28.469291 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:01:58.472578 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:02:28.475594 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:02:58.478646 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:03:28.481580 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:03:58.484469 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:04:28.487566 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:04:58.490837 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:05:28.493603 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:05:58.496568 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:06:28.499706 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:06:58.502784 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:07:28.505909 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:07:58.508952 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:08:28.511788 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:08:58.514766 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:09:28.517786 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:09:58.520884 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:10:28.523952 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:10:58.526984 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:11:28.529917 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:11:58.532788 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:12:28.536052 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:12:58.539388 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:13:28.542596 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 10:13:58.545584 60905 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called

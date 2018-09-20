@@ -1,0 +1,59 @@
+drop query line_D 
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query line_D()
+for graph  powerflow_graph {
+	
+	TYPEDEF TUPLE < string edge_name, string s_exId, string t_exId, double linelength, double RA, double RB, double RC, double XA, double XB, double XC, double Xab, double Xac, double Xbc, string startnode> row;
+	ListAccum<row> @@edgeList;
+
+	
+	T0 = {bus_D.*};
+    T1 = SELECT s
+	      FROM T0:s-(foree_D:e)-:t		 
+		  ACCUM 
+		  case when (e.linelength>1) then
+		  double RA=e.Raa,
+		  double RB=e.Rbb,
+		  double RC=e.Rcc,
+		  double XA=e.Xaa,
+		  double XB=e.Xbb,
+		  double XC=e.Xcc,
+		  double Xab=e.Xab,
+		  double Xac=e.Xac,
+		  double Xbc=e.Xbc,
+		//  log (true, RA),
+		 // IF    abs(e.Raa)>0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)>0.00001  THEN  
+		   @@edgeList+= row(e.edge_name, s.exId, t.exId, e.linelength, RA, RB, RC, XA, XB, XC, Xab, Xac, Xbc, s.startnode)
+		 /*  ELSE IF  abs(e.Raa)<0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)>0.00001  THEN
+		   @@edgeList+= row(e.edge_name, s.exId, t.exId, e.linelength, "N",RB, RC,"NULL", XB, XC,"NULL", "NULL", Xbc)
+		  ELSE IF  abs(e.Raa)>0.00001 and abs(e.Rbb)<0.00001 and abs(e.Rcc)>0.00001  THEN
+		   @@edgeList+= row(e.edge_name, s.exId, t.exId, e.linelength, RA, "NULL", RC, XA, "NULL", XC,"", Xac, "NULL")
+		  ELSE IF  abs(e.Raa)>0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)<0.00001  THEN
+		   @@edgeList+= row(e.edge_name, s.exId, t.exId, e.linelength, RA, RB, "NULL", XA, XB, "",Xab, "NULL", "NULL")
+		  ELSE IF  abs(e.Raa)<0.00001 and abs(e.Rbb)<0.00001 and abs(e.Rcc)>0.00001  THEN
+		  @@edgeList+= row(e.edge_name, s.exId, t.exId, e.linelength, "NULL", "NULL", RC, "NULL", "NULL", XC,"NULL", "NULL", "NULL")
+		  ELSE IF  abs(e.Raa)<0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)<0.00001  THEN
+		   @@edgeList+= row(e.edge_name, s.exId, t.exId, e.linelength, "NULL", RB, "NULL", "NULL", XB, "NULL","NULL", "NULL", "NULL")
+		  ELSE IF  abs(e.Raa)>0.00001 and abs(e.Rbb)<0.00001 and abs(e.Rcc)<0.00001  THEN
+		   @@edgeList+= row(e.edge_name, s.exId, t.exId, e.linelength, RA, "NULL", "NULL", XA, "NULL", "NULL","NULL", "NULL", "NULL")
+		  ELSE
+		   @@edgeList+= row(e.edge_name, s.exId, t.exId, e.linelength, "NULL", "NULL", "NULL", "NULL", "NULL", "NULL","NULL", "NULL", "NULL")	
+		  END*/
+		  end ; 
+			
+	
+     
+	
+	foreach x in @@edgeList do
+		
+		print x.edge_name, x.s_exId, x.t_exId, x.linelength, x.RA, x.RB, x.RC, x.XA, x.XB, x.XC, x.Xab, x.Xac, x.Xbc, x.startnode;
+	
+	end;
+			  
+		 
+}
+
+//install query line_D

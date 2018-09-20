@@ -1,0 +1,23 @@
+.overlay-container 
+{
+    position: relative; 
+    height: 100%;  width: 100%; 
+}
+.overlay-backdrop 
+{  
+    -webkit-box-align: center;      
+    -ms-flex-align: center;          
+    align-items: center;  
+    display: -webkit-box;  
+    display: -ms-flexbox;  
+    display: flex;  
+    height: 100%;  
+    -webkit-box-pack: center;      
+    -ms-flex-pack: center;          
+    justify-content: center;  
+    opacity: 1;  
+    position: 
+    absolute;  
+    width: 100%;  
+    z-index: 1000; 
+}

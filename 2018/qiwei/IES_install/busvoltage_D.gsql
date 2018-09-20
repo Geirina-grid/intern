@@ -1,0 +1,59 @@
+drop query busvoltage_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query busvoltage_D ()
+for graph powerflow_graph {
+	
+    TYPEDEF TUPLE <string bus_name, double VAmag , double VAang,  double VBmag, double VBang, double VCmag, double VCang, double DegUnbal, string startnode, double Vbase> row;
+	SetAccum<row> @@busvoltage_List;
+	SumAccum<int> @@id = 0;
+	SumAccum<double> @VAmag = 0;
+	SumAccum<double> @VAang = 0;
+	SumAccum<double> @VBmag = 0;
+	SumAccum<double> @VBang = 0;
+	SumAccum<double> @VCmag = 0;
+	SumAccum<double> @VCang = 0;
+	
+		
+	// print "id", "bus_name", "bus_id", "generation_p", "generation_Q", "base_kV", "desired_volts", "MAX_Q", "Min_Q", "control_bus_number", "pos_x", "pos_y" > outputfile;	
+	T0 = {bus_D.*};
+	startNodeSet = SELECT n
+	FROM T0:n
+	where n.outdegree("backe_D") == 0;
+	parent = startNodeSet;
+	WHILE parent.size() > 0 DO
+	       parent =  SELECT t
+		   FROM parent:s-(foree_D:e)-bus_D:t    
+		  ACCUM		  
+		  case when (abs(e.Raa-0)>0.000001 or e.Config=="switch") then
+		  t.@VAmag = t.VAmag_cal,
+		  t.@VAang = t.VAang_cal
+		  end,
+		  case when (abs(e.Rbb-0)>0.000001 or e.Config=="switch") then
+		  t.@VBmag = t.VBmag_cal,
+		  t.@VBang = t.VBang_cal
+		  end,
+		  case when (abs(e.Rcc-0)>0.000001 or e.Config=="switch") then
+		  t.@VCmag = t.VCmag_cal,
+		  t.@VCang = t.VCang_cal
+		  end
+		  POST-ACCUM
+		  @@busvoltage_List+= row(t.exId, t.@VAmag, t.@VAang, t.@VBmag, t.@VBang, t.@VCmag, t.@VCang, t.V_unbalance, t.startnode, t.Vbase),
+		  case when (s.exId==s.startnode) then
+		  @@busvoltage_List+= row(s.exId, s.VAmag_cal, s.VAang_cal, s.VBmag_cal, s.VBang_cal, s.VCmag_cal, s.VCang_cal, s.V_unbalance, s.startnode, s.Vbase)
+		  end;
+	END;
+ 		  
+	foreach x in @@busvoltage_List do
+	//print '/\n';
+	@@id += 1;
+	print @@id, x.bus_name, x.VAmag, x.VAang, x.VBmag, x.VBang, x.VCmag, x.VCang, x.DegUnbal, x.startnode, x.Vbase;
+	end;
+    
+	// print T1;
+		 
+}
+
+//install query busvoltage_D

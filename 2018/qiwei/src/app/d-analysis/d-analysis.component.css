@@ -1,0 +1,49 @@
+.texts0 {
+
+    position: absolute;
+    top:0px;
+    left: 320px;
+    list-style-type: none;
+
+    font-size: xx-large;
+  }
+
+.texts1 {
+
+    position: absolute;
+    top:200px;
+    left: 70px;
+    list-style-type: none;
+
+    font-size: xx-large;
+  }
+
+  .texts2 {
+
+    position: absolute;
+    top:200px;
+    left: 570px;
+    list-style-type: none;
+
+    font-size: xx-large;
+  }
+
+  .texts3 {
+
+    position: absolute;
+    top:400px;
+    left: 70px;
+    list-style-type: none;
+
+    font-size: xx-large;
+  }
+
+  .texts4 {
+
+    position: absolute;
+    top:400px;
+    left: 570px;
+    list-style-type: none;
+
+    font-size: xx-large;
+  }

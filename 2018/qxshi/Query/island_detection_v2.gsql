@@ -1,0 +1,183 @@
+// ******************************************************************************************************
+// ******************************************************************************************************
+// Developed by: Yiting Zhao, yitingzhao6777@gmail.com
+//               Xinyu Chang, xinyu@graphsql.com (support from graphsql)
+// Version: Island Detection (TESTING VERSION)
+// History:
+// 07/27/2017 [Yiting Zhao] Created query.
+// 07/27/2017 [Yiting Zhao] Detected the island and decide main island(which include slack bus). Then renew 
+//                          the slack bus.
+// 09/05/2017 [Yiting Zhao] search towards bi-direction to find island CA_bridge and check the PV bus and slack bus.
+// 05/30/2018 [Xuan Zhang]  Modified the code based on the new schema (Topo) accordingly
+// ******************************************************************************************************
+
+drop query islands_detect
+drop query island_detect
+
+create query island_detect (vertex<TopoND> seed1, vertex<TopoND> seed2)
+for graph gsql_EMS returns (int) {
+	
+OrAccum @@connected = false;
+// SumAccum<int> @found;
+OrAccum @foundby1 = false;
+OrAccum @foundby2 = false;
+
+int mainland =0;
+
+SumAccum<int> @@PV_count1=0;
+SumAccum<int> @@PV_count2=0;
+
+MapAccum <int, int> @@result;  
+int mainland_side = 0; //island_side
+
+T0= {TopoND.*}; 
+ancestor1 = {seed1};
+ancestor2 = {seed2};
+
+log(true,seed1);
+
+descendant1 = select p
+     from ancestor1:p
+     post-accum 
+	   p.@foundby1 = true
+       ;
+	   
+descendant2 = select p
+     from ancestor2:p
+     post-accum
+	   p.@foundby2 = true
+       ;
+       
+while ((descendant1.size() > 0) and (descendant2.size() > 0))
+    {
+        descendant1 = select c
+            from ancestor1:p-(topo_connect:e)->TopoND:c
+             where (c.@foundby1 == false) and ((p.exId!= seed1.exId or c.exId!= seed2.exId) and (p.exId!= seed2.exId or c.exId!= seed1.exId)) and c.island == 1 and p.island == 1
+             post-accum 
+			   case when(c.exId == seed2.exId) then
+			       @@connected += true
+			   end,
+			   
+			   case when(c.busType == 3) then 
+			           mainland = seed1.exId
+			        when(c.busType == 2) then
+                       	@@PV_count1 +=1		 
+			           // newslack =c.exId        // new slack bus: PV bus on the island
+			   end,
+			   c.@foundby1 = true
+			 ;
+		 ancestor1 = ancestor1 union descendant1;
+		 
+		 descendant2 = select c
+            from ancestor2:p-(topo_connect:e)->TopoND:c
+             where (c.@foundby2 == false) and ((p.exId!= seed1.exId or c.exId!= seed2.exId) and (p.exId!= seed2.exId or c.exId!= seed1.exId)) and c.island == 1 and p.island == 1
+             post-accum
+			   case when(c.exId == seed1.exId) then
+			       @@connected += true
+			   end,
+			   
+			   case when(c.busType == 3) then 
+			           mainland = seed2.exId
+			        when(c.busType == 2) then
+                       	@@PV_count2 +=1
+			           // newslack =c.exId        // new slack bus: PV bus on the island
+			   end,
+			   c.@foundby2 = true
+			 ;
+		 ancestor2 = ancestor2 union descendant2;
+		 		 
+		 if (@@connected == true)  {
+			 mainland_side = 666666;
+			 break;
+		 }		 
+     }   
+	 
+	 // island detected
+	 if (@@connected == false){
+		  if (descendant1.size() == 0){
+			if (mainland != seed1.exId){
+				if (@@PV_count1 >0){
+					mainland_side = seed2.exId;     // seed1 side is island with generator
+				}else {
+					mainland_side = 8000000+seed2.exId;   // seed1 side is load group without generator
+				}
+			} else {                          // seed1 side is island with mainland, seed2 side is island
+				mainland_side = seed1.exId; 			
+			}    
+		} 
+			else{
+				if (mainland != seed2.exId){
+				  if (@@PV_count2 >0){
+					mainland_side = seed1.exId;
+				  }else {
+					mainland_side = 8000000+seed1.exId;
+				  }			  
+			    } else {
+				mainland_side = seed2.exId;
+			    }			 
+			}		 
+	 }		 
+		
+	  return mainland_side;   // island_side
+  }
+
+  
+create query islands_detect() 
+
+for graph gsql_EMS {
+	SumAccum<int> @@connected_edge=0;
+	SumAccum<int> @@island_count=0;
+	SumAccum<int> @@outage_group=0;
+	SumAccum<int> @@outage_point=0;
+	ListAccum<edge> @@edgeList;
+
+	SumAccum<int> @outdegree = 0;
+	
+	T0= {TopoND.*}; 
+
+    T0 = select v
+		 from T0:v-(topo_connect:e)->TopoND:t
+		 where v.island == 1 and t.island == 1
+		 accum
+			 v.@outdegree += 1; 
+
+
+    T0 = select v
+     from  T0:v-(topo_connect:e)->TopoND:t   
+        where v.exId>t.exId	and (v.island == 1 and t.island == 1)
+     accum
+      if (v.@outdegree > 1 and t.@outdegree > 1) then 
+        int mainland_side = island_detect(v, t),
+		case when (mainland_side == 666666) then
+		       @@connected_edge +=1
+		     when (mainland_side > 8000000) then
+		       @@outage_group +=1, // group outage	
+		       e.CA_bridge = 1,      	
+               e.mainland_side = mainland_side - 8000000,
+               log(false, "load groups", v.exId,t.exId,e.CA_bridge,e.mainland_side)			   
+		     else
+			   @@island_count +=1,  // island detected
+		       e.CA_bridge = 2,
+			   e.mainland_side = mainland_side,
+			   log(false, "island detected", v.exId,t.exId,e.CA_bridge,e.mainland_side)
+		end     
+     else   // end point
+		@@outage_point += 1, 
+        e.CA_bridge = 3,   
+        case when (	v.@outdegree == 1) then 
+		     e.mainland_side = t.exId	
+		else 
+             e.mainland_side = v.exId
+        end,
+        log(false, "Endpoint", v.exId,t.exId,e.CA_bridge,e.mainland_side)		
+     end	
+	    post-accum
+	    log(true, v.exId,v.busType,v.@outdegree);
+	  print @@connected_edge, @@outage_group, @@island_count, @@outage_point;
+	
+}
+  
+install query island_detect
+install query -ui islands_detect
+//install query -optimize
+// run query -dm islands_detect()

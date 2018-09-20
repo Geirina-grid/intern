@@ -1,0 +1,110 @@
+drop query loadResult
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query loadResult ()
+for graph gsql_EMS {
+	
+    TYPEDEF TUPLE <int exId, string bus_name, double cal_P,  double cal_Q,  double cal_Preal, double cal_Qreal> row;
+	SetAccum<row> @@LoadResult_List;
+	SumAccum<int> @@id = 0;
+	SumAccum<double> @cal_Preal=0;
+	SumAccum<double> @cal_Qreal=0;
+	MaxAccum<double> @@PI = 3.1415926535898;
+	SumAccum<double> @sumG  = 0; // store for each node the total G on all of its edges
+	SumAccum<double> @sumB  = 0; //similar...
+    SumAccum<double> @cal_P  = 0; // store for each node the total G on all of its edges
+	SumAccum<double> @cal_Q  = 0; //similar...
+		
+	// print "id", "bus_name", "bus_id", "generation_p", "generation_Q", "base_kV", "desired_volts", "MAX_Q", "Min_Q", "control_bus_number", "pos_x", "pos_y" > outputfile;	
+	T0 = {TopoND.*};
+	
+	
+	 T0 = select v
+	   from T0:v-(topo_connect:e)->TopoND:t
+	   //WHERE v.island == 1 and t.island == 1
+	 //where e.outage == 0   // meaning no outage on this line
+     accum   
+       //compute the G and B contribution of the branches to the diagonal terms         
+       case when (e.transformer_final_turns_ratio == 0) then 
+           //compute contribution of each branch to the diagonal terms 
+  		   v.@sumG += e.G, 
+           v.@sumB += -1*e.B + 0.5*e.hB
+           //v.@sumBi += -1*e.BIJ, // used to construct the B' matrix for fast-decoupled method
+       when (e.transformer_final_turns_ratio > 0) then
+           //compute contribution of each branch to the diagonal terms
+           double tap_ratio_square = (e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount),
+           //double tap_ratio = e.transformer_final_turns_ratio/e.kcount,
+           v.@sumG += 1/(tap_ratio_square)*e.G,
+           v.@sumB += 1/(tap_ratio_square)*(-1*e.B) + 0.5*e.hB // sqrt
+           //v.@sumBi += -1*e.BIJ,
+       else
+           //compute contribution of each branch to the diagonal terms 
+           //double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount), 
+           v.@sumG += e.G, 
+           v.@sumB += -1*e.B + 0.5*e.hB
+           //v.@sumBi += -1*e.BIJ,
+       end
+       //v.@alldgr += 1 // total number of connected branches
+     post-accum
+	 //Initialization of the state variables 
+       
+       // Shunt conductance and shunt susceptance at node v
+       v.@sumG += v.G,
+       v.@sumB += v.B;
+	
+	
+	
+	
+	
+	
+	T0 = SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t 
+	  accum 
+        double newG = 0,
+        double newB = 0,
+		double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+		double tap_ratio_square = abs((e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount)),
+		
+		case when (e.transformer_final_turns_ratio == 0 or abs(e.transformer_final_turns_ratio) == 1) then
+			s.@cal_P += s.PF_Vm*t.PF_Vm * (-1*e.G*cos((s.PF_Va-t.PF_Va)*@@PI/180) + e.B * sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+			s.@cal_Q += s.PF_Vm*t.PF_Vm * (-1*e.G*sin((s.PF_Va-t.PF_Va)*@@PI/180) - e.B * cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			//log(false, "e.B and e.G", s.exId, t.exId, e.G, e.B)
+		
+		else
+			newG = e.G/abs(tap_ratio),
+			newB = e.B/abs(tap_ratio),
+			s.@cal_P += s.PF_Vm*t.PF_Vm * (-1*newG*cos((s.PF_Va-t.PF_Va)*@@PI/180) + newB * sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+			s.@cal_Q += s.PF_Vm*t.PF_Vm * (-1*newG*sin((s.PF_Va-t.PF_Va)*@@PI/180) - newB * cos((s.PF_Va - t.PF_Va)*@@PI/180))    
+        end
+ 		post-accum
+		       s.@cal_P += s.PF_Vm*s.PF_Vm*s.@sumG,
+			   s.@cal_Q += (-1) * s.PF_Vm*s.PF_Vm*s.@sumB,
+			   s.cal_P = s.@cal_P,
+			   s.cal_Q = s.@cal_Q;       		
+	
+	
+	
+	
+    T1 = SELECT s
+	      FROM T0:s
+		  where (s.busType==1 or s.busType==0) and s.island == 1
+		  POST-ACCUM 
+		  s.@cal_Preal=0-s.cal_P*100,
+		  s.@cal_Qreal=0-s.cal_Q*100,
+		  @@LoadResult_List+= row(s.exId, s.bus_name, s.cal_P, s.cal_Q, s.@cal_Preal, s.@cal_Qreal)
+		 ;
+ 		  
+	foreach x in @@LoadResult_List do
+	print '/\n';
+	@@id += 1;
+	print @@id, x.bus_name, x.exId, x.cal_P, x.cal_Q, x.cal_Preal, x.cal_Qreal; // > outputfile;	
+
+	end;
+    
+	// print T1;
+		 
+}
+
+//install query loadResult

@@ -1,0 +1,27 @@
+drop query edge_name_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query edge_name_D ()
+for graph powerflow_graph {
+    TYPEDEF TUPLE < string s_exId, string t_exId, string edge_name_fore > row;
+	ListAccum<row> @@edgeList;	
+	
+	T0 = {bus_D.*};
+	
+    T1 = SELECT s1
+	      FROM T0:s1-(foree_D:e1)-:t1
+		  ACCUM
+		  e1.edge_name = s1.exId + "-" + t1.exId,
+		  @@edgeList += row(s1.exId, t1.exId, e1.edge_name); 
+		  
+    T2 = SELECT s2
+	      FROM T0:s2-(backe_D:e2)-:t2
+		  ACCUM
+		  e2.edge_name = t2.exId + "-" + s2.exId;	
+			
+}
+
+//install query -ui edge_name_D
+//run query edge_name_D()

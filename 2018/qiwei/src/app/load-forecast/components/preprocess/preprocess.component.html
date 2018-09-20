@@ -1,0 +1,13 @@
+<p-growl [(value)]="messages"></p-growl>
+<div class="ui-g">
+    <p>
+        <font size="4">About to preporcess data for <br>
+            meterid = {{selectedmeter}}<br>
+            starting from {{startdate}} to {{enddate}}</font>
+            <br>
+            <button pButton type="button" style="font-size:1.15em; margin:10px" label="Confirm Preprocess" (click)="preprocess()"></button>
+    </p>
+</div>
+<div *ngIf="result" style="font-size: 5">
+    <font size="4">Your Latest Normalizer is {{result}}.</font>
+</div>

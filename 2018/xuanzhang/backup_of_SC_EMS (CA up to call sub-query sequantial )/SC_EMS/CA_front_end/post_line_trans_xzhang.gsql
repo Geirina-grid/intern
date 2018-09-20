@@ -1,0 +1,50 @@
+drop query line_trans
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query line_trans()
+for graph gsql_EMS {
+	
+	//TYPEDEF TUPLE < string edge_name, int edge_type, int s_exId, int t_exId, int s_type, int t_type, string tap_bus_name, string z_bus_name, //double R, double X, double B, double Line1_MVA, double Line2_MVA, double Line3_MVA> row;
+	TYPEDEF TUPLE < string edge_name, int edge_type, int s_exId, int t_exId, int s_type, int t_type, string tap_bus_name, string z_bus_name, bool Decision> row;
+	SumAccum<int> @@id = 0;
+	ListAccum<bool> @@edgeDecision;
+//	ListAccum<row> @@edgeList; 
+	HeapAccum<row>(1000000, edge_name asc) @@edgeList;
+	
+    //print "line_id", "tap_bus", "z_bus", "R", "X", "B", "P", "Q", "I", "Line1_MVA", "Line2_MVA", "Line3_MVA";	
+	T0 = {TopoND.*};
+    T1 = SELECT v
+	      FROM T0:v-(topo_connect:e)->TopoND:t
+		  //where e.flag == 0 and e.reverse == 0
+		  where e.reverse == 1 and v.island == 1 and t.island == 1
+		  ACCUM 
+			log(true, v.exId, t.exId),
+            int minValue = e.kcount - 1,
+            IF (minValue < 0) THEN
+                minValue = 0
+            END,
+	    FOREACH i in range[0, minValue] DO
+ 		@@edgeList+= row(e.edge_name, e.flag, v.exId, t.exId, v.busType, t.busType, v.bus_name, t.bus_name, e.Decision)
+	    END;
+			
+	    log(true,@@edgeList);
+	
+	foreach x in @@edgeList do
+		@@id += 1;
+		print x.edge_name, x.edge_type, x.s_exId, x.t_exId, x.s_type, x.t_type, x.tap_bus_name, x.z_bus_name, x.Decision;
+	
+	end;
+/*
+  T2= {TopoND.*}; 
+  T2 = select v
+     from  T2:v-(topo_connect:e)-:t
+	 where (v.exId > t.exId)  and e.reverse == 1 and v.island == 1 and t.island == 1
+     accum 	 
+	 @@edgeDecision += e.Decision;
+		print @@edgeDecision;
+*/		 
+}
+
+install query line_trans

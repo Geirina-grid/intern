@@ -1,0 +1,17 @@
+<div *ngFor="let msg of status">
+  {{msg}}
+</div> 
+<hr>
+<div *ngIf="result_preprocess">
+  您最新的数据预处理结果的id为：{{result_preprocess}}.<br>
+</div> 
+<div *ngIf="result_tr" style="padding-bottom: 20px">
+  您最新的训练模型id为：{{result_tr}}.<br>
+  训练结果参数：<br>
+  <ul style="margin-top:0">
+    
+    <li *ngFor="let message of result_tr2">
+        {{message}}
+    </li>
+  </ul>
+</div>

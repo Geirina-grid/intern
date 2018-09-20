@@ -1,0 +1,135 @@
+// Developed for bus power imbalance page in state estimation front-end web
+// Developed by: Chen Yuan, chen.yuan@geirina.net
+// History:
+// 05/30/2018 [Chen Yuan] This query is created and developed for bus power imbalance page visualization for state estimation front-end web
+
+
+drop query buspowerimbalance
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query buspowerimbalance (double bpi_params, double bapi_params)
+for graph gsql_EMS {
+	TYPEDEF TUPLE <int bus_id, double delP, double realP, double misP,
+	double delQ, double realQ, double misQ> row;
+	SumAccum<double> @deltaP = 0;
+	SumAccum<double> @deltaQ = 0;
+	SumAccum<double> @mismatchP = 0;
+	SumAccum<double> @mismatchQ = 0;
+	SumAccum<double> @sumG;
+	SumAccum<double> @sumB;
+ 
+    
+	SumAccum<int> @@id = 0;
+	ListAccum<row> @@vertexList;
+	
+	
+	// define PI value
+	MaxAccum<double> @@PI = 3.1415926535898;
+	
+	T0 = {TopoND.*};
+	T0 = select v
+		from T0:v-(topo_connect:e)->TopoND:t
+		//WHERE v.island == 1 and t.island == 1
+	 //where e.outage == 0   // meaning no outage on this line
+        accum   
+       //compute the G and B contribution of the branches to the diagonal terms         
+        case when (e.transformer_final_turns_ratio == 0) then 
+            //compute contribution of each branch to the diagonal terms 
+  		    v.@sumG += e.G, 
+            v.@sumB += -1*e.B + 0.5*e.hB
+        when (e.transformer_final_turns_ratio > 0) then
+            //compute contribution of each branch to the diagonal terms
+            double tap_ratio_square = (e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount),
+            v.@sumG += 1/(tap_ratio_square)*e.G,
+            v.@sumB += 1/(tap_ratio_square)*(-1*e.B) + 0.5*e.hB // sqrt
+        else
+            //compute contribution of each branch to the diagonal terms 
+            v.@sumG += e.G, 
+            v.@sumB += -1*e.B + 0.5*e.hB
+        end
+		post-accum
+        //Initialization of the state variables 
+  
+       
+        // Shunt conductance and shunt susceptance at node v
+		v.@sumG += v.G,
+		v.@sumB += v.B;
+	
+
+    T0 = SELECT s   
+	     FROM T0:s-(topo_connect:e)->TopoND:t
+		 where s.island == 1 and t.island == 1
+		  //where e.reverse == 0
+		 ACCUM
+			double newG = 0,
+			double newB = 0,
+			double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+		
+			case when (e.transformer_final_turns_ratio == 0 or abs(e.transformer_final_turns_ratio) == 1) then
+				s.@deltaP += s.SE_Vm*t.SE_Vm * (-1*e.G*cos(s.SE_Va-t.SE_Va) + e.B * sin(s.SE_Va - t.SE_Va)),
+				s.@deltaQ += s.SE_Vm*t.SE_Vm * (-1*e.G*sin(s.SE_Va-t.SE_Va) - e.B * cos(s.SE_Va - t.SE_Va))
+			else
+				newG = e.G/abs(tap_ratio),
+				newB = e.B/abs(tap_ratio),
+				s.@deltaP += s.SE_Vm*t.SE_Vm * (-1*newG*cos(s.SE_Va-t.SE_Va) + newB * sin(s.SE_Va - t.SE_Va)),
+				s.@deltaQ += s.SE_Vm*t.SE_Vm * (-1*newG*sin(s.SE_Va-t.SE_Va) - newB * cos(s.SE_Va - t.SE_Va))
+				//log(false, "e.B and e.G", s.exId, t.exId, newG, newB)             
+			end
+			
+		post-accum
+			case when (s.busType != 3) then
+			   s.@deltaP = -(s.@deltaP + s.SE_Vm*s.SE_Vm*s.@sumG) + (((s.GenP-s.LdP)))
+			else
+			   s.@deltaP = 0
+			end,
+		   
+			case when (s.busType == 0 or s.busType == 1) then
+			   s.@deltaQ = -(s.@deltaQ - s.SE_Vm*s.SE_Vm*s.@sumB) + ((s.GenQ-s.LdQ))
+			else 
+			   s.@deltaQ = 0 
+			end,
+               s.@mismatchP	= (((s.GenP-s.LdP)))-s.@deltaP,
+               s.@mismatchQ = ((s.GenQ-s.LdQ))-s.@deltaQ;			   
+			// log(true, s.@deltaP, s.@deltaQ, (((s.GenP-s.LdP))), ((s.GenQ-s.LdQ)));
+			// print T0.P, T0.@deltaP*pp, T0.@mismatchP, T0.Q, T0.@deltaQ, T0.@mismatchQ;
+			// print p;
+		
+    // IF (bpi_params == 1) then 
+    // T1 = select s 
+    	// FROM T0:s-(topo_connect:e)->TopoND:t
+		// where (abs(s.@mismatchP)>0.1) 
+		    // post-accum
+			// @@vertexList+= row(s.TOPOID, s.@deltaP, (((s.GenP-s.LdP))), s.@mismatchP, s.@deltaQ, ((s.GenQ-s.LdQ)), s.@mismatchQ);
+			
+	// ELSE IF (bpi_params == 2) then 
+	// T1 = select s 
+    	// FROM T0:s-(topo_connect:e)->TopoND:t
+		// where (abs(s.@mismatchP)>0.2) 
+		    // post-accum
+			// @@vertexList+= row(s.TOPOID, s.@deltaP, (((s.GenP-s.LdP))), s.@mismatchP, s.@deltaQ, ((s.GenQ-s.LdQ)), s.@mismatchQ);	
+			
+	// ELSE IF (bpi_params == 3) then 
+	// T1 = select s 
+    	// FROM T0:s-(topo_connect:e)->TopoND:t
+		// where (abs(s.@mismatchP)>0.3) 
+		    // post-accum
+			// @@vertexList+= row(s.TOPOID, s.@deltaP, (((s.GenP-s.LdP))), s.@mismatchP, s.@deltaQ, ((s.GenQ-s.LdQ)), s.@mismatchQ);		
+	
+	// end;
+	T1 = select s 
+	from T0:s-(topo_connect:e)->TopoND:t
+	where (abs(s.@mismatchP)>bpi_params and abs(s.@mismatchQ)>bapi_params) and s.island == 1 and t.island == 1
+	post-accum
+	    @@vertexList+= row(s.TOPOID, s.@deltaP, (((s.GenP-s.LdP))), s.@mismatchP, s.@deltaQ, ((s.GenQ-s.LdQ)), s.@mismatchQ);
+			
+	foreach x in @@vertexList do
+			@@id += 1;
+			print x.bus_id, x.delP, x.realP, x.misP, x.delQ, x.realQ, x.misQ;
+	
+	end;
+
+}
+
+//install query -ui buspowerimbalance

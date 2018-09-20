@@ -1,0 +1,20 @@
+drop query load_hdata_all
+
+CREATE query load_hdata_all ()
+for graph powerflow_graph {
+        ListAccum<DATASERIES> @@data;
+        ListAccum<VERTEX>  @@date;
+	ListAccum<VERTEX>  @@node;
+        T1 = {DayIndex.*};
+        T0 = SELECT nn
+                FROM T1:temp -(ofDay:e)- :nn
+                ACCUM @@date+=temp,
+			@@data+=e.load_a,
+			@@data+=e.load_b,
+			@@data+=e.load_c,
+			@@node+=nn;
+        print @@date, @@node, @@data;
+}
+
+//install query -ui load_hdata_all
+

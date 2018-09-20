@@ -1,0 +1,158 @@
+drop query indexCal_OR
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query indexCal_OR()
+for graph gsql_EMS {
+	
+	//TYPEDEF TUPLE < string edge_name, int edge_type, uint s_exId, uint t_exId, uint s_type, uint t_type, string tap_bus_name, string z_bus_name, double P_TLPF, double Q_TLPF, string cap_violation > row;
+	TYPEDEF TUPLE <string edge_name, int edge_type, uint s_exId, uint t_exId, uint s_type, uint t_type, string tap_bus_name, string z_bus_name, double P_TLPF, double Q_TLPF, double CSeverity, string cap_violation, double LineQ1, double LineQ2, double LineQ3 > critialLine;
+	SumAccum<int> @@id = 0;
+//	ListAccum<row> @@edgeList; 
+//	HeapAccum<row>(1000000, edge_name asc) @@edgeList;
+	//store the information of critial line
+	ListAccum<critialLine> @@CSeverity_line;
+//	MaxAccum<double> @@CSeverity_level = 0.9;
+	SumAccum<double> @@CSeverity_sum;
+	SumAccum<double> @@CSeverity_all;
+	SumAccum<double> @@line_counter;
+	//MapAccum<string, double> @@CSeverity_line;
+	MapAccum<string, double> @@Power_line;
+	//HeapAccum<pfrow>(1000000, P_TLPF asc) @@pflist;
+	MaxAccum<double> @@PI = 3.1415926535898;
+	
+	
+	T0 = {TopoND.*};	
+	
+	
+	T0 = SELECT s   
+	FROM T0:s-(topo_connect:e)->TopoND:t
+	where e.reverse == 1 //and s.island == 1 and t.island == 1
+	ACCUM
+	e.edge_name = s.bus_name + "->" + t.bus_name;
+	
+	T1 = SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t 
+	  //where e.reverse == 1
+	  accum 
+	  double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+	  double tap_ratio_square = abs((e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount)),
+			case when (e.transformer_final_turns_ratio == 0) then
+				e.P_TLPF = s.PF_Vm * t.PF_Vm * sin((s.PF_Va - t.PF_Va)*@@PI/180)* e.B + (s.PF_Vm*s.PF_Vm - s.PF_Vm*t.PF_Vm*cos((s.PF_Va - t.PF_Va)*@@PI/180)) * e.G,
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) - s.PF_Vm * t.PF_Vm * (e.G*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			when (e.transformer_final_turns_ratio > 0) then
+				e.P_TLPF = s.PF_Vm * s.PF_Vm * (e.G/tap_ratio_square) - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) / tap_ratio_square - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			else
+				e.P_TLPF = s.PF_Vm * s.PF_Vm * e.G - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			end
+	;
+/*	
+	T2 =SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t
+	  accum 
+		case when (abs(e.P_TLPF) > 0.9*e.line_Q1) and (abs(e.P_TLPF) < e.line_Q1) then
+			e.CSeverity = 10 * (abs(e.P_TLPF)/e.line_Q1-0.9),
+			@@line_counter += 1,
+			log(true, "greater than zero", e.CSeverity, e.flag, abs(e.P_TLPF), e.line_Q1)
+		else 
+			e.CSeverity = 0,
+			@@line_counter += 1,
+			log(true, s.exId, "->", t.exId, abs(e.P_TLPF))
+		end
+		;
+	//log(true, @@line_counter);
+	*/
+	T2 =SELECT v 
+	  from T0: v -(topo_connect:e)->TopoND:t
+	  where (e.CritiLine == true)
+	  accum 
+		case when e.reverse == 1 then
+			e.CSeverity = sqrt(e.P_TLPF*e.P_TLPF+e.Q_TLPF*e.Q_TLPF) / e.line_Q1 
+			//log(true, v.exId, "->", t.exId, abs(e.P_TLPF))
+		end
+		;
+
+	T3 =SELECT v 
+	  from T0: v -(topo_connect:e)->TopoND:t
+	  where (e.CritiLine == true)
+	  accum 
+	  	string line_name = "",
+		case when e.reverse == 1  then
+			//get line name(fromBus-toBus)
+			line_name = ToString(v.exId) + "-" + ToString(t.exId),
+			//@@Power_line += (line_name -> sqrt(e.P_TLPF*e.P_TLPF+e.Q_TLPF*e.Q_TLPF)),
+			//sum of all lines' index
+			@@CSeverity_sum += e.CSeverity
+			//log(true, v.exId, "->", t.exId, abs(e.P_TLPF), e.line_Q1, e.CSeverity)
+		end
+		;
+			
+	@@CSeverity_all += @@CSeverity_sum/10*100;
+
+	T1 =SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t
+	  accum 
+	  	case when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.line_Q1 and sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) < e.line_Q2) then
+		e.CI = 1
+		when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.line_Q2 and sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) < e.line_Q3) then
+		e.CI = 2
+		when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.line_Q3) then
+		e.CI = 3
+		else e.CI = 0
+		end;			
+
+    T1 = SELECT v
+	      FROM T0:v-(topo_connect:e)->TopoND:t
+		  //where e.flag == 0 and s.island == 1 and t.island == 1 and e.reverse == 1
+		  where (e.CritiLine == true and e.reverse == 1)
+		  ACCUM 
+		  double P_TLPF = 0,
+		  double Q_TLPF = 0,
+		  double CSeverity = 0,
+		  double LineQ1 = 0,
+		  double LineQ2 = 0,
+		  double LineQ3 = 0,
+			P_TLPF = e.P_TLPF*100/e.kcount,
+			Q_TLPF = e.Q_TLPF*100/e.kcount,
+			CSeverity = e.CSeverity*100,
+			LineQ1 = e.line_Q1*100/e.kcount,
+		    LineQ2 = e.line_Q2*100/e.kcount,
+		    LineQ3 = e.line_Q3*100/e.kcount,
+			if (e.CI == 1 ) then
+				@@CSeverity_line+= critialLine(e.edge_name, e.flag, v.exId, t.exId, v.busType, t.busType, v.bus_name, t.bus_name, P_TLPF, Q_TLPF, CSeverity, "1级越限", LineQ1, LineQ2, LineQ3)
+			else if (e.CI == 2 ) then
+				@@CSeverity_line+= critialLine(e.edge_name, e.flag, v.exId, t.exId, v.busType, t.busType, v.bus_name, t.bus_name, P_TLPF, Q_TLPF, CSeverity, "2级越限", LineQ1, LineQ2, LineQ3)
+			else if (e.CI == 3 ) then
+				@@CSeverity_line+= critialLine(e.edge_name, e.flag, v.exId, t.exId, v.busType, t.busType, v.bus_name, t.bus_name, P_TLPF, Q_TLPF, CSeverity, "3级越限", LineQ1, LineQ2, LineQ3)
+			else 
+				@@CSeverity_line+= critialLine(e.edge_name, e.flag, v.exId, t.exId, v.busType, t.busType, v.bus_name, t.bus_name, P_TLPF, Q_TLPF, CSeverity, "正常", LineQ1, LineQ2, LineQ3)
+			end
+	;                
+
+		  
+
+	print @@CSeverity_sum; 
+	print @@CSeverity_all;
+	print @@CSeverity_line;
+	//print @@Power_line;
+	//print @@line_counter;
+	//print @@pflist  TO_CSV "/home/tigergraph/Xuan_intern/SC_EMS/output/output.csv";
+
+}
+
+install query -ui indexCal_OR
+
+
+//				case when (e.transformer_final_turns_ratio == 0) then
+//				e.P_TLPF = s.PF_Vm * t.PF_Vm * sin((s.PF_Va - t.PF_Va)*@@PI/180)* e.B + (s.PF_Vm*s.PF_Vm - s.PF_Vm*t.PF_Vm*cos((s.PF_Va - t.PF_Va)*@@PI/180)) * e.G,
+//				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) - s.PF_Vm * t.PF_Vm * (e.G*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+//			when (e.transformer_final_turns_ratio > 0) then
+//				e.P_TLPF = s.PF_Vm * s.PF_Vm * (e.G/tap_ratio_square) - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+//				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) / tap_ratio_square - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+//			else
+//				e.P_TLPF = s.PF_Vm * s.PF_Vm * e.G - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+//				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+//			end;

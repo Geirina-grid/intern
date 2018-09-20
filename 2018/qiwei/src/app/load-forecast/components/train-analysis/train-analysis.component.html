@@ -1,0 +1,74 @@
+<p-growl [(value)]="messages"></p-growl>
+
+<div class="ui-g">
+<div class="charts" [style.height.px]="iH">
+    <app-train-result-chart [iH]="iH" (onAnnotationClick)="onAnnotationClick($event)"></app-train-result-chart>
+    <button pButton type="button" label="添加天气数据" (click)="onCompareWeatherClick()" style="top:5px;right:60px;position:absolute;" ></button>
+    <button pButton type="button" label="重置图线" (click)="onResetZoomClick()" style="top:5px;left:60px;position:absolute;" ></button>
+</div>
+<div class="tables">
+    <div class="maxerr" [style.height.px]="ErroTableDivH">
+        <p-dataTable [value]="maxError" [metaKeySelection]="false" [paginator]="false" sortMode="multiple" [style]="{'text-align':'center'}" dataKey="time" scrollable="true" [scrollHeight]="errorTableH" selectionMode="single" [(selection)]="selectedErrPoints" (onRowSelect)="onErrTableRowSelect($event)" (onRowUnselect)="onErrTableRowUnselect($event)">
+            <p-header>
+                <div class="ui-helper-clearfix" style="position:relative">
+                    <div style="text-align:center">
+                        最大预测误差数据点信息
+                    </div>
+                    <div style="position:absolute;bottom:0;right:0">
+                        show<input type="number" [(ngModel)]="maxRank" style="width:40px;height:20px;border:1px solid #e6e6e6;text-align:center" min="0" max="errorFull.length" (ngModelChange)="maxRankInput()"/>
+                    </div>
+                </div>
+            </p-header>
+            <p-column field="time" header="" [style]="{'overflow':'hidden','width':'30px'}">
+            <ng-template let-ri="rowIndex" pTemplate="body">
+                {{ri+1}}
+            </ng-template>
+            </p-column>
+            <p-column field="time" header="时间" [style]="{'overflow':'hidden','width':'150px'}"></p-column>
+            <p-column field="modeled" header="预测负荷值(MV)" [style]="{'overflow':'hidden'}"></p-column>
+            <p-column field="real" header="真实负荷(MV)" [style]="{'overflow':'hidden'}"></p-column>
+            <p-column field="ape" header="误差百分比(%)" [sortable]="true" [style]="{'overflow':'hidden'}"></p-column>
+        </p-dataTable>
+    </div>
+    <div class="minerr" [style.height.px]="ErroTableDivH">
+        <p-dataTable [value]="minError" [metaKeySelection]="false" [paginator]="false" sortMode="multiple" [style]="{'text-align':'center'}" dataKey="time" scrollable="true" [scrollHeight]="errorTableH" selectionMode="single" [(selection)]="selectedErrPoints" (onRowSelect)="onErrTableRowSelect($event)" (onRowUnselect)="onErrTableRowUnselect($event)">
+            <p-header>
+                <div class="ui-helper-clearfix" style="position:relative">
+                    <div style="text-align:center">
+                        最小预测误差数据点信息
+                    </div>
+                    <div style="position:absolute;bottom:0;right:0">
+                        show<input type="number" [(ngModel)]="minRank" style="width:40px;height:20px;border:1px solid #e6e6e6;text-align:center" min="0" max="errorFull.length" (ngModelChange)="minRankInput()"/>
+                    </div>
+                </div>
+            </p-header>
+            <p-column field="time" header="" [style]="{'overflow':'hidden','width':'30px'}">
+            <ng-template let-ri="rowIndex" pTemplate="body">
+                {{ri+1}}
+            </ng-template>
+            </p-column>
+            <p-column field="time" header="时间" [style]="{'overflow':'hidden','width':'150px'}"></p-column>
+            <p-column field="modeled" header="预测负荷值(MV)" [style]="{'overflow':'hidden'}"></p-column>
+            <p-column field="real" header="真实负荷(MV)" [style]="{'overflow':'hidden'}"></p-column>
+            <p-column field="ape" header="误差百分比(%)" [sortable]="true" [style]="{'overflow':'hidden'}"></p-column>
+        </p-dataTable>
+    </div>
+</div>
+<p-dialog header="Detailed Train Result for {{detailDate}}" [(visible)]="detailDisplay" width=670 height=400 positionLeft=0 positonTop=0>
+        <div class="ui-g">
+        <div class="detailChart">
+            <div id="container-detail-chart" style="height:330px">
+            </div>
+            <button pButton type="button" label="Add Weather" (click)="onCompareWeatherDetailClick()" style="top:5px;right:10px;position:absolute;"></button>
+        </div>
+        <div class="detailTable">
+            <p-dataTable [value]="detailErr" [metaKeySelection]="false" [paginator]="false" sortMode="multiple" [style]="{'text-align':'center'}" dataKey="time" scrollable="true" scrollHeight="225px">
+                <p-header>Prediction Results</p-header>
+                <p-column field="time" header="Time" [sortable]="true" [style]="{'overflow':'hidden'}"></p-column>
+                <p-column field="predict" header="Predict" [style]="{'overflow':'hidden'}"></p-column>
+                <p-column field="real" header="Real" [style]="{'overflow':'hidden'}"></p-column>
+                <p-column field="ape" header="APE" [sortable]="true" [style]="{'overflow':'hidden'}"></p-column>
+            </p-dataTable>
+        </div>
+        </div>
+    </p-dialog>

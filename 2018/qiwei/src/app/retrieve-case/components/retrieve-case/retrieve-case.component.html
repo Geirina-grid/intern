@@ -1,0 +1,26 @@
+<div>
+  <div style="font-size: 1.5em">
+    系统名称：
+    <p-dropdown [options]="cases" [(ngModel)]="selectedCase" [style]="{'width':'250px'}" placeholder="选择系统"></p-dropdown>
+  </div>
+  <div style="font-size: 1.5em">
+    数据类型:
+    <p-dropdown [options]="types" [(ngModel)]="selectedType" [style]="{'width':'250px'}" placeholder="选择数据类型"></p-dropdown>
+  </div>
+  <p-confirmDialog header="Confirmation" icon="fa fa-question-circle" width="425"></p-confirmDialog>
+  <div>
+    <button pButton type="button" style="font-size: 2em; margin: 10px" label="读入" (click)="Confirm()"></button>
+  </div>
+</div>
+<hr/>
+<form id='test' #test enctype="multipart/form-data">
+  <label>node:</label><input type="file" name="node" id="node"/>
+  <label>edge:</label><input type="file" name="edge" id="edge" />
+  <label>data:</label><input type="file" name="data" id="data" />
+  <label>cur:</label><input type="file" name="cur" id="cur" />
+  <label>volt</label><input type="file" name="volt" id="volt" />
+  <label>read</label><input type="file" name="read" id="read" />
+  <label>reac</label><input type="file" name="reac" id="reac" />
+  <label>pf</label><input type="file" name="pf" id="pf" />  
+  <button (click)="postGraphData(test)">Submit</button>
+</form>

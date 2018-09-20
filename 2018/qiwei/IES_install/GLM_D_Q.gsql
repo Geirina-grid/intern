@@ -1,0 +1,680 @@
+// Author: Jun Tan   Email: jun.daniel.tan@gmail.com/jun.tan@geirina.net
+// write glm file for the input of GridLab-D
+//***********************************************************************************************************************************
+// [Histroy] 
+// **********************************************************************************************************************************
+DROP QUERY GLM_D
+
+CREATE QUERY GLM_D(string starttime, string stoptime, string solver,string inv_gen_mode,string solar_gen_mode,string cap_control,string wind_gen_mode,string bat_sch,double floor_area,double heating_setpoint,double cooling_setpoint,string solar_panel_type,double solar_area,double solar_efficiency,string solar_install_type,string wind_Gen_type,string wind_Turbine_Model,string inverter_inverter_type) FOR GRAPH powerflow_graph
+{  
+	// Define variables and initialization
+	TYPEDEF TUPLE <string starttime, string stoptime, string fakestoptime, string solver> powerflowtup;
+	TYPEDEF TUPLE <string phases, string name, double VA_real, double VA_img, double VB_real, double VB_img, double VC_real, double VC_img, double V_nominal> nodetup;
+	TYPEDEF TUPLE <string phases, string name, double VA_real, double VA_img, double VB_real, double VB_img, double VC_real, double VC_img, double V_nominal, double cons_current_Areal, 
+	double cons_current_Aimg, double cons_current_Breal, double cons_current_Bimg, double cons_current_Creal, double cons_current_Cimg, double cons_power_Areal, double cons_power_Aimg, 
+	double cons_power_Breal, double cons_power_Bimg, double cons_power_Creal, double cons_power_Cimg, double cons_imped_Areal, double cons_imped_Aimg, double cons_imped_Breal, double cons_imped_Bimg, 
+	double cons_imped_Creal, double cons_imped_Cimg> loadtup;
+	TYPEDEF TUPLE <int linetype, string phases, string name , string from_node,  string to_node, double length, int config> linetup;
+	TYPEDEF TUPLE <uint ohlconfig_id, uint conductor_A, uint conductor_B, uint conductor_C, uint conductor_N, uint line_spacing, double Raa, double Rab, double Rac, double Rba, double Rbb, double Rbc, double Rca, double Rcb, double Rcc, double Xaa, double Xab, double Xac, double Xba, double Xbb, double Xbc, double Xca, double Xcb, double Xcc> ohlconfigtup;
+	TYPEDEF TUPLE <uint uglconfig_id, uint conductor_A, uint conductor_B, uint conductor_C, uint line_spacing, double Raa, double Rab, double Rac, double Rba, double Rbb, double Rbc, double Rca, double Rcb, double Rcc, double Xaa, double Xab, double Xac, double Xba, double Xbb, double Xbc, double Xca, double Xcb, double Xcc> uglconfigtup;
+	TYPEDEF TUPLE <uint ohlcondconfig_id, double conductor_gmr, double conductor_resistance> ohlcondconfigtup;
+	TYPEDEF TUPLE <uint uglcondconfig_id, double conductor_gmr, double conductor_resistance, double outer_diameter_ugl, double conductor_diameter_ugl, double neutral_gmr_ugl, 
+	double neutral_resistance_ugl, double neutral_diameter_ugl, double neutral_strands_ugl, double shield_gmr_ugl, double shield_resistance_ugl> uglcondconfigtup;
+	TYPEDEF TUPLE <uint linespacing_id, double distance_AB, double distance_AC, double distance_BC, double distance_AN, double distance_BN, double distance_CN> lsconfigtup;
+	TYPEDEF TUPLE <string id, string connection, int rating,  double prim_V, double secd_V, double R, double X> trans_configtup;
+    TYPEDEF TUPLE <string id, string phases, string name,  string from_XF, string to_XF, string config> transformertup;
+	TYPEDEF TUPLE <string id, string connection, double bc, double bw, double td, int rt, int lt, int ct, int pt, double RA, double XA, double RB, double XB, double RC, double XC, string ct_phase, string pt_phase, double reg, string control, string Regtype, int tapA, int tapB, int tapC> regu_configtup;
+    TYPEDEF TUPLE <string name, string phases,  string from_Reg, string to_Reg, string config> regulatortup;
+	TYPEDEF TUPLE <string id, string phases, string name, string from_SW, string to_SW, string status> switchtup;
+	TYPEDEF TUPLE <string id, string phases, string name, string control, double CapA, double CapB, double CapC, string control_level, string swA, string swB, string swC, double Vnominal> capacitortup;
+	
+	//house and renewable 
+		//tuple 
+		//XF
+		TYPEDEF TUPLE <string XF_name,string phase,string fromNode,string toNode,string config>XFresTup;
+		
+		TYPEDEF TUPLE <string XFC_name,string connect_type,string install_type,double power_rating,double powerA_rating,double powerB_rating,double powerC_rating,double primary_voltage,double secondary_voltage, double resistance,double reactance>XFCresTup;
+		
+		
+		TYPEDEF TUPLE <string XF_name,string phase,string fromNode,string toNode,string config>XFTup;
+		
+		TYPEDEF TUPLE <string XFC_name,string connect_type,string install_type,double power_rating,double powerA_rating,double powerB_rating,double powerC_rating,double primary_voltage,double secondary_voltage, double resistance,double reactance>XFCTup;
+		//house
+		TYPEDEF TUPLE <string triplex_node_name,string triplex_node_phase,double triplex_node_nominal_voltage>tripNodeTup;
+		
+		TYPEDEF TUPLE <string triplex_meter_name,string triplex_meter_phase,double triplex_meter_nominal_voltage>tripMeterTup;
+		
+		TYPEDEF TUPLE <string triplex_line_name,string triplex_line_phase,string triplex_line_from,string triplex_line_to,double triplex_line_length,string config>tripLineTup;
+		
+		TYPEDEF TUPLE <string name, double insulation_thickness,double diameter, double resistance,double geometric_mean_radius>tripLineConfigTup;
+		
+		TYPEDEF TUPLE <string house_name, string parent,string phase, double floor_area,double heating_setpoint,double cooling_setpoint,double number_of_stories, double ceiling_height,double window_wall_ratio,string heating_system_type,string cooling_system_type >houseTup;
+		//appliance
+		TYPEDEF TUPLE <string water_name, double waterH_tank_volume,double waterH_tank_UA, double waterH_tank_diameter,double waterH_heating_element_capacity,string waterH_heat_mode, string waterH_location,double waterH_tank_setpoint>waterhTup;
+		//renewable
+		TYPEDEF TUPLE <string name ,string phase, double nominal_voltage>meterTup;
+		
+		TYPEDEF TUPLE <string parent,string generator_mode ,string generator_status, string inverter_type,string phases,double rated_power, double power_factor>inverterTup;
+		
+		TYPEDEF TUPLE <string name,string parent, string phase,string generator_mode,string generator_status,string panel_type,double efficiency,double area,string INSTALLATION_TYPE>solarTup;
+		
+		TYPEDEF TUPLE <string name, string parent,string Gen_mode,string Gen_status,string Gen_type, string phases, double pf,double torque,double time_operation,double speed,double pressure,double stroke >diselTup;
+		
+		TYPEDEF TUPLE <string name, string parent, string phase, string Gen_status, string Gen_type, string Gen_mode,string Turbine_Model>windTup;
+		
+		TYPEDEF TUPLE <string name, string parent,string generator_mode,double V_Max,double I_Max,double P_Max,double E_Max,double base_efficiency ,double battery_power_factor,double battery_Energy,string generator_status,string power_type,double parasitic_power_draw>batteryTup;
+		
+		// list accum
+		ListAccum<tripNodeTup>@@tripNode;
+		ListAccum<tripMeterTup>@@tripMeter;
+		ListAccum<tripLineTup>@@tripLine;
+		ListAccum<tripLineConfigTup>@@tripLineConfig;
+		ListAccum<houseTup>@@house1;
+		ListAccum<waterhTup>@@waterH;
+		ListAccum<meterTup>@@meter;
+		ListAccum<solarTup>@@solar;
+		ListAccum<diselTup>@@disel;
+		ListAccum<windTup>@@wind;
+		ListAccum<batteryTup>@@battery;
+		ListAccum<inverterTup>@@inverter;
+		ListAccum<XFTup>@@XF;
+		ListAccum<XFCTup>@@XFC;
+		ListAccum<XFresTup>@@XFres;
+		ListAccum<XFCresTup>@@XFCres;
+		
+		SumAccum<string> @parent = "None";
+		SumAccum<string> @tripNodename="None";
+		SumAccum<string> @tripMetername="None";
+		SumAccum<string> @tripLinename="None";
+		SumAccum<string> @tripLineConfigTupname="None";
+		SumAccum<int> @testfw = 100;
+
+		SumAccum<string> @XFC_name = "None";
+		SumAccum<string> @install_type="None";
+		SumAccum<double> @power_rating=0;
+		SumAccum<double> @powerA_rating=0;
+		SumAccum<double> @powerB_rating=0;
+		SumAccum<double> @powerC_rating = 0;
+		
+		SumAccum<string> @XF_name="NONE";
+		SumAccum<string> @XF_phase="NONE";
+		SumAccum<string> @XF_config = "NONE";
+
+			SumAccum<double>@insulation_thickness=0.08;
+			SumAccum<double>@diameter=0.36;
+			SumAccum<double>@resistance=0.97;
+			SumAccum<double>@geometric_mean_radius=0.11;
+		
+		
+		
+	//original list
+	ListAccum<powerflowtup>@@PowerFlow;
+	ListAccum<nodetup>@@Nodes;
+	ListAccum<loadtup>@@SpotLoads;
+	ListAccum<linetup>@@Lines;
+	ListAccum<ohlconfigtup>@@OHLConfig;
+	ListAccum<uglconfigtup>@@UGLConfig;
+	ListAccum<ohlcondconfigtup>@@OHLCondConfig;
+    ListAccum<uglcondconfigtup>@@UGLCondConfig;
+	ListAccum<lsconfigtup>@@LSConfig;
+	ListAccum<trans_configtup>@@TransConfig;
+	ListAccum<regu_configtup>@@ReguConfig;
+	ListAccum<transformertup>@@Transformer;
+	ListAccum<regulatortup>@@Regulator;
+	ListAccum<switchtup>@@Switches;
+    ListAccum<capacitortup>@@Capacitors;
+	
+	SumAccum<double> @VA_real = 0;
+	SumAccum<double> @VA_img = 0;
+	SumAccum<double> @VB_real = 0;
+	SumAccum<double> @VB_img = 0;
+	SumAccum<double> @VC_real = 0;
+	SumAccum<double> @VC_img = 0;
+	SumAccum<double> @VAB_real = 0;
+	SumAccum<double> @VAB_img = 0;
+	SumAccum<double> @VBC_real = 0;
+	SumAccum<double> @VBC_img = 0;
+	SumAccum<double> @VCA_real = 0;
+	SumAccum<double> @VCA_img = 0;
+	SumAccum<double> @RA_reg = 0;
+	SumAccum<double> @XA_reg = 0;
+	SumAccum<double> @RB_reg = 0;
+	SumAccum<double> @XB_reg = 0;
+	SumAccum<double> @RC_reg = 0;
+	SumAccum<double> @XC_reg = 0;
+	SumAccum<double> @R_xf = 0;
+	SumAccum<double> @X_xf = 0;
+	SumAccum<double> @primV_xf = 0;
+	SumAccum<double> @secdV_xf = 0;
+	SumAccum<double> @cons_currAR = 0;
+	SumAccum<double> @cons_currAI = 0;
+	SumAccum<double> @cons_currBR = 0;
+	SumAccum<double> @cons_currBI = 0;
+	SumAccum<double> @cons_currCR = 0;
+	SumAccum<double> @cons_currCI = 0;
+	SumAccum<double> @cons_powAR = 0;
+	SumAccum<double> @cons_powAI = 0;
+	SumAccum<double> @cons_powBR = 0;
+	SumAccum<double> @cons_powBI = 0;
+	SumAccum<double> @cons_powCR = 0;
+	SumAccum<double> @cons_powCI = 0;
+	SumAccum<double> @cons_impedAR = 0;
+	SumAccum<double> @cons_impedAI = 0;
+	SumAccum<double> @cons_impedBR = 0;
+	SumAccum<double> @cons_impedBI = 0;
+	SumAccum<double> @cons_impedCR = 0;
+	SumAccum<double> @cons_impedCI = 0;
+	SumAccum<double> @CapA = 0;
+	SumAccum<double> @CapB = 0;
+	SumAccum<double> @CapC = 0;
+	SumAccum<double> @Vnominal = 0;
+	SumAccum<double> @PdA_sum = 0;
+	SumAccum<double> @PdB_sum = 0;
+	SumAccum<double> @PdC_sum = 0;
+	SumAccum<double> @QdA_sum = 0;
+	SumAccum<double> @QdB_sum = 0;
+	SumAccum<double> @QdC_sum = 0;
+	SumAccum<string> @phases = "None";
+    SumAccum<int> @Linetype = 2; //0 for OHL,1 for UGL
+	SumAccum<string> @linefrom = "None";
+	SumAccum<string> @lineto = "None";
+	SumAccum<int> @LineConfig = 0;
+	SumAccum<int> @linelength = 0;
+	SumAccum<string> @linephases = "None";
+	SumAccum<string> @loadphases = "None";
+    SumAccum<string> @regphases = "None";
+	SumAccum<string> @xfphases = "None";
+	SumAccum<string> @linename = "None";
+	SumAccum<string> @switch_name = "None";
+	SumAccum<string> @from_reg = "None";
+	SumAccum<string> @to_reg = "None";
+	SumAccum<string> @from_xf = "None";
+	SumAccum<string> @to_xf = "None";
+	SumAccum<string> @connection_xf = "None";
+	MaxAccum<double> @@PI = 3.14159265359;
+	DATETIME timex;
+	DATETIME realtime;
+	string fakestoptime;
+
+	string ttmp;
+	string kmp;
+	string tmp;
+//Initialing the configuration matrixes 
+    @@Nodes.clear();
+    @@SpotLoads.clear();
+    @@Lines.clear();
+	@@OHLConfig.clear();
+	@@UGLConfig.clear();
+	@@OHLCondConfig.clear();
+	@@UGLCondConfig.clear();
+	@@LSConfig.clear();
+	@@TransConfig.clear();
+	@@ReguConfig.clear();
+	@@Transformer.clear();
+	@@Regulator.clear();
+//house and renewable 
+	@@tripNode.clear();
+	@@tripMeter.clear();
+	@@tripLine.clear();
+	@@tripLineConfig.clear();
+	@@house1.clear();
+	@@waterH.clear();
+	@@meter.clear();
+	@@solar.clear();
+	@@disel.clear();
+	@@wind.clear();
+	@@battery.clear();
+	@@inverter.clear();
+	@@XF.clear();
+	@@XFC.clear();
+	@@XFres.clear();
+	@@XFCres.clear();
+	
+	Thouse={house.*};
+	Tres={res_D.*};
+
+	
+	ThouseI = SELECT h
+	      FROM Thouse:h
+		  POST-ACCUM
+		  h.@parent="",
+		  h.@tripLinename="",
+		  h.@tripMetername="",
+		  h.@tripNodename="",
+		  h.@tripLineConfigTupname="",
+		  
+		//	h.@insulation_thickness=0.08,
+		//	h.@diameter=0.36,
+		//	h.@resistance=0.97,
+		//	h.@geometric_mean_radius=0.11,
+
+			@@house1 += houseTup(h.house_name, h.@parent,h.house_phase, floor_area, heating_setpoint, cooling_setpoint,h.number_of_stories,h.ceiling_height,h.window_wall_ratio,h.heating_system_type,h.cooling_system_type),
+			@@tripNode+=tripNodeTup(h.@tripNodename,h.house_phase,h.nominal_voltage),
+			@@tripMeter+=tripMeterTup(h.@tripMetername,h.house_phase,h.nominal_voltage),
+			@@tripLineConfig+=tripLineConfigTup(h.@tripLineConfigTupname,h.insulation_thickness,h.diameter,h.resistance,h.geometric_mean_radius),
+			@@tripLine+=tripLineTup(h.@tripLinename,h.house_phase,h.@tripNodename,h.house_name,0,h.trip_config),
+			@@waterH+=waterhTup("waterH",h.waterH_tank_volume,h.waterH_tank_UA,h.waterH_tank_diameter,h.waterH_heating_element_capacity,h.waterH_heat_mode,h.waterH_location,h.waterH_tank_setpoint);
+	
+	// TmeterI = SELECT m
+	  // FROM Tmeter:m
+	  // POST-ACCUM
+			// TYPEDEF TUPLE <string name ,string phase, double nominal_voltage>meterTup;
+		    // @@meter += meterTup(m., t.exId, t.@VA_real, t.@VA_img, t.@VB_real, t.@VB_img, t.@VC_real, t.@VC_img, t.Vbase)
+
+	  // END;
+	    T0 = {bus_D.*};
+		TresI = SELECT r
+	      FROM Tres:r
+		  POST-ACCUM
+		  ttmp=r.res_name,
+		  kmp=r.meter_name,
+		  tmp=r.solar_gen_mode,
+		    @@meter += meterTup(r.meter_name, r.meter_phase,r.meter_nominal_voltage),
+			//@@solar +=solarTup(r.solar_name,r.meter_name,r.meter_phase,solar_gen_mode,r.solar_gen_status,r.solar_panel_type,r.solar_efficiency,r.solar_area,r.solar_install_type),
+			  @@solar +=solarTup(r.solar_name,r.meter_name,r.meter_phase,solar_gen_mode,r.solar_gen_status,solar_panel_type,solar_efficiency,solar_area,solar_install_type),
+			  
+			//@@disel +=diselTup(
+			//@@wind+=windTup(r.wind_name,r.meter_name,"ABCN",r.wind_Gen_status,r.wind_Gen_type,wind_gen_mode,r.wind_Turbine_Model),
+			@@wind+=windTup(r.wind_name,r.meter_name,"ABCN",r.wind_Gen_status,wind_Gen_type,wind_gen_mode,wind_Turbine_Model),
+
+			@@battery+=batteryTup(r.battery_name,r.meter_name,r.battery_generator_mode,r.battery_V_Max,r.battery_I_Max,r.battery_P_Max,r.battery_E_Max,r.battery_base_efficiency,r.battery_power_factor,r.battery_Energy,r.battery_generator_status,r.battery_power_type,r.battery_parasitic_power_draw),
+			
+			@@inverter+=inverterTup(r.meter_name,inv_gen_mode,r.inverter_generator_status,inverter_inverter_type,r.inverter_phases,r.inverter_rated_power,r.inverter_power_factor);
+	
+		TxfhI=SELECT s 
+			  FROM T0:s - (transformer_D:e) - house:f
+			 ACCUM
+			f.@XFC_name=e.XFC_name,
+			f.@install_type=e.install_type,
+			f.@power_rating=e.power_rating,
+			f.@powerA_rating=e.powerA_rating,
+			f.@powerB_rating=e.powerB_rating,
+			f.@powerC_rating=e.powerC_rating,
+		   f.@from_xf = e.fromNode,
+		   f.@to_xf = e.toNode,
+		   f.@connection_xf = e.connect_type,
+		   f.@primV_xf = e.primary_voltage,
+		   f.@secdV_xf = e.secondary_voltage,
+		   f.@R_xf = e.resistance,
+		   f.@X_xf = e.reactance,
+		   
+		   f.@XF_name=e.name,
+		   f.@XF_phase=e.phase,
+		   f.@XF_config=e.config
+		   
+		   
+		  POST-ACCUM
+	      @@XF += XFTup(f.@XF_name, f.@XF_phase, f.@from_xf,f.@to_xf, f.@XF_config),  
+		    
+			IF  f.@XF_phase=="ABCN"  THEN 				
+              @@XFC += XFCTup(f.@XFC_name, f.@connection_xf,f.@install_type , f.@power_rating,-1,-1,-1, f.@primV_xf,f.@secdV_xf,f.@R_xf,f.@X_xf)
+			ELSE IF f.@XF_phase=="AS"  THEN
+		      @@XFC += XFCTup(f.@XFC_name, f.@connection_xf, f.@install_type, -1,f.@powerA_rating,-1,-1, f.@primV_xf,f.@secdV_xf,f.@R_xf,f.@X_xf)
+			ELSE IF f.@XF_phase=="BS"  THEN
+			  @@XFC += XFCTup(f.@XFC_name, f.@connection_xf, f.@install_type, -2,-1,f.@powerB_rating,-1, f.@primV_xf,f.@secdV_xf,f.@R_xf,f.@X_xf)
+			ELSE IF f.@XF_phase=="CS"  THEN
+			  @@XFC += XFCTup(f.@XFC_name, f.@connection_xf,f.@install_type, -3,-1,-1,f.@powerC_rating, f.@primV_xf,f.@secdV_xf,f.@R_xf,f.@X_xf)
+			  
+			 END;
+			
+	 // transformer to renewable
+	TxfresI=SELECT s 
+	  FROM T0:s - (XF_res_D:e) - res_D:f
+	 ACCUM
+	f.@XFC_name=e.XFC_name,
+	f.@install_type=e.install_type,
+	f.@power_rating=e.power_rating,
+	f.@powerA_rating=e.powerA_rating,
+	f.@powerB_rating=e.powerB_rating,
+	f.@powerC_rating=e.powerC_rating,
+   f.@from_xf = e.fromNode,
+   f.@to_xf = e.toNode,
+   f.@connection_xf = e.connect_type,
+   f.@primV_xf = e.primary_voltage,
+   f.@secdV_xf = e.secondary_voltage,
+   f.@R_xf = e.resistance,
+   f.@X_xf = e.reactance,
+   
+   f.@XF_name=e.name,
+   f.@XF_phase=e.phase,
+   f.@XF_config=e.config
+   
+   
+  POST-ACCUM
+  @@XFres += XFresTup(f.@XF_name, f.@XF_phase, f.@from_xf,f.@to_xf, f.@XF_config),  
+	
+	IF  f.@XF_phase=="ABCN"  THEN 				
+	  @@XFCres += XFCresTup(f.@XFC_name, f.@connection_xf,f.@install_type , f.@power_rating,-1,-1,-1, f.@primV_xf,f.@secdV_xf,f.@R_xf,f.@X_xf)
+	ELSE IF f.@XF_phase=="AS"  THEN
+	  @@XFCres += XFCresTup(f.@XFC_name, f.@connection_xf, f.@install_type, -1,f.@powerA_rating,-1,-1, f.@primV_xf,f.@secdV_xf,f.@R_xf,f.@X_xf)
+	ELSE IF f.@XF_phase=="BS"  THEN
+	  @@XFCres += XFCresTup(f.@XFC_name, f.@connection_xf, f.@install_type, -2,-1,f.@powerB_rating,-1, f.@primV_xf,f.@secdV_xf,f.@R_xf,f.@X_xf)
+	ELSE IF f.@XF_phase=="CS"  THEN
+	  @@XFCres += XFCresTup(f.@XFC_name, f.@connection_xf,f.@install_type, -3,-1,-1,f.@powerC_rating, f.@primV_xf,f.@secdV_xf,f.@R_xf,f.@X_xf)
+	  
+	 END;
+	 
+//original
+
+	
+	T1 = {lineconfig_D.*};
+	
+	T2 = {switchnode_D.*};
+	
+	timex=to_datetime(stoptime);
+	realtime=datetime_add(timex,INTERVAL 1 DAY);
+	fakestoptime=datetime_format(realtime,"%Y-%m-%d %H:%M:%S");
+	@@PowerFlow += powerflowtup(starttime, stoptime, fakestoptime, solver);
+	
+	
+	
+	Tcust = SELECT s 
+	     FROM T0:s - (customerlink_D:e) - customer_D:f
+		 ACCUM
+		 s.@PdA_sum += f.PA,
+		 s.@QdA_sum += f.QA,
+		 s.@PdB_sum += f.PB,
+		 s.@QdB_sum += f.QB,
+		 s.@PdC_sum += f.PC,
+		 s.@QdC_sum += f.QC;
+		 
+    Tload = SELECT s
+         FROM T0:s
+	     POST-ACCUM 
+		  s.PdA=s.@PdA_sum*1000,
+		  s.QdA=s.@QdA_sum*1000,
+		  s.PdB=s.@PdB_sum*1000,
+		  s.QdB=s.@QdB_sum*1000,
+		  s.PdC=s.@PdC_sum*1000,
+		  s.QdC=s.@QdC_sum*1000;
+	 
+	Tnode = SELECT t
+	      FROM T0:t
+		  POST-ACCUM
+		    t.@VA_real = t.Vbase,
+			t.@VA_img = 0,
+	        t.@VB_real = t.Vbase*(-0.5),
+	        t.@VB_img = t.Vbase*(-0.866025),
+	        t.@VC_real = t.Vbase*(-0.5),
+	        t.@VC_img = t.Vbase*0.866025,
+			t.@VAB_real = t.@VA_real - t.@VB_real,
+			t.@VAB_img = t.@VA_img - t.@VB_img,
+	        t.@VBC_real = t.@VB_real - t.@VC_real,
+	        t.@VBC_img = t.@VB_img - t.@VC_img,
+	        t.@VCA_real = t.@VC_real - t.@VA_real,
+	        t.@VCA_img = t.@VC_img - t.@VA_img,
+		  CASE WHEN (abs(t.PdA)+abs(t.PdB)+abs(t.PdC)<0.0001 and t.flag != 3) THEN
+		    @@Nodes += nodetup(t.node_phases, t.exId, t.@VA_real, t.@VA_img, t.@VB_real, t.@VB_img, t.@VC_real, t.@VC_img, t.Vbase)
+		  END;
+	
+	T3 = SELECT s
+	      FROM T0:s-(foree_D:e)-:t
+		  
+		  ACCUM
+		   IF    abs(e.Raa)>0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)>0.00001  THEN 
+            t.@phases = "ABC"
+		   ELSE IF  abs(e.Raa)<0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)>0.00001  THEN
+		    t.@phases = "BC"
+		   ELSE IF  abs(e.Raa)>0.00001 and abs(e.Rbb)<0.00001 and abs(e.Rcc)>0.00001  THEN
+		    t.@phases = "AC"
+		   ELSE IF  abs(e.Raa)>0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)<0.00001  THEN
+            t.@phases = "AB"
+	       ELSE IF  abs(e.Raa)<0.00001 and abs(e.Rbb)<0.00001 and abs(e.Rcc)>0.00001  THEN
+            t.@phases = "C"
+		   ELSE IF  abs(e.Raa)<0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)<0.00001  THEN
+            t.@phases = "B"	
+		   ELSE IF  abs(e.Raa)>0.00001 and abs(e.Rbb)<0.00001 and abs(e.Rcc)<0.00001  THEN
+            t.@phases = "A"	
+		   ELSE
+			t.@phases = "None"
+		   END,
+		   IF (e.Config == "Line12") THEN
+			t.@Linetype = 1
+		   ELSE IF (e.flag == 0 and s.flag != 3 and t.flag !=3 and  e.Config != "Line12") THEN
+			t.@Linetype = 0
+		   END,
+		   IF (e.Config == "Line1") THEN
+		    t.@LineConfig = 1001
+		   ELSE IF (e.Config == "Line2") THEN
+		    t.@LineConfig = 1002
+		   ELSE IF (e.Config == "Line3") THEN 
+		    t.@LineConfig = 1003
+		   ELSE IF (e.Config == "Line4") THEN
+		    t.@LineConfig = 1004
+		   ELSE IF (e.Config == "Line5") THEN 
+		    t.@LineConfig = 1005
+		   ELSE IF (e.Config == "Line6") THEN
+		    t.@LineConfig = 1006
+		   ELSE IF (e.Config == "Line7") THEN 
+		    t.@LineConfig = 1007
+		   ELSE IF (e.Config == "Line8") THEN
+		    t.@LineConfig = 1008
+		   ELSE IF (e.Config == "Line9") THEN 
+		    t.@LineConfig = 1009
+		   ELSE IF (e.Config == "Line10") THEN
+		    t.@LineConfig = 10010
+		   ELSE IF (e.Config == "Line11") THEN 
+		    t.@LineConfig = 10011
+		   ELSE IF (e.Config == "Line12") THEN
+		    t.@LineConfig = 10012
+		   END,
+		    t.@linename = s.exId + "-" + t.exId,
+			t.@linefrom = s.exId,
+			t.@lineto = t.exId,
+			t.@linelength = e.linelength
+		   
+		  POST-ACCUM 
+		   IF (t.@Linetype == 1) THEN
+		    t.@linephases = t.@phases 
+		   ELSE IF (t.@Linetype == 0) THEN
+		   	t.@linephases = t.@phases + "N"  
+		   END,
+		   IF  (t.@Linetype == 0 or t.@Linetype == 1)  THEN 		   
+		    @@Lines += linetup(t.@Linetype, t.@linephases, t.@linename, t.@linefrom, t.@lineto, t.@linelength, t.@LineConfig)
+		   END,
+		  CASE WHEN (abs(t.PdA)+abs(t.PdB)+abs(t.PdC)>0.0001 ) THEN
+	
+		  IF (t.Load_Model == "Y-PQ" or t.Load_Model == "Y-Z" or t.Load_Model =="Y-I") THEN		  
+			     t.@loadphases = t.node_phases
+		  ELSE IF (t.Load_Model == "D-PQ" or t.Load_Model == "D-Z" or t.Load_Model == "D-I") THEN
+			     t.@loadphases = t.@phases + "D"
+		  END,
+			IF (t.Load_Model == "Y-I") THEN
+			  t.@cons_currAR = (t.PdA*t.@VA_real + t.QdA*t.@VA_img)/(t.Vbase*t.Vbase),
+	          t.@cons_currAI = (t.PdA*t.@VA_img - t.QdA*t.@VA_real)/(t.Vbase*t.Vbase),
+	          t.@cons_currBR = (t.PdB*t.@VB_real + t.QdB*t.@VB_img)/(t.Vbase*t.Vbase),
+	          t.@cons_currBI = (t.PdB*t.@VB_img - t.QdB*t.@VB_real)/(t.Vbase*t.Vbase),
+	          t.@cons_currCR = (t.PdC*t.@VC_real + t.QdC*t.@VC_img)/(t.Vbase*t.Vbase),
+	          t.@cons_currCI = (t.PdC*t.@VC_img - t.QdC*t.@VC_real)/(t.Vbase*t.Vbase)
+			ELSE IF (t.Load_Model == "D-I") THEN 
+              t.@cons_currAR = (t.PdA*t.@VAB_real + t.QdA*t.@VAB_img)/(t.Vbase*t.Vbase*3),
+	          t.@cons_currAI = (t.PdA*t.@VAB_img - t.QdA*t.@VAB_real)/(t.Vbase*t.Vbase*3),
+	          t.@cons_currBR = (t.PdB*t.@VBC_real + t.QdB*t.@VBC_img)/(t.Vbase*t.Vbase*3),
+	          t.@cons_currBI = (t.PdB*t.@VBC_img - t.QdB*t.@VBC_real)/(t.Vbase*t.Vbase*3),
+	          t.@cons_currCR = (t.PdC*t.@VCA_real + t.QdC*t.@VCA_img)/(t.Vbase*t.Vbase*3),
+	          t.@cons_currCI = (t.PdC*t.@VCA_img - t.QdC*t.@VCA_real)/(t.Vbase*t.Vbase*3)			
+			ELSE IF (t.Load_Model == "Y-PQ" or t.Load_Model == "D-PQ") THEN
+			  t.@cons_powAR = t.PdA,
+	          t.@cons_powAI = t.QdA,
+	          t.@cons_powBR = t.PdB,
+	          t.@cons_powBI = t.QdB,
+	          t.@cons_powCR = t.PdC,
+	          t.@cons_powCI = t.QdC
+			ELSE IF (t.Load_Model == "Y-Z") THEN
+			  CASE WHEN (t.PdA > 0 or t.QdA > 0) THEN
+	            t.@cons_impedAR = t.Vbase*t.Vbase*t.PdA/(t.PdA*t.PdA+t.QdA*t.QdA),
+	            t.@cons_impedAI = t.Vbase*t.Vbase*t.QdA/(t.PdA*t.PdA+t.QdA*t.QdA)
+			  END,
+			  CASE WHEN (t.PdB > 0 or t.QdB > 0) THEN
+	            t.@cons_impedBR = t.Vbase*t.Vbase*t.PdB/(t.PdB*t.PdB+t.QdB*t.QdB),
+	            t.@cons_impedBI = t.Vbase*t.Vbase*t.QdB/(t.PdB*t.PdB+t.QdB*t.QdB)
+			  END,
+			  CASE WHEN (t.PdC > 0 or t.QdC > 0) THEN
+	            t.@cons_impedCR = t.Vbase*t.Vbase*t.PdC/(t.PdC*t.PdC+t.QdC*t.QdC),
+	            t.@cons_impedCI = t.Vbase*t.Vbase*t.QdC/(t.PdC*t.PdC+t.QdC*t.QdC)
+			  END
+			ELSE IF (t.Load_Model == "D-Z") THEN
+			  CASE WHEN (t.PdA > 0 or t.QdA > 0) THEN
+	            t.@cons_impedAR = 3*t.Vbase*t.Vbase*t.PdA/(t.PdA*t.PdA+t.QdA*t.QdA),
+	            t.@cons_impedAI = 3*t.Vbase*t.Vbase*t.QdA/(t.PdA*t.PdA+t.QdA*t.QdA)
+			  END,
+			  CASE WHEN (t.PdB > 0 or t.QdB > 0) THEN
+	            t.@cons_impedBR = 3*t.Vbase*t.Vbase*t.PdB/(t.PdB*t.PdB+t.QdB*t.QdB),
+	            t.@cons_impedBI = 3*t.Vbase*t.Vbase*t.QdB/(t.PdB*t.PdB+t.QdB*t.QdB)
+			  END,
+			  CASE WHEN (t.PdC > 0 or t.QdC > 0) THEN
+	            t.@cons_impedCR = 3*t.Vbase*t.Vbase*t.PdC/(t.PdC*t.PdC+t.QdC*t.QdC),
+	            t.@cons_impedCI = 3*t.Vbase*t.Vbase*t.QdC/(t.PdC*t.PdC+t.QdC*t.QdC)
+			  END
+			END,
+		   @@SpotLoads += loadtup(t.@loadphases, t.exId, t.@VA_real, t.@VA_img, t.@VB_real, t.@VB_img, t.@VC_real, t.@VC_img, 
+		   t.Vbase, t.@cons_currAR, t.@cons_currAI, t.@cons_currBR, t.@cons_currBI, t.@cons_currCR, t.@cons_currCI, t.@cons_powAR, 
+		   t.@cons_powAI, t.@cons_powBR, t.@cons_powBI, t.@cons_powCR, t.@cons_powCI, t.@cons_impedAR, t.@cons_impedAI, t.@cons_impedBR,
+		   t.@cons_impedBI, t.@cons_impedCR, t.@cons_impedCI)
+		  END;
+	
+		   
+	T4 = SELECT s
+	      FROM T2:s 
+		POST-ACCUM
+		s.@switch_name = s.from_bus + "-" + s.to_bus,
+		@@Switches += switchtup(s.exId, s.switch_phases, s.@switch_name, s.from_bus, s.to_bus, s.switch_status);
+	
+	T5 = SELECT s
+	      FROM T0:s-(foree_D:e)-:t
+		  where e.flag == 1
+		  ACCUM
+		  IF    abs(e.Raa)>0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)>0.00001  THEN 
+            t.@xfphases = "ABCN"
+		   ELSE IF  abs(e.Raa)<0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)>0.00001  THEN
+		    t.@xfphases = "BCN"
+		   ELSE IF  abs(e.Raa)>0.00001 and abs(e.Rbb)<0.00001 and abs(e.Rcc)>0.00001  THEN
+		    t.@xfphases = "ACN"
+		   ELSE IF  abs(e.Raa)>0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)<0.00001  THEN
+            t.@xfphases = "ABN"
+	       ELSE IF  abs(e.Raa)<0.00001 and abs(e.Rbb)<0.00001 and abs(e.Rcc)>0.00001  THEN
+            t.@xfphases = "CN"
+		   ELSE IF  abs(e.Raa)<0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)<0.00001  THEN
+            t.@xfphases = "BN"	
+		   ELSE IF  abs(e.Raa)>0.00001 and abs(e.Rbb)<0.00001 and abs(e.Rcc)<0.00001  THEN
+            t.@xfphases = "AN"	
+		   ELSE
+			t.@xfphases = "None"
+		   END,
+		   t.@from_xf = s.exId,
+		   t.@to_xf = t.exId,
+		   t.@connection_xf = e.connection_T,
+		   t.@primV_xf = s.Vbase*sqrt(3),
+		   t.@secdV_xf = t.Vbase*sqrt(3),
+		   t.@R_xf = e.Raa,
+		   t.@X_xf = e.Xaa
+		  POST-ACCUM
+	      @@TransConfig += trans_configtup(t.@from_xf, t.@connection_xf, 150, t.@primV_xf, t.@secdV_xf, t.@R_xf, t.@X_xf),
+		  string id_xf = t.@from_xf + t.@to_xf,
+          string name_xf = t.@from_xf + "-" + t.@to_xf,		  
+	      @@Transformer += transformertup(id_xf, t.@xfphases, name_xf, t.@from_xf, t.@to_xf, t.@from_xf);
+		  
+		  
+		  
+    T6 = SELECT s
+	      FROM T0:s-(foree_D:e)-:t
+		  where e.flag == 2
+		  ACCUM
+		   IF    abs(e.Raa)>0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)>0.00001  THEN 
+            t.@regphases = "ABC"
+		   ELSE IF  abs(e.Raa)<0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)>0.00001  THEN
+		    t.@regphases = "BC"
+		   ELSE IF  abs(e.Raa)>0.00001 and abs(e.Rbb)<0.00001 and abs(e.Rcc)>0.00001  THEN
+		    t.@regphases = "AC"
+		   ELSE IF  abs(e.Raa)>0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)<0.00001  THEN
+            t.@regphases = "AB"
+	       ELSE IF  abs(e.Raa)<0.00001 and abs(e.Rbb)<0.00001 and abs(e.Rcc)>0.00001  THEN
+            t.@regphases = "C"
+		   ELSE IF  abs(e.Raa)<0.00001 and abs(e.Rbb)>0.00001 and abs(e.Rcc)<0.00001  THEN
+            t.@regphases = "B"	
+		   ELSE IF  abs(e.Raa)>0.00001 and abs(e.Rbb)<0.00001 and abs(e.Rcc)<0.00001  THEN
+            t.@regphases = "A"	
+		   ELSE
+			t.@regphases = "None"
+		   END,
+		   t.@from_reg = s.exId,
+		   t.@to_reg = t.exId,
+		   t.@RA_reg = e.Raa, 
+		   t.@XA_reg = e.Xaa, 
+		   t.@RB_reg = e.Rbb, 
+		   t.@XB_reg = e.Xbb, 
+		   t.@RC_reg = e.Rcc, 
+		   t.@XC_reg = e.Xcc
+		  POST-ACCUM
+          @@ReguConfig += regu_configtup(t.exId, "1", t.vol_reg_A, t.BW_reg, 30, 16, 16, t.CT_reg, t.PT_reg, t.@RA_reg, t.@XA_reg, t.@RB_reg, t.@XB_reg, t.@RC_reg, t.@XC_reg, t.@regphases, t.@regphases, 0.1, "MANUAL", "A", t.Tap_A, t.Tap_B, t.Tap_C),
+		  string name_reg = t.@from_reg + "-" + t.@to_reg,  
+		  @@Regulator += regulatortup(name_reg, t.@regphases, t.@from_reg, t.@to_reg, t.exId);
+	
+	T7 = SELECT s
+	      FROM T0:s
+		  where s.CapA + s.CapB + s.CapC != 0
+		  POST-ACCUM
+		  s.@CapA = s.CapA/1000000, 
+		  s.@CapB = s.CapB/1000000, 
+		  s.@CapC = s.CapC/1000000,
+		  s.@Vnominal = s.Vbase,
+          @@Capacitors += capacitortup(s.exId, s.node_phases, s.exId, cap_control, s.@CapA, s.@CapB, s.@CapC, "INDIVIDUAL", "CLOSED", "CLOSED", "CLOSED", s.@Vnominal);
+		  
+
+	Tlineconfig = SELECT f 
+	      FROM T1:f
+	POST-ACCUM
+	IF (f.config_type == "overhead_line") THEN 
+	    //id,conductorA,conductorB,conductorC,conductorN,spacing
+	    @@OHLConfig += ohlconfigtup(f.exId, f.conductor_A, f.conductor_B, f.conductor_C, f.conductor_N, f.line_spacing, f.R11, f.R12, f.R13, f.R12, f.R22, f.R23, f.R13, f.R23, f.R33, f.X11, f.X12, f.X13, f.X12, f.X22, f.X23, f.X13, f.X23, f.X33)
+	ELSE IF (f.config_type == "underground_line") THEN
+	    //id,conductorA,conductorB,conductorC,spacing
+		@@UGLConfig += uglconfigtup(f.exId, f.conductor_A, f.conductor_B, f.conductor_C, f.line_spacing, f.R11, f.R12, f.R13, f.R12, f.R22, f.R23, f.R13, f.R23, f.R33, f.X11, f.X12, f.X13, f.X12, f.X22, f.X23, f.X13, f.X23, f.X33)
+	ELSE IF (f.config_type == "overhead_line_conductor") THEN
+	    //id, gmr, resistance
+	    @@OHLCondConfig += ohlcondconfigtup(f.exId, f.conductor_gmr, f.conductor_resistance)
+	ELSE IF (f.config_type == "underground_line_conductor") THEN
+	    //id,outer_diameter,conductor_gmr,conductor_diameter,conductor_resistance,neutral_gmr,neutral_resistance,neutral_diameter,neutral_strands,shield_gmr,shield_resistance;
+		@@UGLCondConfig += uglcondconfigtup(f.exId, f.conductor_gmr, f.conductor_resistance, f.outer_diameter_ugl, f.conductor_diameter_ugl, f.neutral_gmr_ugl, f.neutral_resistance_ugl, f.neutral_diameter_ugl, f.neutral_strands_ugl, f.shield_gmr_ugl, f.shield_resistance_ugl)
+	ELSE IF (f.config_type == "line_spacing") THEN
+	    //id,dis_AB,dis_AC,dis_BC,dis_AN,dis_BN,dis_CN
+		@@LSConfig += lsconfigtup(f.exId, f.distance_AB, f.distance_AC, f.distance_BC, f.distance_AN, f.distance_BN, f.distance_CN)
+	END;
+	
+	
+    	
+	
+	GLM_Q(@@PowerFlow,@@Nodes,@@SpotLoads,@@Lines,@@OHLConfig,@@UGLConfig,@@OHLCondConfig,@@UGLCondConfig,@@LSConfig,@@TransConfig,@@Transformer,@@ReguConfig,@@Regulator,@@Switches,@@Capacitors,@@tripNode,@@tripMeter,@@tripLine,@@tripLineConfig,@@house1,@@waterH,@@meter,@@solar,@@wind,@@battery,@@inverter,@@XF,@@XFC,@@XFres,@@XFCres);
+	PRINT @@Lines;
+	PRINT @@Nodes;
+    PRINT @@SpotLoads;
+	PRINT @@OHLConfig;
+	PRINT @@UGLConfig;
+	PRINT @@OHLCondConfig;
+	PRINT @@UGLCondConfig;
+	PRINT @@LSConfig;
+	PRINT @@Switches;
+	PRINT @@Capacitors;
+	PRINT @@PowerFlow;
+	PRINT timex;
+	PRINT realtime;
+	
+	
+	PRINT @@house1;
+	PRINT @@waterH;
+	PRINT @@meter;
+	PRINT @@solar;
+	PRINT @@wind;
+	PRINT @@battery;
+	PRINT @@tripNode;
+	PRINT @@tripMeter;
+	PRINT @@tripLine;
+	PRINT @@tripLineConfig;
+	PRINT @@inverter;
+	PRINT @@XF;
+	PRINT @@XFC;
+    PRINT @@XFCres;
+	PRINT @@XFres;
+}
+
+INSTALL QUERY GLM_D

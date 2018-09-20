@@ -1,0 +1,75 @@
+drop query transResult
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query transResult()
+for graph gsql_EMS {
+	
+	TYPEDEF TUPLE <string edge_name, uint tap_bus, uint z_bus, string from_name, string to_name, double P_TLPF,  double Q_TLPF, string tap_type_id, string violation, double Line1_MVA, double Line2_MVA, double Line3_MVA> trans_result;
+	ListAccum<trans_result> @@edgeList; 
+	MaxAccum<double> @@PI = 3.1415926535898;
+	string violation;
+
+	T0 = {TopoND.*};
+	
+	T1 = SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t 
+	  accum 
+	  double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+	  double tap_ratio_square = abs((e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount)),
+			case when (e.transformer_final_turns_ratio == 0) then
+				e.P_TLPF = s.M_Vm * t.M_Vm * sin((s.M_Va - t.M_Va)*@@PI/180)* e.B + (s.M_Vm*s.M_Vm - s.M_Vm*t.M_Vm*cos((s.M_Va - t.M_Va)*@@PI/180)) * e.G,
+				e.Q_TLPF = - s.M_Vm * s.M_Vm * (-e.B + 0.5*e.hB) - s.M_Vm * t.M_Vm * (e.G*sin((s.M_Va - t.M_Va)*@@PI/180) - (-e.B)*cos((s.M_Va - t.M_Va)*@@PI/180))
+			when (e.transformer_final_turns_ratio > 0) then
+				e.P_TLPF = s.M_Vm * s.M_Vm * (e.G/tap_ratio_square) - s.M_Vm * t.M_Vm * ((e.G/tap_ratio)*cos((s.M_Va - t.M_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.M_Va - t.M_Va)*@@PI/180)),
+				e.Q_TLPF = - s.M_Vm * s.M_Vm * (-e.B + 0.5*e.hB) / tap_ratio_square - s.M_Vm * t.M_Vm * ((e.G/tap_ratio)*sin((s.M_Va - t.M_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.M_Va - t.M_Va)*@@PI/180))
+			else
+				e.P_TLPF = s.M_Vm * s.M_Vm * e.G - s.M_Vm * t.M_Vm * ((e.G/tap_ratio)*cos((s.M_Va - t.M_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.M_Va - t.M_Va)*@@PI/180)),
+				e.Q_TLPF = - s.M_Vm * s.M_Vm * (-e.B + 0.5*e.hB) - s.M_Vm * t.M_Vm * ((e.G/tap_ratio)*sin((s.M_Va - t.M_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.M_Va - t.M_Va)*@@PI/180))
+			end;	  
+	  
+	  
+	  
+    T1 = SELECT s
+	      FROM T0:s-(topo_connect:e)->TopoND:t
+         where e.flag != 0 and s.island == 1 and t.island == 1
+        // where e.Min_tap != 0
+		  ACCUM 
+			// log(true, s.exId, t.exId),
+            int minValue = e.kcount - 1,
+            IF (minValue < 0) THEN
+                minValue = 0
+            END,
+		double P_TLPF = e.P_TLPF*100,
+	    double Q_TLPF = e.Q_TLPF*100,
+      FOREACH i in range[0, minValue] DO
+		// double Line_Q1 = e.Line_Q1.get(i)*100,
+		// double Line_Q2 = e.Line_Q2.get(i)*100, 
+		// double Line_Q3 = e.Line_Q3.get(i)*100,	
+		double line_Q1 = e.line_Q1*100,
+		double line_Q2 = e.line_Q2*100, 
+		double line_Q3 = e.line_Q3*100,			
+       IF (e.CI == 1) THEN	  
+		    @@edgeList+=trans_result(e.edge_name, s.exId, t.exId, s.bus_name, t.bus_name, P_TLPF,Q_TLPF,e.tap_type_id, "1级越限", line_Q1, line_Q2,line_Q3)
+	   ELSE IF (e.CI == 2) THEN
+		    @@edgeList+=trans_result(e.edge_name, s.exId, t.exId, s.bus_name, t.bus_name, P_TLPF,Q_TLPF,e.tap_type_id, "2级越限", line_Q1, line_Q2,line_Q3)
+	   ELSE IF (e.CI == 3) THEN
+		    @@edgeList+=trans_result(e.edge_name, s.exId, t.exId, s.bus_name, t.bus_name, P_TLPF,Q_TLPF,e.tap_type_id, "3级越限", line_Q1, line_Q2,line_Q3)
+	   ELSE
+			@@edgeList+=trans_result(e.edge_name, s.exId, t.exId, s.bus_name, t.bus_name, P_TLPF,Q_TLPF,e.tap_type_id, "正常",line_Q1, line_Q2,line_Q3)
+		END
+	  END
+	  ;
+			
+			// log(true,@@edgeList);
+	
+	foreach x in @@edgeList do
+			print x.edge_name, x.from_name, x.to_name,x.P_TLPF,x.Q_TLPF, x.tap_type_id, x.violation,x.Line1_MVA, x.Line2_MVA, x.Line3_MVA;
+	
+	end;
+	
+	// print @@edgeList;		 
+}
+
+//install query transResult

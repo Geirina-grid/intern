@@ -1,0 +1,34 @@
+<div>
+  <h2>Power Flow Calculation Parameter</h2> 
+  <div class="ui-g-3" style="font-size: 1.2em; height:69px" >
+    起始时间: <br />
+    <input [(ngModel)]="starttime"  editable="editable" placeholder="Input start time">
+  </div>
+  <div class="ui-g-3" style="font-size: 1.2em; height:69px">
+    终止时间: <br />
+    <input [(ngModel)]="stoptime"  editable="editable" placeholder="Input stop time">
+  </div>
+  <div class="ui-g-3" style="font-size: 1.2em; height:69px">
+    潮流算法: <br />
+    <p-dropdown [options]="solver" [(ngModel)]="selectedsolver" [style]="{'width':'160px'}" placeholder="Select solver"></p-dropdown>
+  </div>
+</div>
+  <br>
+  <br>
+  <br>
+  <hr/>
+  <h2>Run Power Flow</h2>
+  <p-confirmDialog header="Confirmation" icon="fa fa-question-circle" width="425"></p-confirmDialog>
+  <div>
+    <button pButton type="button" style="font-size: 2em; margin: 10px" label="Run" (click)="Confirm()"></button>
+  </div>
+  <h2>Get Power Flow Results</h2>
+  <div>
+    <button pButton type="button" style="font-size: 2em; margin: 10px" label="Get Results"></button>
+  </div>
+
+  <hr/>
+  <h2>Power Flow Status</h2>
+  <div class="ui-g-12">
+    <p-progressBar *ngIf="loading" mode="indeterminate" [style]="{'height': '20px'}"></p-progressBar>
+    </div>

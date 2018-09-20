@@ -1,0 +1,58 @@
+<!-- <table class="table">
+  <thead>
+    <td> -->
+      <div class="pad">
+        <div class="sidebar title1">
+          <p>&nbsp;&nbsp;&nbsp;&nbsp;搜索过滤</p>
+        </div>
+        <div class="sidebar subtitle">&nbsp;&nbsp;典型负荷</div>
+        <div class="sidebar input">
+          <mat-form-field>
+            <input matInput placeholder="搜索典型负荷曲线" aria-label="Site" [matAutocomplete]="auto" [formControl]="siteCtrl" [(ngModel)]="siteName">
+            <mat-autocomplete #auto="matAutocomplete">
+              <mat-option *ngFor="let site of filteredSites | async" [value]="site.name" (click)="addToSelectedSiteList()">
+                <img style="vertical-align:middle;" aria-hidden src="{{site.flag}}" height="25" />
+                <span>{{ site.name }}</span> |
+                <small>{{ site.type }}</small>
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+          <div class="sidebar chips">
+            <mat-chip-list>
+              <mat-chip style="margin:4px;" *ngFor="let site of selectedSiteList" color="accent" selected="true">
+                <div (click)="deleteFromSelectedSiteList(site)" class="cross_div">
+                  <i class="fa fa-times" aria-hidden="true"></i>
+                </div>
+                {{site}}
+              </mat-chip>
+            </mat-chip-list>
+          </div>
+        </div>
+        <app-checklist title="负荷弹性指标" [listArray]="elasticityList"></app-checklist>
+        <app-checklist title="状态" [listArray]="satList"></app-checklist>
+        <app-checklist title="材料类型" [listArray]="matList"></app-checklist>
+        <app-checklist title="成本等级" [listArray]="clsList"></app-checklist>
+      
+        <app-checklist title="退货" [listArray]="retList"></app-checklist>
+      </div>
+      
+      <div class="sidebar buttons">
+        <button mat-button id="resetbtn" (click)="reset()">重置</button>
+        <button mat-button id="applybtn" (click)="loadData()">应用</button>
+      </div>
+      <!-- </td>
+          <td> -->
+      <div class="content">
+        <div class="title">
+          <h1>典型负荷曲线</h1>
+        </div>
+        <div id="map" class="map">
+          <app-newtypical></app-newtypical>
+          <!-- <app-global-map (mapRendered)="loadData($event)"></app-global-map> -->
+        </div>
+        
+        <app-data-table [dataSource]="dataSource" [displayedColumns]="displayedColumns" [columns]="columns"></app-data-table>
+      </div>
+      <!-- </td>
+        </thead>
+      </table> -->

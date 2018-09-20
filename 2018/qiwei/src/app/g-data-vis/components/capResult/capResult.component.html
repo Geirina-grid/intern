@@ -1,0 +1,17 @@
+
+<div style="text-align:right">         
+  <p-dataTable #dt [value]="capResults" exportFilename="Capacitor Results" selectionMode="multiple" [metaKeySelection]="false" [(selection)]="selectedCPs" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)" [rows]="20" [paginator]="true" [pageLinks]="3" [rowsPerPageOptions]="[20,25,30]" dataKey="Bus" sortMode="multiple">
+    <p-header>
+        <div class="ui-helper-clearfix">
+            <button type="button" pButton icon="fa-file-o" iconPos="left" label="All Data" (click)="dt.exportCSV()" style="float:left"></button>
+            并联电容器 运行结果               
+            <button type="button" pButton icon="fa-file" iconPos="left" label="Selection Only" (click)="dt.exportCSV({selectionOnly:true})" style="float:right"></button>
+        </div>
+    </p-header>
+    <p-column field="CP_ID" header="电容器名" [sortable]="true"></p-column>
+    <p-column field="Bus" header="所在节点" [sortable]="true"></p-column>
+    <p-column field="Q" header="无功输出(kVar)" [sortable]="true"></p-column>
+    <p-column field="phase" header="相位" [sortable]="true"></p-column>
+  </p-dataTable>
+</div>
+

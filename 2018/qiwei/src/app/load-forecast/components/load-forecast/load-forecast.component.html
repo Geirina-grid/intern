@@ -1,0 +1,95 @@
+<p-growl [(value)]="messages"></p-growl>
+<div style="margin: 0 auto;">
+    <div class="ui-g-12">
+
+        <!-- <div class="dateButton"> -->
+       
+        <div class=load-forecast-selections>
+            <button mat-raised-button color="primary" (click)="toIESIndex()">返回主界面</button>
+        </div>
+        
+        <div class=load-forecast-selections style="margin-right: 60px">
+            <span>
+                起讫日期
+                <input type="text" name="daterangeInput" daterangepicker [options]="options" (selected)="selectedDate($event, daterange)"
+                />
+            </span>
+        </div>
+        <div class=load-forecast-selections>
+            <span>
+                仪表标识:
+                <p-dropdown [filter]="true" [options]="meters" [(ngModel)]="selectedmeter" [style]="{'width':'200px'}" editable="true" placeholder="Select ID"
+                    (onChange)="onMeterDropdownSelect()"></p-dropdown>
+            </span>
+        </div>
+       
+<!--
+    <div class="pad">
+            <div class="sidebar title1">
+              <p>&nbsp;&nbsp;&nbsp;&nbsp;搜索过滤</p>
+            </div>
+            <div class="sidebar title1">
+                &nbsp;&nbsp;&nbsp;&nbsp;起讫日期:
+                <input type="text" style="color:black; margin: 16px" name="daterangeInput" daterangepicker [options]="options" (selected)="selectedDate($event, daterange)"/>
+            </div>
+            <div class="sidebar title1">
+                &nbsp;&nbsp;&nbsp;&nbsp;BusID:
+                <p-dropdown [options]="meters" [(ngModel)]="selectedmeter" [style]="{'width':'100px'}" editable="editable" placeholder="Select ID"
+                (onChange)="changeid()"></p-dropdown>
+            </div>
+     </div>
+     <div class="content">
+            <div class="title">
+              <h1>负荷数据可视化</h1>
+            </div>
+            <div class="ui-g">
+                <div class="ui-g-8">
+                  <app-draw-line></app-draw-line>
+                  </div>
+                  <div class="ui-g-4">
+                      <div class="ui-g-12">
+                          <chart [options]="options1">
+                            <series>
+                              <point (select)="onPointSelect($event)"></point>
+                            </series>
+                          </chart>
+                        </div>
+                        <div class="ui-g-12">
+                          <chart [options]="options6">
+                          </chart>
+                        </div>
+                  </div>
+            </div>
+     
+ 
+
+     <div class="ui-g-12">
+          <div style="text-align:center;font-size:11px">
+          <p-dataTable [value]="loadrank" selectionMode="single" [metaKeySelection]="false" scrollable="true" [scrollHeight]="tab_sh"
+               (onRowSelect)="onRowSelect($event)" dataKey="user" sortMode="multiple">
+           <p-header>用户负荷详细信息</p-header>
+           <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header" [sortable]="true"></p-column>
+
+           <button type="button" class="btn btn-info"
+                      popover="detail"
+                      triggers="mouseenter:mouseleave"
+                      (click)="showDetail='true'"
+                      [disabled]="!selectRowId"
+                      placement="left"
+                      *ngIf="showingTable">
+                <i class="fa fa-info-circle" aria-hidden="true"></i>
+              </button>
+
+           </p-dataTable>
+           </div>
+      </div>
+
+    </div>
+
+
+-->
+
+
+    </div>
+</div>
+<router-outlet></router-outlet>

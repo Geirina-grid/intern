@@ -1,0 +1,114 @@
+/*initialize the GraphLU structure*/
+/*last modified: june 7, 2013*/
+/*author: Chen, Xiaoming*/
+
+#include "graphlu.h"
+#include "graphlu_internal.h"
+#include "timer_c.h"
+#include "system.h"
+#include "graphlu_default.h"
+
+int GraphLU_Initialize(SGraphLU *graphlu)
+{
+	if (NULL == graphlu)
+	{
+		return GRAPHLU_ARGUMENT_ERROR;
+	}
+
+	/*timer*/
+	graphlu->timer = malloc(sizeof(STimer));
+	if (TimerInit((STimer *)(graphlu->timer)) != 0) return GRAPHLU_GENERAL_FAIL;
+
+	/*flags*/
+	graphlu->flag = (bool__t *)malloc(sizeof(bool__t)*32);
+	memset(graphlu->flag, 0, sizeof(bool__t)*32);
+
+	/*statistics*/
+	graphlu->stat = (real__t *)malloc(sizeof(real__t)*32);
+	memset(graphlu->stat, 0, sizeof(real__t)*32);
+
+	/*configurations*/
+	graphlu->cfgi = (uint__t *)malloc(sizeof(uint__t)*32);
+	graphlu->cfgf = (real__t *)malloc(sizeof(real__t)*32);
+	memset(graphlu->cfgi, 0, sizeof(uint__t)*32);
+	memset(graphlu->cfgf, 0, sizeof(real__t)*32);
+	graphlu->cfgi[0] = 0;/*row/column mode*/
+	graphlu->cfgi[1] = 1;/*mc64*/
+	graphlu->cfgi[2] = 0;/*scale*/
+	graphlu->cfgi[3] = GRAPHLU_PIPELINE_THRESHOLD;
+	graphlu->cfgi[4] = GRAPHLU_STATIC_RNNZ_UB;
+	graphlu->cfgi[5] = 1;/*threads created*/
+	graphlu->cfgi[6] = GRAPHLU_AMD_FLAG1;
+	graphlu->cfgi[7] = 1;/*threads used*/
+	graphlu->cfgf[0] = GRAPHLU_PIVOT_TOLERANCE;
+	graphlu->cfgf[1] = GRAPHLU_STATIC_MEMORY_MULT;
+	graphlu->cfgf[2] = GRAPHLU_AMD_FLAG2;
+	graphlu->cfgf[3] = GRAPHLU_SYNC_CYCLES;
+	graphlu->cfgf[4] = GRAPHLU_LOAD_BALANCE;
+	graphlu->cfgf[5] = GRAPHLU_MEMORY_GROW;
+
+	graphlu->cfgi[8] = GetProcessorNumber();
+	graphlu->stat[9] = (real__t)(graphlu->cfgi[8]);
+
+	/*matrix data, 6 items*/
+	graphlu->n = 0;
+	graphlu->nnz = 0;
+	graphlu->ax = NULL;
+	graphlu->ai = NULL;
+	graphlu->ap = NULL;
+	graphlu->rhs = NULL;
+
+	/*other matrix data, 9 items*/
+	graphlu->row_perm = NULL;
+	graphlu->row_perm_inv = NULL;
+	graphlu->col_perm = NULL;
+	graphlu->col_perm_inv = NULL;
+	graphlu->col_scale_perm = NULL;
+	graphlu->row_scale = NULL;
+	graphlu->cscale = NULL;
+	graphlu->pivot = NULL;
+	graphlu->pivot_inv = NULL;
+
+	/*lu matrix, 13 items*/
+	graphlu->lu_nnz_est = 0;
+	graphlu->lu_nnz = 0;
+	graphlu->l_nnz = 0;
+	graphlu->u_nnz = 0;
+	graphlu->ldiag = NULL;
+	graphlu->lu_array = NULL;
+	graphlu->up = NULL;
+	graphlu->llen = NULL;
+	graphlu->ulen = NULL;
+	graphlu->len_est = NULL;
+	graphlu->wkld_est = NULL;
+	graphlu->row_state = NULL;
+	graphlu->lu_array2 = NULL;
+
+	/*work space, 3 items*/
+	graphlu->workspace = NULL;
+	graphlu->workspace_mt1 = NULL;
+	graphlu->workspace_mt2 = NULL;
+
+	/*for parallelism, 10 items*/
+	graphlu->last_busy = 0;
+	graphlu->thread_id = NULL;
+	graphlu->thread_arg = NULL;
+	graphlu->thread_finish = NULL;
+	graphlu->thread_active = NULL;
+	graphlu->thread_work = GRAPHLU_WORK_NONE;
+	graphlu->cluster_start = NULL;
+	graphlu->cluster_end = NULL;
+	graphlu->pipeline_start = 0;
+	graphlu->pipeline_end = 0;
+
+	/*aegraph, 6 items*/
+	graphlu->aeg_level = 0;
+	graphlu->aeg_data = NULL;
+	graphlu->aeg_header = NULL;
+	graphlu->aeg_refact_level = 0;
+	graphlu->aeg_refact_data = NULL;
+	graphlu->aeg_refact_header = NULL;
+
+	/*end*/
+	return GRAPH_OK;
+}

@@ -1,0 +1,30 @@
+drop query contour
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query contour()
+for graph gsql_EMS {
+	
+
+//	ListAccum<row> @@edgeList; 
+	
+	//ListAccum<node> @@NodeList;
+	
+	T0 = {TopoND.*};
+	
+	// bus voltage and line list
+    T0 = SELECT s   
+	     FROM T0:s
+		  //where e.reverse == 0
+		 where s.island == 1 and s.exId <= 151 and (s.exId-(s.exId/2)*2) == 1;
+
+	
+	//end;
+	print T0;
+
+
+
+}
+
+install query contour

@@ -1,0 +1,56 @@
+<div style="max-width: 2000px; margin: 0 auto; overflow: hidden;">
+    <div class="ui-g">
+    <div class="ui-g-12 ui-g-nopad">
+        <div class="ui-g-6" style="font-size: 1.1em">
+            用户ID:
+            <p-dropdown [options]="meters" [(ngModel)]="selectedmeter" [style]="{'width':'150px'}" editable="editable" placeholder="Select ID" (onChange)="onChangeID($event)"></p-dropdown>
+          </div>
+          <div class="ui-g-6" style="font-size: 1.1em">
+            <button pButton type="button" style="font-size: 1.1em" label="显示" (click)="plot_m()"></button>
+          </div>
+      <div class="ui-g-7">
+        <div class="ui-g-12">
+          <chart [options]="options1">
+            <series>
+              <point (select)="onPointSelect($event)" (unselect)="unselect()"></point>
+            </series>
+          </chart>
+        </div>
+        <div class="ui-g-12">
+          <chart [options]="options2">
+            <series>
+              <point (select)="onPointSelect1($event)"></point>
+            </series>
+          </chart>
+        </div>
+        <div class="ui-g-12">
+          <chart [options]="options3">
+          </chart>
+        </div>
+      </div>
+      <div class="ui-g-5">
+        <div class="ui-g-12">
+          <chart [options]="options4"></chart>
+        </div>
+        <div class="ui-g-12" [style.height]="h1">
+          <p-dataTable [value]="monthstats" scrollable="true" [scrollHeight]="h2">
+            <p-header>月度信息</p-header>
+            <p-column *ngFor="let col of cols1" [field]="col.field" [header]="col.header"></p-column>
+          </p-dataTable>
+        </div>
+        <div class="ui-g-12" [style.height]="h1">
+          <p-dataTable [value]="daystats" scrollable="true" [scrollHeight]="h2">
+            <p-header>日度信息</p-header>
+            <p-column *ngFor="let col of cols2" [field]="col.field" [header]="col.header"></p-column>
+          </p-dataTable>
+        </div>
+        <div class="ui-g-12" [style.height]="h1">
+          <p-dataTable [value]="hourstats" scrollable="true" [scrollHeight]="h2">
+            <p-header>小时信息</p-header>
+            <p-column *ngFor="let col of cols3" [field]="col.field" [header]="col.header"></p-column>
+          </p-dataTable>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

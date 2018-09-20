@@ -1,0 +1,386 @@
+drop query welcome_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query welcome_D(string endnode)
+for graph powerflow_graph {
+	
+	MapAccum<string, double> @@phaseLoadP;
+	MapAccum<string, double> @@phaseLossP;
+	MapAccum<int, double> @@phaseAVoltage;
+	MapAccum<int, double> @@phaseBVoltage;
+	MapAccum<int, double> @@phaseCVoltage;
+	MapAccum<int, double> @@phaseAPower;
+	MapAccum<int, double> @@phaseBPower;
+	MapAccum<int, double> @@phaseCPower;
+	MapAccum<int, double> @@phaseALoad;
+	MapAccum<int, double> @@phaseBLoad;
+	MapAccum<int, double> @@phaseCLoad;
+	MapAccum<int, double> @@phaseABLoad;
+	MapAccum<int, double> @@phaseBCLoad;
+	MapAccum<int, double> @@phaseCALoad;
+	MapAccum<int, string> @@Nodeindex;
+	MapAccum<int, string> @@Edgeindex;
+	MapAccum<int, double> @@V_unbal;
+	MapAccum<int, double> @@LineLengthindex;
+	MapAccum<int, double> @@LineLengthindex_line;
+	SumAccum<double> @@loadA=0;
+	SumAccum<double> @@loadB=0;
+	SumAccum<double> @@loadC=0;
+	SumAccum<double> @@loadAB=0;
+	SumAccum<double> @@loadBC=0;
+	SumAccum<double> @@loadCA=0;
+	SumAccum<double> @@lossA=0;
+	SumAccum<double> @@lossB=0;
+	SumAccum<double> @@lossC=0;
+	SumAccum<double> @DeltaVAreal=0;
+	SumAccum<double> @DeltaVAimg=0;
+	SumAccum<double> @DeltaVBreal=0;
+	SumAccum<double> @DeltaVBimg=0;
+	SumAccum<double> @DeltaVCreal=0;
+	SumAccum<double> @DeltaVCimg=0;
+	SumAccum<double> @IAreal=0;
+	SumAccum<double> @IAimg=0;
+	SumAccum<double> @IBreal=0;
+	SumAccum<double> @IBimg=0;
+	SumAccum<double> @ICreal=0;
+	SumAccum<double> @ICimg=0;
+	SumAccum<double> @PA=0;
+	SumAccum<double> @PB=0;
+	SumAccum<double> @PC=0;
+	SumAccum<double> @@Feederlength=0;
+	MaxAccum<double> @@PI = 3.14159265359;
+	SumAccum<int> @@index=0;
+	SumAccum<int> @@Feederindex=0;
+	string startnode;
+	ListAccum<vertex> @@terminalnode;
+	
+            @@phaseLoadP.clear();
+	        @@phaseLossP.clear();
+	        @@phaseAVoltage.clear();
+		    @@phaseBVoltage.clear();
+		    @@phaseCVoltage.clear();
+			@@phaseAPower.clear();
+		    @@phaseBPower.clear();
+		    @@phaseCPower.clear();
+		    @@phaseALoad.clear();
+		    @@phaseBLoad.clear();
+	        @@phaseCLoad.clear();
+			@@phaseABLoad.clear();
+		    @@phaseBCLoad.clear();
+	        @@phaseCALoad.clear();
+		    @@Nodeindex.clear();
+        	@@Edgeindex.clear();
+			@@LineLengthindex.clear();
+			@@LineLengthindex_line.clear();
+
+			
+	T0 = {bus_D.*};
+	Tx = SELECT s
+	      FROM T0:s-(foree_D:e)-:t
+		 // where (s.exId!="0")
+		  ACCUM 
+		  CASE WHEN (e.flag!=2) THEN
+		  t.@PA = s.VAmag_cal*e.IAmag_cal*cos(s.VAang_cal - e.IAang_cal)/1000,
+		  t.@PB = s.VBmag_cal*e.IBmag_cal*cos(s.VBang_cal - e.IBang_cal)/1000,
+		  t.@PC = s.VCmag_cal*e.ICmag_cal*cos(s.VCang_cal - e.ICang_cal)/1000
+		  END,
+		  CASE WHEN (e.flag==2) THEN
+		  t.@PA = t.VAmag_cal*e.IAmag_cal*cos(t.VAang_cal - e.IAang_cal)/1000,
+		  t.@PB = t.VBmag_cal*e.IBmag_cal*cos(t.VBang_cal - e.IBang_cal)/1000,
+		  t.@PC = t.VCmag_cal*e.ICmag_cal*cos(t.VCang_cal - e.ICang_cal)/1000
+		  END;
+	
+		 
+	
+    T1 = SELECT n
+	FROM T0:n
+        POST-ACCUM
+		  startnode=n.startnode;  
+		  
+	
+	T2 = SELECT m
+	FROM T0:m
+    where m.exId == endnode;	
+	
+	Ninit = T2;
+IF  (endnode == startnode) THEN  
+	parent = T2;
+	WHILE parent.size() > 0 DO
+	       parent =  SELECT t
+		   FROM parent:s-(foree_D:e)-bus_D:t
+		 
+		  ACCUM   
+		  	  
+		  CASE WHEN (t.flag!=2 and t.flag!=1) THEN
+		  t.@DeltaVAreal = s.VAmag_cal*cos(s.VAang_cal) - t.VAmag_cal*cos(t.VAang_cal),
+		  t.@DeltaVAimg = s.VAmag_cal*sin(s.VAang_cal) - t.VAmag_cal*sin(t.VAang_cal),
+		  t.@DeltaVBreal = s.VBmag_cal*cos(s.VBang_cal) - t.VBmag_cal*cos(t.VBang_cal),
+		  t.@DeltaVBimg = s.VBmag_cal*sin(s.VBang_cal) - t.VBmag_cal*sin(t.VBang_cal),
+		  t.@DeltaVCreal = s.VCmag_cal*cos(s.VCang_cal) - t.VCmag_cal*cos(t.VCang_cal),
+		  t.@DeltaVCimg = s.VCmag_cal*sin(s.VCang_cal) - t.VCmag_cal*sin(t.VCang_cal),
+		  
+		  t.@IAreal = e.IAmag_cal*cos(e.IAang_cal),
+		  t.@IAimg = e.IAmag_cal*sin(e.IAang_cal),
+		  t.@IBreal = e.IBmag_cal*cos(e.IBang_cal),
+		  t.@IBimg = e.IBmag_cal*sin(e.IBang_cal),
+		  t.@ICreal = e.ICmag_cal*cos(e.ICang_cal),
+		  t.@ICimg = e.ICmag_cal*sin(e.ICang_cal),		  
+          log(true, t.exId, t.@PA, t.@PB, t.@PC, t.@DeltaVAreal, t.@DeltaVAimg, t.@IAreal, t.@IAimg, s.VAmag_cal, s.VAang_cal, t.VAmag_cal, t.VAang_cal, e.IAmag_cal, e.IAang_cal)
+		  END
+		  
+		  POST-ACCUM
+		  CASE WHEN (t.flag!=2 and t.flag!=1) THEN
+		  @@lossA+=(t.@DeltaVAreal*t.@IAreal + t.@DeltaVAimg*t.@IAimg)/1000,
+		  @@lossB+=(t.@DeltaVBreal*t.@IBreal + t.@DeltaVBimg*t.@IBimg)/1000,
+		  @@lossC+=(t.@DeltaVCreal*t.@ICreal + t.@DeltaVCimg*t.@ICimg)/1000
+		  END,
+		  @@loadA+=t.PdA_cal/1000,
+		  @@loadB+=t.PdB_cal/1000,
+		  @@loadC+=t.PdC_cal/1000,
+          @@loadAB+=t.PdAB_cal/1000,
+		  @@loadBC+=t.PdBC_cal/1000,
+		  @@loadCA+=t.PdCA_cal/1000;	
+		  
+    END;
+		  
+		  @@phaseLoadP += ("Phase A" -> @@loadA);
+		  @@phaseLoadP += ("Phase B" -> @@loadB);
+		  @@phaseLoadP += ("Phase C" -> @@loadC);
+		  @@phaseLoadP += ("Phase AB" -> @@loadAB);
+		  @@phaseLoadP += ("Phase BC" -> @@loadBC);
+		  @@phaseLoadP += ("Phase CA" -> @@loadCA);
+		  @@phaseLossP += ("Phase A" -> @@lossA);
+		  @@phaseLossP += ("Phase B" -> @@lossB);
+		  @@phaseLossP += ("Phase C" -> @@lossC);
+	
+    T3 = SELECT m
+	FROM T0:m
+    where m.exId == "85";
+	  @@index = 0;
+    child = T3;
+	WHILE child.size() > 0 DO
+        @@index+=1;	
+		child = SELECT f
+		FROM child:cc - (backe_D:e) - bus_D:f;  	  	
+    END;	
+	    @@Feederindex=@@index;
+		
+    child1 = T3;
+	WHILE child1.size() > 0 DO	
+	    @@Feederlength=0;
+        @@index+=-1;	
+	child2 = child1;
+	 WHILE child2.size() > 0 DO	
+		  child2 = SELECT f2
+		  FROM child2:cc2 - (backe_D:e2) - bus_D:f2  		
+		  ACCUM
+		  @@Feederlength += e2.linelength/5280;			  	
+	 END;
+		child1 = SELECT f1
+		FROM child1:cc1 - (backe_D:e1) - bus_D:f1  
+		
+		ACCUM
+	//	log(true, cc1.exId, @@index),   
+            @@phaseAPower += (@@index -> cc1.@PA),
+			@@phaseBPower += (@@index -> cc1.@PB),
+		    @@phaseCPower += (@@index -> cc1.@PC),
+		
+		   case when (abs(e1.Raa-0)>0.000001 or e1.Config=="switch") then
+		    @@phaseAVoltage += (@@index -> cc1.VAmag_cal/cc1.Vbase),
+			@@phaseALoad += (@@index -> cc1.PdA_cal/1000),
+			@@phaseABLoad += (@@index -> cc1.PdAB_cal/1000)
+		   end,
+		   case when (abs(e1.Rbb-0)>0.000001 or e1.Config=="switch") then
+			@@phaseBVoltage += (@@index-> cc1.VBmag_cal/cc1.Vbase),
+			@@phaseBLoad += (@@index -> cc1.PdB_cal/1000),
+			@@phaseBCLoad += (@@index -> cc1.PdBC_cal/1000)
+		   end,
+		   case when (abs(e1.Rcc-0)>0.000001 or e1.Config=="switch") then
+			@@phaseCVoltage += (@@index -> cc1.VCmag_cal/cc1.Vbase),
+			@@phaseCLoad += (@@index -> cc1.PdC_cal/1000),
+			@@phaseCALoad += (@@index -> cc1.PdCA_cal/1000)
+		   end,
+			@@Nodeindex += (@@index -> cc1.exId),
+			@@Edgeindex += (@@index -> e1.edge_name),
+			@@V_unbal += (@@index -> cc1.V_unbalance),
+			
+		   log(true, cc1.exId, cc1.PdAB_cal, cc1.PdBC_cal, cc1.PdCA_cal, @@phaseABLoad, @@phaseBCLoad,  @@phaseCALoad);		  
+	
+	
+ 	  	
+    		      
+		  @@LineLengthindex +=(@@index -> @@Feederlength);
+		  @@LineLengthindex_line +=(@@index -> @@Feederlength);
+			
+			
+	
+	
+	END;
+	   
+		  
+		  
+	    fstart = SELECT ff
+	     FROM T0:ff
+	     where ff.outdegree("backe_D") == 0  
+		
+		POST-ACCUM  
+		    @@phaseAVoltage += (@@index -> ff.VAmag_cal/ff.Vbase),
+			@@phaseBVoltage += (@@index-> ff.VBmag_cal/ff.Vbase),
+			@@phaseCVoltage += (@@index -> ff.VCmag_cal/ff.Vbase),
+			@@phaseALoad += (@@index -> ff.PdA_cal/1000),
+			@@phaseBLoad += (@@index -> ff.PdB_cal/1000),
+			@@phaseCLoad += (@@index -> ff.PdC_cal/1000),
+			@@phaseABLoad += (@@index -> ff.PdAB_cal/1000),
+			@@phaseBCLoad += (@@index -> ff.PdBC_cal/1000),
+			@@phaseCALoad += (@@index -> ff.PdCA_cal/1000),
+			@@V_unbal += (@@index -> ff.V_unbalance),
+			@@Nodeindex += (@@index -> ff.exId),
+			@@LineLengthindex +=(@@index -> @@Feederlength);
+ELSE 
+		
+	@@index = 0;
+    child = T2;
+	WHILE child.size() > 0 DO
+        @@index+=1;	
+		child = SELECT f
+		FROM child:cc - (backe_D:e) - bus_D:f;  	  	
+    END;	
+	    @@Feederindex=@@index;
+		
+    child1 = T2;
+	WHILE child1.size() > 0 DO	
+	    @@Feederlength=0;
+        @@index+=-1;	
+	child2 = child1;
+	 WHILE child2.size() > 0 DO	
+		  child2 = SELECT f2
+		  FROM child2:cc2 - (backe_D:e2) - bus_D:f2  		
+		  ACCUM
+		  @@Feederlength += e2.linelength/5280;			  	
+	 END;
+		child1 = SELECT f1
+		FROM child1:cc1 - (backe_D:e1) - bus_D:f1  
+		
+		ACCUM
+           case when (cc1.flag!=2 and cc1.flag!=1) then
+		  cc1.@DeltaVAreal = f1.VAmag_cal*cos(f1.VAang_cal) - cc1.VAmag_cal*cos(cc1.VAang_cal),
+		  cc1.@DeltaVAimg = f1.VAmag_cal*sin(f1.VAang_cal) - cc1.VAmag_cal*sin(cc1.VAang_cal),
+		  cc1.@DeltaVBreal = f1.VBmag_cal*cos(f1.VBang_cal) - cc1.VBmag_cal*cos(cc1.VBang_cal),
+		  cc1.@DeltaVBimg = f1.VBmag_cal*sin(f1.VBang_cal) - cc1.VBmag_cal*sin(cc1.VBang_cal),
+		  cc1.@DeltaVCreal = f1.VCmag_cal*cos(f1.VCang_cal) - cc1.VCmag_cal*cos(cc1.VCang_cal),
+		  cc1.@DeltaVCimg = f1.VCmag_cal*sin(f1.VCang_cal) - cc1.VCmag_cal*sin(cc1.VCang_cal),
+		  
+		  cc1.@IAreal = e1.IAmag_cal*cos(e1.IAang_cal),
+		  cc1.@IAimg = e1.IAmag_cal*sin(e1.IAang_cal),
+		  cc1.@IBreal = e1.IBmag_cal*cos(e1.IBang_cal),
+		  cc1.@IBimg = e1.IBmag_cal*sin(e1.IBang_cal),
+		  cc1.@ICreal = e1.ICmag_cal*cos(e1.ICang_cal),
+		  cc1.@ICimg = e1.ICmag_cal*sin(e1.ICang_cal),		  
+          log(true, cc1.exId, cc1.@DeltaVAreal, cc1.@DeltaVAimg, cc1.@IAreal, cc1.@IAimg, f1.VAmag_cal, f1.VAang_cal, cc1.VAmag_cal, cc1.VAang_cal, e1.IAmag_cal, e1.IAang_cal)
+		   end,
+		    @@phaseAPower += (@@index -> cc1.@PA),
+			@@phaseBPower += (@@index -> cc1.@PB),
+		    @@phaseCPower += (@@index -> cc1.@PC),
+		   case when (abs(e1.Raa-0)>0.000001 or e1.Config=="switch") then
+		    @@phaseAVoltage += (@@index -> cc1.VAmag_cal/cc1.Vbase),
+			@@phaseALoad += (@@index -> cc1.PdA_cal/1000),
+			@@phaseABLoad += (@@index -> cc1.PdAB_cal/1000)
+			end,
+		   case when (abs(e1.Rbb-0)>0.000001 or e1.Config=="switch") then
+			@@phaseBVoltage += (@@index-> cc1.VBmag_cal/cc1.Vbase),
+			@@phaseBLoad += (@@index -> cc1.PdB_cal/1000),
+			@@phaseBCLoad += (@@index -> cc1.PdBC_cal/1000)
+		   end,
+		   case when (abs(e1.Rcc-0)>0.000001 or e1.Config=="switch") then
+			@@phaseCVoltage += (@@index -> cc1.VCmag_cal/cc1.Vbase),
+			@@phaseCLoad += (@@index -> cc1.PdC_cal/1000),
+			@@phaseCALoad += (@@index -> cc1.PdCA_cal/1000)
+		   end,
+			@@Nodeindex += (@@index -> cc1.exId),
+			@@Edgeindex += (@@index -> e1.edge_name),
+			@@V_unbal += (@@index -> cc1.V_unbalance),
+			
+		   log(true, cc1.exId, cc1.PdAB_cal, cc1.PdBC_cal, cc1.PdCA_cal, @@phaseABLoad, @@phaseBCLoad,  @@phaseCALoad, @@phaseAPower, @@phaseBPower, @@phaseCPower)
+
+		POST-ACCUM
+		  case when (cc1.flag!=2 and cc1.flag!=1) then
+		  @@lossA+=(cc1.@DeltaVAreal*cc1.@IAreal + cc1.@DeltaVAimg*cc1.@IAimg)/1000,
+		  @@lossB+=(cc1.@DeltaVBreal*cc1.@IBreal + cc1.@DeltaVBimg*cc1.@IBimg)/1000,
+		  @@lossC+=(cc1.@DeltaVCreal*cc1.@ICreal + cc1.@DeltaVCimg*cc1.@ICimg)/1000
+		  end,
+		  @@loadA+=cc1.PdA_cal/1000,
+		  @@loadB+=cc1.PdB_cal/1000,
+		  @@loadC+=cc1.PdC_cal/1000,
+          @@loadAB+=cc1.PdAB_cal/1000,
+		  @@loadBC+=cc1.PdBC_cal/1000,
+		  @@loadCA+=cc1.PdCA_cal/1000;		  
+	
+	
+ 	  	
+    		      
+		  @@LineLengthindex +=(@@index -> @@Feederlength);
+		  @@LineLengthindex_line +=(@@index -> @@Feederlength);
+			
+			
+	
+	
+	END;
+	      
+		  @@phaseLoadP += ("Phase A" -> @@loadA);
+		  @@phaseLoadP += ("Phase B" -> @@loadB);
+		  @@phaseLoadP += ("Phase C" -> @@loadC);
+		  @@phaseLoadP += ("Phase AB" -> @@loadAB);
+		  @@phaseLoadP += ("Phase BC" -> @@loadBC);
+		  @@phaseLoadP += ("Phase CA" -> @@loadCA);
+		  @@phaseLossP += ("Phase A" -> @@lossA);
+		  @@phaseLossP += ("Phase B" -> @@lossB);
+		  @@phaseLossP += ("Phase C" -> @@lossC);
+		  
+		  
+	    fstart = SELECT ff 
+	     FROM T0:ff
+	     where ff.outdegree("backe_D") == 0  
+		
+		POST-ACCUM  
+		    @@phaseAVoltage += (@@index -> ff.VAmag_cal/ff.Vbase),
+			@@phaseBVoltage += (@@index-> ff.VBmag_cal/ff.Vbase),
+			@@phaseCVoltage += (@@index -> ff.VCmag_cal/ff.Vbase),
+			@@phaseALoad += (@@index -> ff.PdA_cal/1000),
+			@@phaseBLoad += (@@index -> ff.PdB_cal/1000),
+			@@phaseCLoad += (@@index -> ff.PdC_cal/1000),
+			@@phaseABLoad += (@@index -> ff.PdAB_cal/1000),
+			@@phaseBCLoad += (@@index -> ff.PdBC_cal/1000),
+			@@phaseCALoad += (@@index -> ff.PdCA_cal/1000),
+			@@V_unbal += (@@index -> ff.V_unbalance),
+			@@Nodeindex += (@@index -> ff.exId),
+			@@LineLengthindex +=(@@index -> @@Feederlength);
+									
+END;		  
+		  
+		print @@phaseLoadP;
+	  	print @@phaseLossP;
+		print startnode;	
+        print  @@phaseAVoltage;
+		print  @@phaseBVoltage;
+ 		print  @@phaseCVoltage; 
+		print  @@phaseALoad; 
+		print  @@phaseBLoad; 
+		print  @@phaseCLoad;
+		print  @@phaseABLoad; 
+		print  @@phaseBCLoad; 
+		print  @@phaseCALoad;
+		print  @@phaseAPower;
+		print  @@phaseBPower;
+ 		print  @@phaseCPower;
+        print  @@V_unbal;		
+        print  @@Nodeindex;
+		print  @@Edgeindex;
+        print  @@LineLengthindex;
+        print  @@LineLengthindex_line;		
+					  
+		 
+}
+
+//install query -ui welcome_D

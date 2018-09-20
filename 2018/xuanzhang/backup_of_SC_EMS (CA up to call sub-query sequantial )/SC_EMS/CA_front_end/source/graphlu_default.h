@@ -1,0 +1,14 @@
+#ifndef __GRAPHLU_DEFAULT__
+#define __GRAPHLU_DEFAULT__
+
+#define GRAPHLU_PIVOT_TOLERANCE			(1.e-3)
+#define GRAPHLU_MEMORY_GROW				(1.5)
+#define GRAPHLU_PIPELINE_THRESHOLD		(16)
+#define GRAPHLU_STATIC_MEMORY_MULT		(3.0)
+#define GRAPHLU_STATIC_RNNZ_UB			(2)
+#define GRAPHLU_LOAD_BALANCE				(.95)
+#define GRAPHLU_SYNC_CYCLES				(30.)
+#define GRAPHLU_AMD_FLAG1				(1)
+#define GRAPHLU_AMD_FLAG2				(10.)
+
+#endif

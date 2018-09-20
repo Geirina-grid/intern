@@ -1,0 +1,55 @@
+<style>
+
+.legend {
+            background-color: rgba(255, 255, 255,0.9);
+            border-radius: 3px;
+            bottom: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+            font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+            padding: 10px;
+            position: absolute;
+            right: 0px;
+            z-index: 2;
+        }
+        
+.legend h4 {
+            margin: 0 0 10px;
+        }
+        
+.legend div span {
+            border-radius: 50%;
+            display: inline-block;
+            height: 10px;
+            margin-right: 5px;
+            width: 10px;
+        }
+
+.feature {
+        position: absolute;
+        z-index: 2;
+        left: 0;
+        bottom: 0;
+        width: 75%;
+        min-height: 50px;
+        overflow: auto;
+        display: inline-block;
+        background: rgba(87, 168, 248, 0.3);
+        /* font-color: 'white'; */
+    }
+
+        
+</style>
+
+
+<!-- <div><pre id='features' class="feature" font color="white"></pre></div> -->
+<div id="map1" class="map1">
+    <div><pre id='features' class="feature"></pre></div>   
+    <div id='load-legend' class='legend'>
+    <h4>Load Connection</h4>
+    <div><span style='background-color: #60fff7'></span>No Load</div>
+    <div><span style='background-color: red'></span>Single-Phase</div>
+    <div><span style='background-color: yellow'></span>Three-Phase</div>
+    <div><span style="background-color: #008C00"> </span>Overhead Line</div>   
+    <div><span style="background-color: #356AA0"> </span>Underground Cable/Switch Gear</div>
+    </div>
+</div>

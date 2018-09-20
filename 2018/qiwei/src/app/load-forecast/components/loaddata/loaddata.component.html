@@ -1,0 +1,50 @@
+<p-growl [(value)]="messages"></p-growl>
+<div class="ui-g-12 ui-g-nopad" style="text-align:center">
+    <div class="ui-g">
+        <div class="ui-g-12 ui-g-nopad" style="text-align:center">
+            <div class="ui-g-8 ui-g-nopad">
+                <chart type="StockChart" [options]="options" (load)="saveInstance($event.context)">
+                    <series (legendItemClick)="onSeriesShow($event)">
+                    </series>
+                </chart>
+            </div>
+            <div class="ui-g-4 ui-g-nopad" style="padding-top: 10px">
+                <div>
+                    <button pButton type="button" style="font-size: 1em;margin:0.5em" label="重置默认显示" (click)="reinit()"></button>
+                </div>
+                <div class="ui-g-12 ui-g-nopad">
+                    <div class="ui-g-12 ui-g-nopad" style="padding-bottom: 10px; font-size: 16px">各测量维度相关系数一览</div>
+                    <span>
+                        <p-dropdown [options]="seriesNames" [(ngModel)]="scatter1x" [style]="{'width':'110px','height':'25px','font-size':'12px','text-align':'center'}"
+                            editable="true" placeholder="xAxis" (onChange)="onDropdownSelect()"></p-dropdown>数据 与
+                        <p-dropdown [options]="seriesNames" [(ngModel)]="scatter1y" [style]="{'width':'110px','height':'25px','font-size':'12px','text-align':'center'}"
+                            editable="true" placeholder="yAxis" (onChange)="onDropdownSelect()"></p-dropdown>数据
+                    </span>
+                    <br> 相关系数 = {{corr1}}
+                    <chart [(options)]="options2" (load)="saveInstance2($event.context)">
+                    </chart>
+                </div>
+            </div>
+        </div>
+        <div class="ui-g-12 ui-g-nopad" style="text-align:center">
+            <div class="ui-g-8 ui-g-nopad">
+                <chart type="StockChart" [options]="options4" (load)="saveInstance4($event.context)">
+                </chart>
+            </div>
+            <div class="ui-g-4 ui-g-nopad" style="padding-top: 10px">
+                <div class="ui-g-12 ui-g-nopad" style="text-align:center">
+                    <div class="ui-g-12 ui-g-nopad" style="padding-bottom: 10px; font-size: 16px">剩余负荷与各测量维度相关系数一览</div>
+                    <span>
+                        <p-dropdown [options]="seriesNames1" [(ngModel)]="scatter2x" [style]="{'width':'110px','height':'25px','font-size':'12px','text-align':'center'}"
+                            editable="true" placeholder="xAxis" (onChange)="onDropdownSelect2()"></p-dropdown>数据 与
+                        <p-dropdown [options]="seriesNames" [(ngModel)]="scatter2y" [style]="{'width':'92px','height':'25px','font-size':'12px','text-align':'center'}"
+                            editable="true" placeholder="yAxis" (onChange)="onDropdownSelect2()"></p-dropdown>数据
+                    </span>
+                    <br>相关系数 = {{corr2}}
+                    <chart [options]="options3" (load)="saveInstance3($event.context)">
+                    </chart>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

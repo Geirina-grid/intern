@@ -1,0 +1,48 @@
+<div style="max-width: 2000px; margin: 0 auto; overflow: hidden;">
+  <div class="ui-g">
+    <div class="ui-g-12 ui-g-nopad">
+      <div class="ui-g-3" style="font-size: 1.1em; height:69px" >
+        起始日期: <br />
+        <p-calendar [(ngModel)]="sdate" [showIcon]="true" [defaultDate]="defaultDates"></p-calendar>
+      </div>
+      <div class="ui-g-3" style="font-size: 1.1em; height:69px">
+        终止日期: <br />
+        <p-calendar [(ngModel)]="edate" [showIcon]="true" [defaultDate]="defaultDatee"></p-calendar>
+      </div>
+      <div class="ui-g-3" style="font-size: 1.1em; height:69px">
+        节点ID: <br />
+        <p-dropdown [options]="meters" [(ngModel)]="selectedmeter" [style]="{'width':'150px'}" editable="editable" placeholder="Select ID" (onChange)="onChangeID($event)"></p-dropdown>
+      </div>
+      <div class="ui-g-3" style="font-size: 1.1em; height:69px">
+        <button pButton type="button" style="font-size: 1.1em;margin:10px" label="显示" (click)="plote()"></button>
+      </div>
+      <div class="ui-g-9">
+       <p-progressSpinner *ngIf="calculating"  strokeWidth="4" [style]="{'height': '600px', 'width': '600px'}"></p-progressSpinner>
+       <chart type="StockChart" [options]="options1"></chart>
+        <div style="text-align:right">
+          <p-dataTable [value]="basicstats">
+            <p-column *ngFor="let col1 of cols1" [field]="col1.field" [header]="col1.header"></p-column>
+          </p-dataTable>
+        </div> 
+      </div>
+      <div class="ui-g-3">
+        <div style="text-align:right">
+          <p-dataTable [value]="loadrank" selectionMode="single" (onRowSelect)="onRowSelect($event)" [metaKeySelection]="false" scrollable="true" [scrollHeight]="tab_sh"
+            (onRowUnselect)="onRowUnselect($event)" dataKey="time" sortMode="multiple">
+            <p-header>电压高峰</p-header>
+            <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header" [sortable]="true"></p-column>
+          </p-dataTable>
+        </div>
+        <br />
+        <div style="text-align:right">
+          <p-dataTable [value]="loadlowrank" selectionMode="single" (onRowSelect)="onRowSelect($event)" [metaKeySelection]="false" scrollable="true" [scrollHeight]="tab_sh"
+          (onRowUnselect)="onRowUnselect($event)" dataKey="time" sortMode="multiple">
+            <p-header>电压低谷</p-header>
+            <p-column *ngFor="let col of cols3" [field]="col.field" [header]="col.header" [sortable]="true"></p-column>
+          </p-dataTable>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>

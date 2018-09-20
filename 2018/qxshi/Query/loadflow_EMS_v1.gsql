@@ -1,0 +1,55 @@
+set sys.data_root="/home/tigergraph/SC_EMS/input/"
+
+drop job load_ems
+
+CREATE LOADING JOB load_ems FOR GRAPH gsql_EMS {
+
+// ----------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------ Load Vertex ---------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------------------------------------------------
+// ----------------------------------- Load Parameter Vertex and Program Status Vertex ----------------------------------
+// ----------------------------------------------------------------------------------------------------------------------
+
+     load "$sys.data_root/sc_20171207_FD_11100nodeinfo.csv" 
+     to vertex TopoND values($"bus_id", $"bus_id", $"bus_id", 1, $"bus_name", $"area", $"loss_zone", $"type", $"voltage", $"angle", _, _, $"M_Vm", $"M_Va", $"Ri_V", $"base_kV", $"desired_volts", $"control_bus_number", 1.05, 0.95, $"generation_p", $"generation_Q", _, _, $"MAX_Q", $"Min_Q", $"load_P", $"load_Q", _, _, _, _, _, _, $"G", $"B", $"bus_name", _, _, _, _, $"Ri_vP", $"Ri_vQ", _, _, _, $"base_kV", _, _, _, _, _, _, _, _)
+	
+	// load "$sys.data_root/118Bus_nodeinfo_ca.csv"  
+      // to vertex TopoND values($"bus_id", $"bus_id", $"bus_id", 1, $"bus_name", $"area", $"loss_zone", $"type", $"voltage", $"angle", _, _, _, _, _, $"base_kV", $"desired_volts", $"control_bus_number", 1.05, 0.95, $"generation_p", $"generation_Q", _, _, $"MAX_Q", $"Min_Q", $"load_P", $"load_Q", _, _, _, _, _, _, $"G", $"B", $"bus_name", _, _, _, _, _, _, _, _, _, $"base_kV", _, _, _, _, _, _, _, _)
+	
+  using  Separator=",", Header="true";
+  
+  
+	 load "$sys.data_root/sc_20171207_FD_11100edgeinfo.csv" 
+  
+     to edge topo_connect values($0, $1, _, $"area", $"zone", $"tap_bus", $"z_bus", $"type", $"R", $"X", reduce(add($"B")), reduce(add($"Line_Q1")), reduce(add($"Line_Q2")), reduce(add($"Line_Q3")), $"control_bus", $"side", reduce(add($"transformer_final_turns_ratio")), $"transformer_final_angle", $"Min_tap", $"Max_tap", $"step_size", $"Min_volt", $"Max_volt", reduce(add($"M_P_TLPF")), reduce(add($"M_Q_TLPF")), _, _, _, _, reduce(add(_getG($"R", $"X"))),reduce(add(_getB($"R", $"X"))), reduce(add(divide($"X"))), $"circuit", reduce(add(1)), _, _, _, $"Ri_eP", $"Ri_eQ", _, reduce(add($"transformer_final_turns_ratio")), 1, _, _, _, _, 1, _, _, _, _, _),
+	
+	 to edge topo_connect values($1, $0, _, $"area", $"zone", $"z_bus", $"tap_bus", $"type", $"R", $"X", reduce(add($"B")), reduce(add($"Line_Q1")), reduce(add($"Line_Q2")), reduce(add($"Line_Q3")), $"control_bus", $"side", reduce(add(_minus($"transformer_final_turns_ratio"))), $"transformer_final_angle", $"Min_tap", $"Max_tap", $"step_size", $"Min_volt", $"Max_volt", reduce(add($"M_P_TLPF_reverse")), reduce(add($"M_Q_TLPF_reverse")), _, _, _, _, reduce(add(_getG($"R", $"X"))),reduce(add(_getB($"R", $"X"))), reduce(add(divide($"X"))), $"circuit", reduce(add(1)), _, _, _, $"Ri_eP_reverse", $"Ri_eQ_reverse", _, reduce(add(_minus($"transformer_final_turns_ratio"))), _minus(1), _, _, _, _, 1, _, _, _, _, _)
+	
+	// load "$sys.data_root/118Bus_edgeinfo_ca.csv" 
+  
+    // to edge topo_connect values($0, $1, _, $"area", $"zone", $"tap_bus", $"z_bus", $"type", $"R", $"X", reduce(add($"B")), reduce(add($"Line_Q1")), reduce(add($"Line_Q2")), reduce(add($"Line_Q3")), $"control_bus", $"side", reduce(add($"transformer_final_turns_ratio")), $"transformer_final_angle", $"Min_tap", $"Max_tap", $"step_size", $"Min_volt", $"Max_volt", _, _, _, _, _, _, reduce(add(_getG($"R", $"X"))),reduce(add(_getB($"R", $"X"))), reduce(add(divide($"X"))), $"circuit", reduce(add(1)), _, _, _, _, _, _, reduce(add($"transformer_final_turns_ratio")), 1, _, _, _, _, 1, _, _, _, _, _),
+	
+	// to edge topo_connect values($1, $0, _, $"area", $"zone", $"z_bus", $"tap_bus", $"type", $"R", $"X", reduce(add($"B")), reduce(add($"Line_Q1")), reduce(add($"Line_Q2")), reduce(add($"Line_Q3")), $"control_bus", $"side", reduce(add(_minus($"transformer_final_turns_ratio"))), $"transformer_final_angle", $"Min_tap", $"Max_tap", $"step_size", $"Min_volt", $"Max_volt", _, _, _, _, _, _, reduce(add(_getG($"R", $"X"))),reduce(add(_getB($"R", $"X"))), reduce(add(divide($"X"))), $"circuit", reduce(add(1)), _, _, _, _, _, _, reduce(add(_minus($"transformer_final_turns_ratio"))), _minus(1), _, _, _, _, 1, _, _, _, _, _)
+	
+	//reduce(add(_getG($"R", $"X"))),reduce(add(_getB($"R", $"X"))), reduce(add($"B")), reduce(add($"transformer_final_turns_ratio")), reduce(add(1)), reduce(add(divide($"X"))), reduce(add($"M_P_TLPF")), reduce(add($"M_Q_TLPF")), _, _, _, $"Ri_eP", $"Ri_eQ"), //where to_float($4) == 1,
+	
+	//to edge topo_connect values($1, $0,reduce(add(_getG($"R", $"X"))),reduce(add(_getB($"R", $"X"))), reduce(add($"B")), reduce(add(_minus($"transformer_final_turns_ratio"))), reduce(add(1)), reduce(add(divide($"X"))), reduce(add($"M_P_TLPF_reverse")), reduce(add($"M_Q_TLPF_reverse")), _, _, _, $"Ri_eP_reverse", $"Ri_eQ_reverse")
+	  using  Separator=",", Header="true";
+	  
+ 
+ load "$sys.data_root/parameters_status.xlsx" 
+	to vertex parameters VALUES(1,0.05,10, 1, 0, 1, 1, 0.0001, 10, 1, "/home/graphsql/output/output/output.txt", _, _, _, _),
+	to vertex status VALUES(1, _, _, _, _, _, _, _, _, _, _, _, _, _)
+		  using  Separator=",", Header="true";
+
+ 
+}
+
+clear graph store -HARD
+
+RUN JOB load_ems
+    
+
+

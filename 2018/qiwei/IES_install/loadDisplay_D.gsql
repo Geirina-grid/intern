@@ -1,0 +1,76 @@
+drop query loadDisplay_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query loadDisplay_D ()
+for graph powerflow_graph {
+	
+    TYPEDEF TUPLE <string exId, double PdA,  double QdA, double PdB,  double QdB, double PdC,  double QdC, string startnode> row;
+
+	SetAccum<row> @@LoadDisplay_List;
+	SumAccum<int> @@id = 0;
+	SumAccum<double> @PdA_sum = 0;
+	SumAccum<double> @PdB_sum = 0;
+	SumAccum<double> @PdC_sum = 0;
+	SumAccum<double> @QdA_sum = 0;
+	SumAccum<double> @QdB_sum = 0;
+	SumAccum<double> @QdC_sum = 0;
+	string startnode; 
+
+	T0 = {bus_D.*};
+	TC = {customer_D.*};
+	
+    startNodeSet = SELECT n
+	      FROM T0:n
+	      where n.outdegree("backe_D") == 0 // till here, the startNodeSet is the substation node
+	      POST-ACCUM
+	      startnode=n.exId;
+		  
+	T1 = SELECT s
+	      FROM T0:s
+		  POST-ACCUM 
+		  s.startnode=startnode;
+		  
+	T4 = SELECT s 
+	     FROM T0:s - (customerlink_D:e) - customer_D:f
+		 ACCUM
+		 s.@PdA_sum += f.PA,
+		 s.@QdA_sum += f.QA,
+		 s.@PdB_sum += f.PB,
+		 s.@QdB_sum += f.QB,
+		 s.@PdC_sum += f.PC,
+		 s.@QdC_sum += f.QC;
+		 
+    T5 = SELECT s
+         FROM T0:s
+	     POST-ACCUM 
+		  s.PdA=s.@PdA_sum*1000,
+		  s.QdA=s.@QdA_sum*1000,
+		  s.PdB=s.@PdB_sum*1000,
+		  s.QdB=s.@QdB_sum*1000,
+		  s.PdC=s.@PdC_sum*1000,
+		  s.QdC=s.@QdC_sum*1000;
+		  
+    T1 = SELECT s
+	      FROM T0:s
+		  where (abs(s.PdA)+abs(s.PdB)+abs(s.PdC)>0.0001 )
+		  POST-ACCUM 
+	//	  s.@LdP_Real=s.LdP*100,
+	//	  s.@LdQ_Real=s.LdQ*100,
+		  @@LoadDisplay_List+= row(s.exId, s.PdA, s.QdA,s.PdB, s.QdB,s.PdC, s.QdC, s.startnode)
+		  ;
+		 
+ 		  
+	foreach x in @@LoadDisplay_List do
+	//print '/\n';
+	@@id += 1;
+	print @@id, x.exId, x.PdA, x.QdA, x.PdB, x.QdB,x.PdC, x.QdC, x.startnode; // > outputfile;	
+
+	end;
+    
+	// print T1;
+		 
+}
+
+//install query loadDisplay_D

@@ -1,0 +1,250 @@
+Log file created at: 2018/08/14 14:26:31
+Running on machine: had00p02.test.sgri.com
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I0814 14:26:31.241636 104276 glogging.cpp:121] System_Memory|Using TcMalloc
+I0814 14:26:31.241785 104276 gconfig.cpp:28] Engine_GConfig|GInfoLvl set to 21845
+I0814 14:26:31.241791 104276 gconfig.cpp:28] Engine_GConfig|GAssertLvl set to 0
+W0814 14:26:31.345482 104276 zookeeper_context.cpp:973] Connection initiated to ZooKeeper
+I0814 14:26:31.346565 104291 zookeeper_context.cpp:230] Root Watcher SESSION_EVENT state = CONNECTED_STATE for path: NA
+I0814 14:26:31.346577 104291 zookeeper_context.cpp:81] ZooKeeper Connection is setup. Session id: 164f692d10cf45c, previous client id:0
+I0814 14:26:31.346581 104291 zookeeper_watcher.cpp:311] Zk Session connected, notifying watchers
+I0814 14:26:31.346585 104291 zookeeper_watcher.cpp:318]   --> Number of watchers: 0
+I0814 14:26:31.346588 104291 zookeeper_watcher.cpp:319]   --> Callback time used(us): 3
+I0814 14:26:31.396342 104276 brain_daemon.cpp:226] Brain daemon initialized. rc: ok, zkserver: 127.0.0.1:19999, timeoutMS: 30000
+I0814 14:26:31.518085 104276 gconfig.cpp:28] Engine_GConfig|IDS_TimeoutSec set to 30
+I0814 14:26:31.518414 104276 gbrain_service.cpp:451] Watcher created on path: /graphsql/dict/objects/__services/RLS-GSE/_runtime_nodes
+I0814 14:26:31.518543 104276 gbrain_service.cpp:451] Watcher created on path: /graphsql/dict/objects/__services/RLS-GSE/_static_nodes
+I0814 14:26:31.520293 104276 gbrain_active_address_resolver.cpp:84] A new partition RLS-GSE_1 is registered.
+I0814 14:26:31.520494 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: ZMQ
+E0814 14:26:31.520529 104276 zeromq.cpp:173] zmq writer size 1
+E0814 14:26:31.520650 104276 zeromq.cpp:175] zmq writertcp://*:7512
+I0814 14:26:31.520735 104276 gtimer.cpp:75] MessageQueue|ZMQWriter|Create|id_requesQ_QUERY_GSE_1Q|tcp://*:7512
+W0814 14:26:31.520743 104276 gsqlmessagequeuefactory.cpp:122] create writer: 0x4016e80
+I0814 14:26:31.520758 104276 statushub.cpp:47] StatusHub registered graph_config_version
+I0814 14:26:31.520763 104276 idconverter.cpp:56] System_IdConverter|Constructed
+I0814 14:26:31.520905 104276 globalinstances.cpp:116] Comp_Global|Set current system free memory as default memory limit 56905MB.
+I0814 14:26:31.520915 104276 globalinstances.cpp:139] Comp_Global|memory_limit: 56905, num_running_threads : 16
+I0814 14:26:31.521931 104276 globalinstances.cpp:144] Comp_Global|memorylimitMB,56905|memoryserverthreads,2|diskio_memcacheMB,0
+I0814 14:26:31.521967 104276 globaldiskio.cpp:60] Comp_DiskIO|add,/home/graphsql/graphsql/gdisks|1|1|0
+I0814 14:26:31.532886 104276 enginejobrunner.cpp:42] System_EngineJobRunner|Start
+I0814 14:26:31.532899 104276 gconfig.cpp:28] Engine_GConfig|GPESummaryFreq set to 60000000
+I0814 14:26:31.532907 104276 statushub.cpp:47] StatusHub registered engine_status
+I0814 14:26:31.634245 104311 globaldiskio.cpp:74] Comp_DiskIO|init,1
+I0814 14:26:31.635149 104276 gtimer.cpp:47] (1.934 ms) Warm up /home/graphsql/graphsql/gstore/0/part/,  delta_pos_: 1
+I0814 14:26:31.635299 104276 metafiles.cpp:1036] System_Topology|LoadMergePrintFunc /home/graphsql/graphsql/bin//TokenBank.so
+I0814 14:26:31.735427 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: ZMQ
+E0814 14:26:31.735452 104276 zeromq.cpp:419] zmq reader size 1
+E0814 14:26:31.735477 104276 zeromq.cpp:421] zmq readertcp://127.0.0.1:6500
+I0814 14:26:31.735548 104276 gtimer.cpp:75] MessageQueue|ZMQReader|Create|id_responseQ_QUERY_GPE_1Q|tcp://127.0.0.1:6500,
+W0814 14:26:31.735554 104276 gsqlmessagequeuefactory.cpp:92] create reader point1: 0x3e127c0
+I0814 14:26:31.735616 104276 idconverter.cpp:76] System_IdConverter|register vertex ids reader
+I0814 14:26:31.735625 104276 idconverter.cpp:66] System_IdConverter|register enumerator ids reader
+I0814 14:26:31.735658 104276 idconverter.cpp:105] System_IdConverter|StartQueryListener
+I0814 14:26:31.735713 104337 gconfig.cpp:28] Engine_GConfig|IDS_Query_TimeoutMS set to 10000
+I0814 14:26:31.736021 104276 gbrain_service.cpp:451] Watcher created on path: /graphsql/dict/objects/__services/RLS-GSE/_runtime_nodes
+I0814 14:26:31.736353 104276 gbrain_service.cpp:451] Watcher created on path: /graphsql/dict/objects/__services/RLS-GSE/_static_nodes
+I0814 14:26:31.738147 104276 gbrain_active_address_resolver.cpp:84] A new partition RLS-GSE_1 is registered.
+I0814 14:26:31.738412 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: ZMQ
+W0814 14:26:31.738425 104276 gsqlmessagequeuefactory.cpp:122] create writer: 0x4016e80
+I0814 14:26:31.738440 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: ZMQ
+E0814 14:26:31.738451 104276 zeromq.cpp:419] zmq reader size 1
+E0814 14:26:31.738472 104276 zeromq.cpp:421] zmq readertcp://127.0.0.1:7509
+I0814 14:26:31.738518 104276 gtimer.cpp:75] MessageQueue|ZMQReader|Create|responseQ_GPE_1Q|tcp://127.0.0.1:7509,
+W0814 14:26:31.738524 104276 gsqlmessagequeuefactory.cpp:92] create reader point1: 0x3e127c0
+I0814 14:26:31.738795 104276 gbrain_service.cpp:451] Watcher created on path: /graphsql/dict/objects/__services/RLS-GSE/_runtime_nodes
+I0814 14:26:31.738937 104276 gbrain_service.cpp:451] Watcher created on path: /graphsql/dict/objects/__services/RLS-GSE/_static_nodes
+I0814 14:26:31.740618 104276 gbrain_active_address_resolver.cpp:84] A new partition RLS-GSE_1 is registered.
+I0814 14:26:31.740857 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: KAFKA
+I0814 14:26:31.740870 104276 kafkamessagequeuefactory.cpp:43] Comm_Kafka|Kafka Config: queue.buffering.max.ms 1, queue.buffering.max.messages 64, batch.num.messages 64, fetch.wait.max.ms 10, queued.min.messages 100000, fetch.error.backoff.ms 0, compression.codec none, message.max.bytes 10485760, request.required.acks 1.
+I0814 14:26:31.741214 104276 gtimer.cpp:75] MessageQueue|Kafka|CreateWriter|deltaQ_GPE_1Q
+W0814 14:26:31.741221 104276 gsqlmessagequeuefactory.cpp:122] create writer: 0x37eb8a8
+I0814 14:26:31.741430 104276 gbrain_service.cpp:451] Watcher created on path: /graphsql/dict/objects/__services/RLS-GSE/_runtime_nodes
+I0814 14:26:31.741556 104276 gbrain_service.cpp:451] Watcher created on path: /graphsql/dict/objects/__services/RLS-GSE/_static_nodes
+I0814 14:26:31.743022 104276 gbrain_active_address_resolver.cpp:84] A new partition RLS-GSE_1 is registered.
+I0814 14:26:31.743191 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: ZMQ
+E0814 14:26:31.743206 104276 zeromq.cpp:173] zmq writer size 1
+E0814 14:26:31.743228 104276 zeromq.cpp:175] zmq writertcp://*:7515
+I0814 14:26:31.743291 104276 gtimer.cpp:75] MessageQueue|ZMQWriter|Create|get_requestQ_GPE_1Q|tcp://*:7515
+W0814 14:26:31.743299 104276 gsqlmessagequeuefactory.cpp:122] create writer: 0x4017e00
+I0814 14:26:31.743438 104276 gbrain_service.cpp:451] Watcher created on path: /graphsql/dict/objects/__services/GPE/_runtime_nodes
+I0814 14:26:31.743543 104276 gbrain_service.cpp:451] Watcher created on path: /graphsql/dict/objects/__services/GPE/_static_nodes
+I0814 14:26:31.744822 104276 gconfig.cpp:28] Engine_GConfig|DispatcherMaxSendQueue set to 4096
+I0814 14:26:31.744832 104276 gconfig.cpp:28] Engine_GConfig|DispatcherMaxWaitQueue set to 8192
+I0814 14:26:31.744874 104276 gthreadpool.cpp:257] Engine_GSmartThreadGroup|Dispatcher_Sender|CreateThread|0
+I0814 14:26:31.744911 104276 gthreadpool.cpp:257] Engine_GSmartThreadGroup|Dispatcher_Receiver|CreateThread|0
+I0814 14:26:31.744920 104276 post_listener.cpp:36] System_PostListener|Constructed
+I0814 14:26:31.744926 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: KAFKA
+I0814 14:26:31.744964 104276 gtimer.cpp:75] MessageQueue|Kafka|CreateReader|deltaQ_GPE_1Q
+W0814 14:26:31.744971 104276 gsqlmessagequeuefactory.cpp:92] create reader point1: 0x3e127c0
+I0814 14:26:31.745010 104276 post_listener.cpp:58] System_PostListener|StartDeltaQueueHandler|1
+I0814 14:26:31.745033 104276 idconverter.cpp:66] System_IdConverter|register enumerator ids reader
+I0814 14:26:31.745092 104276 idconverter.cpp:411] Request|enum_request_id_GPE_1_1,0|IdConverter|sendUpsertEnum2IDS|0
+I0814 14:26:31.745455 104276 enginejobrunner.cpp:138] System_EngineJobRunner|Topology_Prepare
+I0814 14:26:31.745467 104276 statushub.cpp:47] StatusHub registered gpe_reinit
+I0814 14:26:31.745473 104276 statushub.cpp:47] StatusHub registered ping
+I0814 14:26:31.845577 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: KAFKA
+I0814 14:26:31.845616 104276 gtimer.cpp:75] MessageQueue|Kafka|CreateWriter|deltaQ_GPE_1Q
+W0814 14:26:31.845621 104276 gsqlmessagequeuefactory.cpp:122] create writer: 0x37ebd28
+I0814 14:26:31.845741 104276 gconfig.cpp:28] Engine_GConfig|RebuildBoundarySeconds set to 0
+I0814 14:26:31.845752 104276 gconfig.cpp:28] Engine_GConfig|RebuildBoundaryVertices set to 0
+I0814 14:26:31.845758 104276 gconfig.cpp:28] Engine_GConfig|MVExtraCopy set to 1
+I0814 14:26:31.845762 104276 gconfig.cpp:28] Engine_GConfig|RebuildDeltaCountLimit set to 16777216
+I0814 14:26:32.045989 104276 queueconnector.cpp:25] System_QueueConnector|Start
+I0814 14:26:32.046319 104276 gbrain_service.cpp:451] Watcher created on path: /graphsql/dict/objects/__services/RLS-GSE/_runtime_nodes
+I0814 14:26:32.046456 104276 gbrain_service.cpp:451] Watcher created on path: /graphsql/dict/objects/__services/RLS-GSE/_static_nodes
+I0814 14:26:32.048274 104276 gbrain_active_address_resolver.cpp:84] A new partition RLS-GSE_1 is registered.
+I0814 14:26:32.048651 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: ZMQ
+E0814 14:26:32.048672 104276 zeromq.cpp:173] zmq writer size 1
+E0814 14:26:32.048709 104276 zeromq.cpp:175] zmq writertcp://*:7500
+I0814 14:26:32.048799 104276 gtimer.cpp:75] MessageQueue|ZMQWriter|Create|responseQ_RESTPP_1Q|tcp://*:7500
+W0814 14:26:32.048808 104276 gsqlmessagequeuefactory.cpp:122] create writer: 0x4024700
+I0814 14:26:32.048835 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: ZMQ
+E0814 14:26:32.048851 104276 zeromq.cpp:173] zmq writer size 1
+E0814 14:26:32.048878 104276 zeromq.cpp:175] zmq writertcp://*:7503
+I0814 14:26:32.048974 104276 gtimer.cpp:75] MessageQueue|ZMQWriter|Create|responseQ_RESTPP-LOADER_1Q|tcp://*:7503
+W0814 14:26:32.048983 104276 gsqlmessagequeuefactory.cpp:122] create writer: 0x4024780
+I0814 14:26:32.049002 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: ZMQ
+E0814 14:26:32.049017 104276 zeromq.cpp:173] zmq writer size 1
+E0814 14:26:32.049041 104276 zeromq.cpp:175] zmq writertcp://*:7506
+I0814 14:26:32.049114 104276 gtimer.cpp:75] MessageQueue|ZMQWriter|Create|responseQ_KAFKA-LOADER_1Q|tcp://*:7506
+W0814 14:26:32.049124 104276 gsqlmessagequeuefactory.cpp:122] create writer: 0x4024800
+I0814 14:26:32.049142 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: ZMQ
+E0814 14:26:32.049156 104276 zeromq.cpp:173] zmq writer size 1
+E0814 14:26:32.049180 104276 zeromq.cpp:175] zmq writertcp://*:7509
+I0814 14:26:32.049275 104276 gtimer.cpp:75] MessageQueue|ZMQWriter|Create|responseQ_GPE_1Q|tcp://*:7509
+W0814 14:26:32.049284 104276 gsqlmessagequeuefactory.cpp:122] create writer: 0x4024880
+I0814 14:26:32.049304 104276 enginejoblistener.cpp:30] System_EngineJobListener|Start
+I0814 14:26:32.049368 104276 servicebase.hpp:71] System_JobRunner|start,JobRunner start to run
+I0814 14:26:32.049423 104276 deltarebuilder.cpp:143] Engine_DeltaRebuilder|Start RebuildManagementThread
+I0814 14:26:32.049494 104276 enginejobrunner.cpp:150] Engine_PullDelta|Start
+I0814 14:26:32.049504 104276 post_listener.cpp:226] Comp_PostListener|WaitForCatchUp
+I0814 14:26:32.749975 104276 serviceapi.cpp:448] System_ServiceAPI|Service Online
+I0814 14:26:32.750003 104276 queueconnector.cpp:39] System_QueueConnector|startReader
+I0814 14:26:32.750016 104276 gsqlmessagequeuefactory.cpp:72] MessageQueue mode: ZMQ
+E0814 14:26:32.750051 104276 zeromq.cpp:419] zmq reader size 4
+E0814 14:26:32.750106 104276 zeromq.cpp:421] zmq readertcp://127.0.0.1:5503
+E0814 14:26:32.750147 104276 zeromq.cpp:421] zmq readertcp://127.0.0.1:8503
+E0814 14:26:32.750171 104276 zeromq.cpp:421] zmq readertcp://127.0.0.1:9503
+E0814 14:26:32.750193 104276 zeromq.cpp:421] zmq readertcp://127.0.0.1:7515
+I0814 14:26:32.750380 104276 gtimer.cpp:75] MessageQueue|ZMQReader|Create|get_requestQ_GPE_1Q|tcp://127.0.0.1:5503,tcp://127.0.0.1:8503,tcp://127.0.0.1:9503,tcp://127.0.0.1:7515,
+W0814 14:26:32.750391 104276 gsqlmessagequeuefactory.cpp:92] create reader point1: 0x3e127c0
+I0814 14:26:32.750466 104276 servicebase.hpp:138] System_JobRunner|start,JobListener start to run
+E0814 14:26:32.751797 104276 brain_daemon.cpp:333] Election node:/graphsql/dict/objects/__services/GPE/_election_nodes/1/GPE_10000007014
+I0814 14:26:32.751837 104276 brain_daemon.cpp:387]  Starting Daemon, type:  GPE_1, seq: /graphsql/dict/objects/__services/GPE/_election_nodes/1/GPE_10000007014 @127.0.0.1:
+I0814 14:26:32.751921 104291 brain_daemon.cpp:16] BRAINDAEMON Handling Leader watcher event, watch path: /graphsql/dict/objects/__services/GPE/_election_nodes/1, added size: 2, removed size: 0, children count: 2, context: 0x384c640
+I0814 14:26:32.752291 104291 brain_daemon.cpp:54] Daemon list for type GPE_1 has changed. There are now 2 of us, original 0. I am /graphsql/dict/objects/__services/GPE/_election_nodes/1/GPE_10000007014 my leader is 127.0.0.1:
+I0814 14:26:32.752619 104291 brain_daemon.cpp:79] BRAINDAEMON Election found myself: 127.0.0.1:, in node: GPE_10000007013
+I0814 14:26:32.752626 104291 brain_daemon.cpp:79] BRAINDAEMON Election found myself: 127.0.0.1:, in node: GPE_10000007014
+W0814 14:26:32.753106 104291 brain_daemon.cpp:508] BRAINDAEMON Assigned Leader: Brain Daemon with seq ID: /graphsql/dict/objects/__services/GPE/_election_nodes/1/GPE_10000007014, became the leader of type: GPE_1, my id: 127.0.0.1:, updated to: 127.0.0.1:, rc: kOk
+W0814 14:26:32.753535 104291 brain_daemon.cpp:508] BRAINDAEMON Assigned Leader: Brain Daemon with seq ID: /graphsql/dict/objects/__services/GPE/_election_nodes/1/GPE_10000007014, became the leader of type: GPE_1, my id: 127.0.0.1:, updated to: 127.0.0.1:, rc: kOk
+W0814 14:26:32.753942 104291 brain_daemon.cpp:491] BRAINDAEMON Become Leader: Brain Daemon with seq ID: /graphsql/dict/objects/__services/GPE/_election_nodes/1/GPE_10000007014, became the leader of type: GPE_1, my id: 127.0.0.1:, updated to: 127.0.0.1:, updated address rc: kOk
+I0814 14:26:32.801919 104276 brain_daemon.cpp:428]  Daemon @127.0.0.1: of type GPE_1 with ID /graphsql/dict/objects/__services/GPE/_election_nodes/1/GPE_10000007014 started with leader 127.0.0.1:
+I0814 14:26:32.801936 104276 gdaemon.cpp:36] System_GDaemon|Start
+I0814 14:26:32.802594 104276 gbrain_service.cpp:841] Created static node, path: /__services/GPE/_static_nodes/GPE_1_1, rc: kOk
+W0814 14:26:32.803402 104276 gbrain_service.cpp:850] Node is already there, error ignored, relative path: /GPE_1_1, runtime path: /__services/GPE/_runtime_nodes
+I0814 14:26:32.803429 104276 gbrain_service.cpp:862] GoOnline! Service: GPE, nodeId: GPE_1_1, address: 127.0.0.1:
+I0814 14:26:33.248623 104351 post_listener.cpp:141] Request|gle,1:RESTPP-LOADER_1_1:1534281309080:NNA,63,,0|Post_listener|getDeltaMessage|1|0|9114
+I0814 14:26:33.248672 104351 post_listener.cpp:141] Request|gle,1:RESTPP-LOADER_1_1:1534281314702:NNA,63,,0|Post_listener|getDeltaMessage|2|1|11498
+I0814 14:26:33.249053 104359 enginejobrunner.cpp:393] Engine_PullDelta|Pull|20732|2|2|0ms
+I0814 14:26:48.002081 104291 brain_daemon.cpp:16] BRAINDAEMON Handling Leader watcher event, watch path: /graphsql/dict/objects/__services/GPE/_election_nodes/1, added size: 0, removed size: 1, children count: 1, context: 0x384c640
+W0814 14:26:48.002125 104286 zookeeper_watcher.cpp:106] Children data no update, watcher path: /graphsql/dict/objects/__services/GPE/_runtime_nodes, type: 4
+I0814 14:26:48.002441 104291 brain_daemon.cpp:54] Daemon list for type GPE_1 has changed. There are now 1 of us, original 2. I am /graphsql/dict/objects/__services/GPE/_election_nodes/1/GPE_10000007014 my leader is 127.0.0.1:
+I0814 14:26:48.002754 104291 brain_daemon.cpp:79] BRAINDAEMON Election found myself: 127.0.0.1:, in node: GPE_10000007014
+W0814 14:26:48.003414 104291 brain_daemon.cpp:491] BRAINDAEMON Become Leader: Brain Daemon with seq ID: /graphsql/dict/objects/__services/GPE/_election_nodes/1/GPE_10000007014, became the leader of type: GPE_1, my id: 127.0.0.1:, updated to: 127.0.0.1:, updated address rc: kOk
+I0814 14:27:02.452901 104358 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 14:27:03.257403 105260 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 14:27:03.257942 105260 serviceapi.cpp:561] Request|default,196620:RESTPP_1_1:1534282023256:NN,2000,|Start_RunUDF
+I0814 14:27:03.257978 105260 gtimer.cpp:75] |default,196620:RESTPP_1_1:1534282023256:NN,2000,|UDF::Start
+I0814 14:27:03.258065 105260 gtimer.cpp:47] (0.071 ms) |default,196620:RESTPP_1_1:1534282023256:NN,2000,|UDF::Initialization
+I0814 14:27:03.258718 105260 gtimer.cpp:47] (0.663 ms) |default,196620:RESTPP_1_1:1534282023256:NN,2000,|UDF::Finished iteration 1 which did 156 edge maps and 0 vertex maps (in 0.451 ms), 76 vertex reduces (in 0.197 ms), and activated 76 vertices.
+I0814 14:27:03.260663 105260 gtimer.cpp:47] (1.941 ms) |default,196620:RESTPP_1_1:1534282023256:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 76 vertex maps (in 1.42 ms), 76 vertex reduces (in 0.5 ms), and activated 76 vertices.
+I0814 14:27:03.261610 105260 gtimer.cpp:47] (3.627 ms) |default,196620:RESTPP_1_1:1534282023256:NN,2000,|UDF::End
+I0814 14:27:03.261626 105260 serviceapi.cpp:564] Request|default,196620:RESTPP_1_1:1534282023256:NN,2000,|Stop_RunUDF|3ms
+I0814 14:27:03.261682 105260 enginejobrunner.cpp:266] Request|default,196620:RESTPP_1_1:1534282023256:NN,2000,|Finished in 4.516 ms|Response 41 bytes|Id conversion 0
+I0814 14:27:03.659322 105260 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 14:27:03.659601 105260 serviceapi.cpp:561] Request|default,13:RESTPP_1_1:1534282023658:NN,1999,|Start_RunUDF
+I0814 14:27:03.659622 105260 gtimer.cpp:75] |default,13:RESTPP_1_1:1534282023658:NN,1999,|UDF::Start
+I0814 14:27:03.659663 105260 gtimer.cpp:47] (0.032 ms) |default,13:RESTPP_1_1:1534282023658:NN,1999,|UDF::Initialization
+I0814 14:27:03.660218 105260 gtimer.cpp:47] (0.561 ms) |default,13:RESTPP_1_1:1534282023658:NN,1999,|UDF::Finished iteration 1 which did 156 edge maps and 0 vertex maps (in 0.348 ms), 76 vertex reduces (in 0.199 ms), and activated 76 vertices.
+I0814 14:27:03.661440 105260 gtimer.cpp:47] (1.222 ms) |default,13:RESTPP_1_1:1534282023658:NN,1999,|UDF::Finished iteration 2 which did 0 edge maps and 76 vertex maps (in 1.007 ms), 76 vertex reduces (in 0.202 ms), and activated 76 vertices.
+I0814 14:27:03.662299 105260 gtimer.cpp:47] (2.671 ms) |default,13:RESTPP_1_1:1534282023658:NN,1999,|UDF::End
+I0814 14:27:03.662312 105260 serviceapi.cpp:564] Request|default,13:RESTPP_1_1:1534282023658:NN,1999,|Stop_RunUDF|2ms
+I0814 14:27:03.662351 105260 enginejobrunner.cpp:266] Request|default,13:RESTPP_1_1:1534282023658:NN,1999,|Finished in 3.143 ms|Response 41 bytes|Id conversion 0
+I0814 14:27:04.061579 105260 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 14:27:04.061902 105260 serviceapi.cpp:561] Request|default,65549:RESTPP_1_1:1534282024061:NN,2000,|Start_RunUDF
+I0814 14:27:04.061921 105260 gtimer.cpp:75] |default,65549:RESTPP_1_1:1534282024061:NN,2000,|UDF::Start
+I0814 14:27:04.061964 105260 gtimer.cpp:47] (0.032 ms) |default,65549:RESTPP_1_1:1534282024061:NN,2000,|UDF::Initialization
+I0814 14:27:04.062541 105260 gtimer.cpp:47] (0.582 ms) |default,65549:RESTPP_1_1:1534282024061:NN,2000,|UDF::Finished iteration 1 which did 156 edge maps and 0 vertex maps (in 0.309 ms), 76 vertex reduces (in 0.259 ms), and activated 76 vertices.
+I0814 14:27:04.063813 105260 gtimer.cpp:47] (1.274 ms) |default,65549:RESTPP_1_1:1534282024061:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 76 vertex maps (in 1.07 ms), 76 vertex reduces (in 0.191 ms), and activated 76 vertices.
+I0814 14:27:04.064622 105260 gtimer.cpp:47] (2.695 ms) |default,65549:RESTPP_1_1:1534282024061:NN,2000,|UDF::End
+I0814 14:27:04.064637 105260 serviceapi.cpp:564] Request|default,65549:RESTPP_1_1:1534282024061:NN,2000,|Stop_RunUDF|2ms
+I0814 14:27:04.064676 105260 enginejobrunner.cpp:266] Request|default,65549:RESTPP_1_1:1534282024061:NN,2000,|Finished in 3.213 ms|Response 41 bytes|Id conversion 0
+I0814 14:27:04.464359 105260 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 14:27:04.464656 105260 serviceapi.cpp:561] Request|default,131085:RESTPP_1_1:1534282024463:NN,1999,|Start_RunUDF
+I0814 14:27:04.464676 105260 gtimer.cpp:75] |default,131085:RESTPP_1_1:1534282024463:NN,1999,|UDF::Start
+I0814 14:27:04.464720 105260 gtimer.cpp:47] (0.032 ms) |default,131085:RESTPP_1_1:1534282024463:NN,1999,|UDF::Initialization
+I0814 14:27:04.465299 105260 gtimer.cpp:47] (0.588 ms) |default,131085:RESTPP_1_1:1534282024463:NN,1999,|UDF::Finished iteration 1 which did 156 edge maps and 0 vertex maps (in 0.328 ms), 76 vertex reduces (in 0.244 ms), and activated 76 vertices.
+I0814 14:27:04.466501 105260 gtimer.cpp:47] (1.202 ms) |default,131085:RESTPP_1_1:1534282024463:NN,1999,|UDF::Finished iteration 2 which did 0 edge maps and 76 vertex maps (in 1.008 ms), 76 vertex reduces (in 0.181 ms), and activated 76 vertices.
+I0814 14:27:04.467368 105260 gtimer.cpp:47] (2.687 ms) |default,131085:RESTPP_1_1:1534282024463:NN,1999,|UDF::End
+I0814 14:27:04.467381 105260 serviceapi.cpp:564] Request|default,131085:RESTPP_1_1:1534282024463:NN,1999,|Stop_RunUDF|2ms
+I0814 14:27:04.467414 105260 enginejobrunner.cpp:266] Request|default,131085:RESTPP_1_1:1534282024463:NN,1999,|Finished in 3.169 ms|Response 41 bytes|Id conversion 0
+I0814 14:27:04.887184 105260 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 14:27:04.887459 105260 serviceapi.cpp:561] Request|default,196621:RESTPP_1_1:1534282024886:NN,2000,|Start_RunUDF
+I0814 14:27:04.887480 105260 gtimer.cpp:75] |default,196621:RESTPP_1_1:1534282024886:NN,2000,|UDF::Start
+I0814 14:27:04.887523 105260 gtimer.cpp:47] (0.034 ms) |default,196621:RESTPP_1_1:1534282024886:NN,2000,|UDF::Initialization
+I0814 14:27:04.888070 105260 gtimer.cpp:47] (0.554 ms) |default,196621:RESTPP_1_1:1534282024886:NN,2000,|UDF::Finished iteration 1 which did 156 edge maps and 0 vertex maps (in 0.332 ms), 76 vertex reduces (in 0.208 ms), and activated 76 vertices.
+I0814 14:27:04.889219 105260 gtimer.cpp:47] (1.147 ms) |default,196621:RESTPP_1_1:1534282024886:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 76 vertex maps (in 0.97 ms), 76 vertex reduces (in 0.165 ms), and activated 76 vertices.
+I0814 14:27:04.890111 105260 gtimer.cpp:47] (2.626 ms) |default,196621:RESTPP_1_1:1534282024886:NN,2000,|UDF::End
+I0814 14:27:04.890125 105260 serviceapi.cpp:564] Request|default,196621:RESTPP_1_1:1534282024886:NN,2000,|Stop_RunUDF|2ms
+I0814 14:27:04.890159 105260 enginejobrunner.cpp:266] Request|default,196621:RESTPP_1_1:1534282024886:NN,2000,|Finished in 3.092 ms|Response 41 bytes|Id conversion 0
+I0814 14:27:08.928057 105260 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 14:27:08.928308 105260 serviceapi.cpp:561] Request|default,14:RESTPP_1_1:1534282028927:NN,2000,|Start_RunUDF
+I0814 14:27:08.928335 105260 gtimer.cpp:75] |default,14:RESTPP_1_1:1534282028927:NN,2000,|UDF::Start
+I0814 14:27:08.928372 105260 gtimer.cpp:47] (0.027 ms) |default,14:RESTPP_1_1:1534282028927:NN,2000,|UDF::Initialization
+I0814 14:27:08.928933 105260 gtimer.cpp:47] (0.568 ms) |default,14:RESTPP_1_1:1534282028927:NN,2000,|UDF::Finished iteration 1 which did 156 edge maps and 0 vertex maps (in 0.328 ms), 76 vertex reduces (in 0.227 ms), and activated 76 vertices.
+I0814 14:27:08.930176 105260 gtimer.cpp:47] (1.242 ms) |default,14:RESTPP_1_1:1534282028927:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 76 vertex maps (in 1.024 ms), 76 vertex reduces (in 0.205 ms), and activated 76 vertices.
+I0814 14:27:08.931128 105260 gtimer.cpp:47] (2.786 ms) |default,14:RESTPP_1_1:1534282028927:NN,2000,|UDF::End
+I0814 14:27:08.931140 105260 serviceapi.cpp:564] Request|default,14:RESTPP_1_1:1534282028927:NN,2000,|Stop_RunUDF|2ms
+I0814 14:27:08.931174 105260 enginejobrunner.cpp:266] Request|default,14:RESTPP_1_1:1534282028927:NN,2000,|Finished in 3.236 ms|Response 41 bytes|Id conversion 0
+I0814 14:27:09.328657 105260 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 14:27:09.328933 105260 serviceapi.cpp:561] Request|default,65550:RESTPP_1_1:1534282029328:NN,2000,|Start_RunUDF
+I0814 14:27:09.328960 105260 gtimer.cpp:75] |default,65550:RESTPP_1_1:1534282029328:NN,2000,|UDF::Start
+I0814 14:27:09.329004 105260 gtimer.cpp:47] (0.041 ms) |default,65550:RESTPP_1_1:1534282029328:NN,2000,|UDF::Initialization
+I0814 14:27:09.329612 105260 gtimer.cpp:47] (0.616 ms) |default,65550:RESTPP_1_1:1534282029328:NN,2000,|UDF::Finished iteration 1 which did 156 edge maps and 0 vertex maps (in 0.383 ms), 76 vertex reduces (in 0.216 ms), and activated 76 vertices.
+I0814 14:27:09.330754 105260 gtimer.cpp:47] (1.138 ms) |default,65550:RESTPP_1_1:1534282029328:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 76 vertex maps (in 0.947 ms), 76 vertex reduces (in 0.178 ms), and activated 76 vertices.
+I0814 14:27:09.331442 105260 gtimer.cpp:47] (2.484 ms) |default,65550:RESTPP_1_1:1534282029328:NN,2000,|UDF::End
+I0814 14:27:09.331455 105260 serviceapi.cpp:564] Request|default,65550:RESTPP_1_1:1534282029328:NN,2000,|Stop_RunUDF|2ms
+I0814 14:27:09.331491 105260 enginejobrunner.cpp:266] Request|default,65550:RESTPP_1_1:1534282029328:NN,2000,|Finished in 2.984 ms|Response 41 bytes|Id conversion 0
+I0814 14:27:09.724951 105260 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 14:27:09.725265 105260 serviceapi.cpp:561] Request|default,131086:RESTPP_1_1:1534282029724:NN,2000,|Start_RunUDF
+I0814 14:27:09.725283 105260 gtimer.cpp:75] |default,131086:RESTPP_1_1:1534282029724:NN,2000,|UDF::Start
+I0814 14:27:09.725327 105260 gtimer.cpp:47] (0.031 ms) |default,131086:RESTPP_1_1:1534282029724:NN,2000,|UDF::Initialization
+I0814 14:27:09.725888 105260 gtimer.cpp:47] (0.570 ms) |default,131086:RESTPP_1_1:1534282029724:NN,2000,|UDF::Finished iteration 1 which did 156 edge maps and 0 vertex maps (in 0.321 ms), 76 vertex reduces (in 0.232 ms), and activated 76 vertices.
+I0814 14:27:09.727005 105260 gtimer.cpp:47] (1.118 ms) |default,131086:RESTPP_1_1:1534282029724:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 76 vertex maps (in 0.94 ms), 76 vertex reduces (in 0.165 ms), and activated 76 vertices.
+I0814 14:27:09.727838 105260 gtimer.cpp:47] (2.548 ms) |default,131086:RESTPP_1_1:1534282029724:NN,2000,|UDF::End
+I0814 14:27:09.727850 105260 serviceapi.cpp:564] Request|default,131086:RESTPP_1_1:1534282029724:NN,2000,|Stop_RunUDF|2ms
+I0814 14:27:09.727883 105260 enginejobrunner.cpp:266] Request|default,131086:RESTPP_1_1:1534282029724:NN,2000,|Finished in 3.044 ms|Response 41 bytes|Id conversion 0
+I0814 14:27:10.128859 105260 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 14:27:10.129153 105260 serviceapi.cpp:561] Request|default,196622:RESTPP_1_1:1534282030128:NN,2000,|Start_RunUDF
+I0814 14:27:10.129175 105260 gtimer.cpp:75] |default,196622:RESTPP_1_1:1534282030128:NN,2000,|UDF::Start
+I0814 14:27:10.129216 105260 gtimer.cpp:47] (0.028 ms) |default,196622:RESTPP_1_1:1534282030128:NN,2000,|UDF::Initialization
+I0814 14:27:10.129801 105260 gtimer.cpp:47] (0.594 ms) |default,196622:RESTPP_1_1:1534282030128:NN,2000,|UDF::Finished iteration 1 which did 156 edge maps and 0 vertex maps (in 0.342 ms), 76 vertex reduces (in 0.238 ms), and activated 76 vertices.
+I0814 14:27:10.131057 105260 gtimer.cpp:47] (1.256 ms) |default,196622:RESTPP_1_1:1534282030128:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 76 vertex maps (in 1.039 ms), 76 vertex reduces (in 0.204 ms), and activated 76 vertices.
+I0814 14:27:10.131963 105260 gtimer.cpp:47] (2.782 ms) |default,196622:RESTPP_1_1:1534282030128:NN,2000,|UDF::End
+I0814 14:27:10.131975 105260 serviceapi.cpp:564] Request|default,196622:RESTPP_1_1:1534282030128:NN,2000,|Stop_RunUDF|2ms
+I0814 14:27:10.132014 105260 enginejobrunner.cpp:266] Request|default,196622:RESTPP_1_1:1534282030128:NN,2000,|Finished in 3.306 ms|Response 41 bytes|Id conversion 0
+I0814 14:27:10.556514 105260 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 14:27:10.556777 105260 serviceapi.cpp:561] Request|default,15:RESTPP_1_1:1534282030556:NN,2000,|Start_RunUDF
+I0814 14:27:10.556795 105260 gtimer.cpp:75] |default,15:RESTPP_1_1:1534282030556:NN,2000,|UDF::Start
+I0814 14:27:10.556841 105260 gtimer.cpp:47] (0.036 ms) |default,15:RESTPP_1_1:1534282030556:NN,2000,|UDF::Initialization
+I0814 14:27:10.557427 105260 gtimer.cpp:47] (0.589 ms) |default,15:RESTPP_1_1:1534282030556:NN,2000,|UDF::Finished iteration 1 which did 156 edge maps and 0 vertex maps (in 0.338 ms), 76 vertex reduces (in 0.235 ms), and activated 76 vertices.
+I0814 14:27:10.558666 105260 gtimer.cpp:47] (1.243 ms) |default,15:RESTPP_1_1:1534282030556:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 76 vertex maps (in 1.005 ms), 76 vertex reduces (in 0.225 ms), and activated 76 vertices.
+I0814 14:27:10.559492 105260 gtimer.cpp:47] (2.692 ms) |default,15:RESTPP_1_1:1534282030556:NN,2000,|UDF::End
+I0814 14:27:10.559505 105260 serviceapi.cpp:564] Request|default,15:RESTPP_1_1:1534282030556:NN,2000,|Stop_RunUDF|2ms
+I0814 14:27:10.559540 105260 enginejobrunner.cpp:266] Request|default,15:RESTPP_1_1:1534282030556:NN,2000,|Finished in 3.183 ms|Response 41 bytes|Id conversion 0
+I0814 14:27:32.455904 104358 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 14:28:02.458948 104358 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 14:28:32.461791 104358 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 14:29:02.464627 104358 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 14:29:32.467427 104358 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 14:30:02.470333 104358 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called

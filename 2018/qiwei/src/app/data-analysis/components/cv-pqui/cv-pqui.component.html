@@ -1,0 +1,20 @@
+<div class="ui-g">
+  <div class="ui-g-6" style="font-size: 1.1em">
+    Phase:
+    <p-dropdown [options]="phases" [(ngModel)]="selectedphase" [style]="{'width':'150px'}" editable="editable" placeholder="Select ID"></p-dropdown>
+  </div>
+  <div class="ui-g-6" style="font-size: 1.1em">
+    <button pButton type="button" style="font-size: 1.1em; margin: 10px" label="Compare Data" (click)="plotpqui()"></button>
+  </div>
+  <div class="ui-g-12">
+    <div #lineContainer1 class="linechart">
+    </div>
+  </div>
+  <div class="ui-g-12">
+    <p-dataTable [value]="stats" [metaKeySelection]="false" [paginator]="false">
+      <p-column field="CC" header="CC"></p-column>
+      <p-column field="meand" header="Mean Deviation"></p-column>
+      <p-column field="maxd" header="Max Deviation"></p-column>
+    </p-dataTable>
+  </div>
+</div>

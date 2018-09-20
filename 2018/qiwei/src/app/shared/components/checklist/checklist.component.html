@@ -1,0 +1,25 @@
+<div class="sidebar subtitle">
+        <table><tr>
+      <!--     <td>      
+            <mat-checkbox (click)="itemClicked4()" [(ngModel)]="checkboxValue"class="checkboxes"></mat-checkbox>
+          </td> -->
+          <td>
+              <p (click)="itemClicked3()" >&nbsp;&nbsp;{{title}} <i *ngIf="show" class="fa fa-caret-up" aria-hidden="true"></i> <i *ngIf="!show" class="fa fa-caret-down" aria-hidden="true"></i> </p>
+          </td>
+        </tr>
+        </table>
+        
+      </div>
+      <div *ngIf="show" class="sidebar">
+        <ng-template ngFor let-e [ngForOf]= "listArray" let-i="index">
+          <div *ngIf="i==0">
+              <mat-checkbox class="checkboxes2" [(ngModel)]="e.value" (change)="itemClicked2(e.type)" (change)="itemClicked(e.group)">{{e.label}}</mat-checkbox>
+          </div>
+      
+          <div *ngIf="i!=0">
+              <mat-checkbox class="checkboxes" [(ngModel)]="e.value" (change)="itemClicked2(e.type)" (change)="itemClicked(e.group)">{{e.label}}</mat-checkbox>
+              <br>
+          </div>
+      
+        </ng-template>
+      </div>

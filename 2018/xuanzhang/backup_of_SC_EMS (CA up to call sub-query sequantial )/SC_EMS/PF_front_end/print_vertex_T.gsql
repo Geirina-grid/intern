@@ -1,0 +1,44 @@
+drop query print_vertex_T
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query print_vertex_T ( )
+for graph gsql_EMS {
+	
+	//ListAccum<edge> @@edgeList;
+    double LdP;
+    double LdQ;
+    double GenP;
+    double GenQ;
+    double qUp;
+    double qLower;
+	
+    SetAccum<Vertex<TopoND>> @@vertexList;
+	
+	
+//	print "bus_id", "bus_name", "area", "loss_zone", "type", "voltage", "angle", "load_P", "load_Q", "generation_p", "generation_Q", "base_kV", "desired_volts", "MAX_Q", "Min_Q", "G", "B", "control_bus_number", "pos_x", "pos_y"  > outputfile;	
+	T0 = {TopoND.*};
+    T1 = SELECT s
+	      FROM T0:s
+		  where s.island == 1
+		  ACCUM @@vertexList+= s;
+		  
+	foreach x in @@vertexList do
+	//print '/\n';
+//	print x.exId, x.bus_name, x.area, x.loss_zone, x.flag, x.Vm, x.Va, x.LdP, x.LdQ, x.GenP, x.GenQ, x.base_kV, x.desired_volts, x.qUp, x.qLower, x.G, x.B, x.control_bus_number, x.pos_x, x.pos_y > outputfile;
+	 LdP = x.LdP * 100;
+	 LdQ = x.LdQ * 100;
+	 GenP = x.GenP * 100;
+	 GenQ = x.GenQ * 100;
+	 qUp = x.qUp * 100;
+	 qLower = x.qLower * 100;
+	 print x.exId, x.bus_name, x.area, x.loss_zone, x.busType, x.PF_Vm, x.PF_Va, LdP, LdQ, GenP, GenQ, x.base_kV, x.desired_volts, qUp, qLower, x.G, x.B, x.control_bus_number, x.pos_x, x.pos_y;	
+
+	end;
+//    print T0;
+	
+		 
+}
+
+//install query print_vertex_T

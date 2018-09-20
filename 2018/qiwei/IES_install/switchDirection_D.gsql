@@ -1,0 +1,110 @@
+drop query switchDirection_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query switchDirection_D (string deleteswitch, string addswitch, string addswitch_F, string addswitch_T)
+for graph powerflow_graph {
+
+	SumAccum<int> @@id = 0;
+	MapAccum<int, string> @@Edgeindex;
+	ListAccum<string> @@Edgelist;
+	ListAccum<string> @@Nodelist;
+	string direction = "error"; //indicate positive direction//
+	
+	@@Edgeindex.clear();
+	
+	T0 = {bus_D.*};
+	Tsw = {switchnode_D.*};
+	
+    T1 = SELECT m
+	FROM T0:m
+    where m.exId == addswitch_F;
+	
+    T2 = SELECT m
+	FROM T0:m
+    where m.exId == addswitch_T;	
+	
+	T3 = SELECT m
+	FROM T0:m
+    where m.exId == deleteswitch;
+	
+    child1 = T1;
+	WHILE child1.size() > 0 DO
+		child1 = SELECT f1
+		FROM child1:cc1 - (backe_D:e1) - bus_D:f1
+		where f1.exId != addswitch
+		POST-ACCUM
+		case when (f1.exId == deleteswitch) then
+		 direction="negative"
+		end;
+		
+	 	  	
+    END;	
+	
+	child2 = T2;
+	WHILE child2.size() > 0 DO
+		child2 = SELECT f2
+		FROM child2:cc2 - (backe_D:e2) - bus_D:f2
+		where f2.exId != addswitch
+		POST-ACCUM
+		case when (f2.exId == deleteswitch) then
+		 direction="positive"
+		end;  	  	
+    END;
+		
+		  
+    TFE = SELECT s1
+	      FROM T0:s1-(foree_D:e1)-:t1
+		  ACCUM
+		  e1.edge_name = s1.exId + "-" + t1.exId;
+		  
+    TBE = SELECT s2
+	      FROM T0:s2-(backe_D:e2)-:t2
+		  ACCUM
+		  e2.edge_name = t2.exId + "-" + s2.exId;
+		  
+	/* TFES = SELECT sf
+	      FROM T0:sf-(switchlinkF_D:ef)-switchnode_D:tf
+		  ACCUM
+		  ef.edge_name = sf.exId + "-" + tf.exId;
+		  
+    TBES = SELECT st
+	      FROM Tsw:st-(switchlinkT_D:et)-bus_D:tt
+		  ACCUM
+		  et.edge_name = st.exId + "-" + tt.exId; */
+	
+	IF (direction=="positive") THEN 
+	child = T2;
+	ELSE
+	child = T1;
+	END;
+	
+	
+	 WHILE child.size() > 0  DO	
+		  child = SELECT f
+		  FROM child:cc - (backe_D:e) - bus_D:f  
+          where f.exId!= deleteswitch		  		  
+		  ACCUM
+    	  @@Edgeindex += (@@id -> e.edge_name),
+		  @@id+=1;
+	 END;
+	 
+	 child3 = T3;
+
+	 WHILE child3.size() > 0  DO	
+		  child3 = SELECT f3
+		  FROM child3:cc3 - (foree_D:e3) - bus_D:f3  
+		  ACCUM
+		  @@Nodelist += f3.exId,
+    	  @@Edgelist += e3.edge_name;
+	 END;
+
+    
+	PRINT direction;
+	PRINT @@Edgeindex;
+	PRINT @@Edgelist;
+	PRINT @@Nodelist;
+}
+
+//install query switchDirection_D

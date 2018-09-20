@@ -1,0 +1,94 @@
+drop query lineResult
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query lineResult()
+for graph gsql_EMS {
+	
+	TYPEDEF TUPLE < string edge_name, int edge_type, uint s_exId, uint t_exId, uint s_type, uint t_type, string tap_bus_name, string z_bus_name, double P_TLPF, double Q_TLPF, string cap_violation > row;
+	SumAccum<int> @@id = 0;
+//	ListAccum<row> @@edgeList; 
+	HeapAccum<row>(1000000, edge_name asc) @@edgeList;
+	//double P_TLPF;
+	//double Q_TLPF;
+	MaxAccum<double> @@PI = 3.1415926535898;
+	
+	
+	T0 = {TopoND.*};	
+	
+	
+	T0 = SELECT s   
+	FROM T0:s-(topo_connect:e)->TopoND:t
+	where e.reverse == 1 //and s.island == 1 and t.island == 1
+	ACCUM
+	e.edge_name = s.bus_name + "->" + t.bus_name;
+	
+	T1 = SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t 
+	  //where e.reverse == 1
+	  accum 
+	  double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+	  double tap_ratio_square = abs((e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount)),
+			case when (e.transformer_final_turns_ratio == 0) then
+				e.P_TLPF = s.PF_Vm * t.PF_Vm * sin((s.PF_Va - t.PF_Va)*@@PI/180)* e.B + (s.PF_Vm*s.PF_Vm - s.PF_Vm*t.PF_Vm*cos((s.PF_Va - t.PF_Va)*@@PI/180)) * e.G,
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) - s.PF_Vm * t.PF_Vm * (e.G*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			when (e.transformer_final_turns_ratio > 0) then
+				e.P_TLPF = s.PF_Vm * s.PF_Vm * (e.G/tap_ratio_square) - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) / tap_ratio_square - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			else
+				e.P_TLPF = s.PF_Vm * s.PF_Vm * e.G - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			end;	
+			
+			
+			
+    T1 =SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t
+	  where e.reverse == 1
+	  accum 
+	  	case when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.line_Q1 and sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) < e.line_Q2) then
+		e.CI = 1
+		when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.line_Q2 and sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) < e.line_Q3) then
+		e.CI = 2
+		when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.line_Q3) then
+		e.CI = 3
+		else e.CI = 0
+		end;
+    //print "line_id", "tap_bus", "z_bus", "R", "X", "B", "P", "Q", "I", "Line1_MVA", "Line2_MVA", "Line3_MVA";	
+
+    T1 = SELECT s
+	      FROM T0:s-(topo_connect:e)->TopoND:t
+		  where e.flag == 0 and s.island == 1 and t.island == 1 and e.reverse == 1
+		  ACCUM 
+		      log(true, s.exId, t.exId),
+            	      int minValue = e.kcount - 1,
+            	      IF (minValue < 0) THEN
+                          minValue = 0
+            	      END,
+	    	      FOREACH i in range[0, minValue] DO
+	    	  	 double P_TLPF = e.P_TLPF * 100/e.kcount,
+			     double Q_TLPF = e.Q_TLPF * 100/e.kcount,
+		          IF (e.CI == 1) THEN
+                              @@edgeList+= row(e.edge_name, e.flag, s.exId, t.exId, s.busType, t.busType, s.bus_name, t.bus_name, P_TLPF, Q_TLPF, "1级越限")
+                	  ELSE IF (e.CI == 2) THEN
+                              @@edgeList+= row(e.edge_name, e.flag, s.exId, t.exId, s.busType, t.busType, s.bus_name, t.bus_name, P_TLPF, Q_TLPF, "2级越限")
+			  ELSE IF (e.CI == 3) THEN
+                              @@edgeList+= row(e.edge_name, e.flag, s.exId, t.exId, s.busType, t.busType, s.bus_name, t.bus_name, P_TLPF, Q_TLPF, "3级越限")
+			  ELSE 
+			      @@edgeList+= row(e.edge_name, e.flag, s.exId, t.exId, s.busType, t.busType, s.bus_name, t.bus_name, P_TLPF, Q_TLPF, "正常")
+                	  END
+		      END;
+			
+//	    log(true,@@edgeList);
+	
+	foreach x in @@edgeList do
+		@@id += 1;
+		print x.edge_name, x.edge_type, x.s_exId, x.t_exId, x.s_type, x.t_type, x.tap_bus_name, x.z_bus_name, x.P_TLPF, x.Q_TLPF, x.cap_violation;
+	
+	end;
+
+
+}
+
+install query lineResult

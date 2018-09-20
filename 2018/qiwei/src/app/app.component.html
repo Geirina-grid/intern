@@ -1,0 +1,119 @@
+<nav class="navbar navbar-inverse navbar-static-top">
+  <!-- <div class="container"> -->
+
+  <div class="navbar-header">
+    <a class="navbar-brand" [routerLink]="['']" [routerLinkActive]="['active']">{{title}}</a>
+    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      <a class="navbar-brand text-hide" [routerLink]="['']">Brand Text</a>
+    </div>
+    
+
+    <div>
+      <ul class="nav navbar-nav navbar-center">
+
+          <li [routerLinkActive]="['active']"><a [routerLink]="['retrieve']">系统读入</a></li>
+          
+          <!-- <li [routerLinkActive]="['active']"><a [routerLink]="['equipment']">设备管理</a></li> -->
+          <li class="dropdown" [routerLinkActive]="['active']"><a class="dropdown-toggle" data-toggle="dropdown" href="#">数据分析<span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li [routerLinkActive]="['active']"><a [routerLink]="['data/dataquality']">数据补全</a></li>
+              <li [routerLinkActive]="['active']"><a [routerLink]="['data/crossvalid']">交叉检验</a></li>
+              <li [routerLinkActive]="['active']"><a [routerLink]="['data/movableload']">可移动负荷</a></li>
+              <li [routerLinkActive]="['active']"><a [routerLink]="['datacalculation']">数据计算</a></li>
+            </ul>
+          </li>
+
+          <li class="dropdown" [routerLinkActive]="['active']"><a class="dropdown-toggle" data-toggle="dropdown" href="#">数据展示<span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li [routerLinkActive]="['active']"><a [routerLink]="['data/bigdata']">数据可视化</a></li>
+              <li [routerLinkActive]="['active']"><a [routerLink]="['data/timevis']">多时间尺度</a></li>
+            </ul>
+          </li>
+
+          <li class="dropdown" [routerLinkActive]="['active']"><a class="dropdown-toggle" data-toggle="dropdown" href="#">负荷预测<span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li [routerLinkActive]="['active']"><a [routerLink]="['data/forecast/visualization']">负荷数据可视化</a></li>
+              <li [routerLinkActive]="['active']"><a [routerLink]="['data/forecast/predict']">模型预测结果</a></li>
+              <!--<li [routerLinkActive]="['active']"><a [routerLink]="['iesvisualization']">负荷数据可视化_NEW</a></li>
+              <li [routerLinkActive]="['active']"><a [routerLink]="['data/forecast/predict']">模型预测结果_NEW</a></li>
+              -->
+            </ul>
+          </li>
+
+          <li class="dropdown" [routerLinkActive]="['active']"><a class="dropdown-toggle" data-toggle="dropdown" href="#">综合能源网络分析<span class="caret"></span></a>
+            <ul class="dropdown-menu">
+                <li [routerLinkActive]="['active']"><a [routerLink]="['powerflow']">时间断面潮流</a></li>
+                <li [routerLinkActive]="['active']"><a [routerLink]="['seriespowerflow']">连续时间序列潮流</a></li>
+                <li [routerLinkActive]="['active']"><a [routerLink]="['data-pf']">潮流计算输入</a></li>
+                <li [routerLinkActive]="['active']"><a [routerLink]="['pf-result']">潮流计算输出</a></li>
+                <!-- <li [routerLinkActive]="['active']"><a [routerLink]="['view/timeseries-vis']">时序仿真结果</a></li> -->
+                <!-- <li [routerLinkActive]="['active']"><a [routerLink]="['Distribution/d-analysis']">多网互联分析</a></li> -->
+            </ul>
+          </li>
+
+          <li class="dropdown" [routerLinkActive]="['active']"><a class="dropdown-toggle" data-toggle="dropdown" href="#">用户行为分析<span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <!-- <li [routerLinkActive]="['active']"><a [routerLink]="['precision/filterbusiness']">行业用电</a></li>
+              <li [routerLinkActive]="['active']"><a [routerLink]="['precision/filtertypical']">典型负荷曲线</a></li>              
+              <li [routerLinkActive]="['active']"><a [routerLink]="['precision/newelasticity']">负荷弹性指标</a></li>
+              <li [routerLinkActive]="['active']"><a [routerLink]="['precision/newclustering']">用户细分</a></li> -->
+              <li [routerLinkActive]="['active']"><a [routerLink]="['data/alltl']">典型用电曲线</a></li>
+              <li [routerLinkActive]="['active']"><a [routerLink]="['data/clustering/1']">用户典型用电曲线</a></li>
+              <li [routerLinkActive]="['active']"><a [routerLink]="['data/useranalysis']">行业用电行为分析</a></li>
+            </ul>
+          </li>
+          <!-- <li class="dropdown" [routerLinkActive]="['active']"><a class="dropdown-toggle" data-toggle="dropdown" href="#">系统建模 <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+              <li [routerLinkActive]="['active']"><a [routerLink]="['modeling/loadinput']">负荷建模</a></li>
+              <li [routerLinkActive]="['active']"><a [routerLink]="['modeling/loadtable']">负荷展示</a></li>
+          </ul>
+        </li> -->
+       
+        <!-- <li class="dropdown" [routerLinkActive]="['active']"><a class="dropdown-toggle" data-toggle="dropdown" href="#">配网潮流数据<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li [routerLinkActive]="['active']"><a [routerLink]="['view/line']">线路</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['view/capacitor']">电容器</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['view/regulator']">调压器</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['view/loadDisplay']">负荷</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['view/generator']">电源</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['switch']">开关状态</a></li>            
+          </ul>
+        </li>
+
+
+        <li class="dropdown" [routerLinkActive]="['active']"><a class="dropdown-toggle" data-toggle="dropdown" href="#">配网潮流结果<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li [routerLinkActive]="['active']"><a [routerLink]="['view/lineResult']">线路</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['view/busvoltage']">节点</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['view/capResult']">电容器</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['view/regulatorRes']">调压器</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['summary']">系统信息</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['view/timeseries-vis']">时序仿真结果</a></li>
+          </ul>
+        </li> -->
+        
+        
+        <li class="dropdown" [routerLinkActive]="['active']"><a class="dropdown-toggle" data-toggle="dropdown" href="#">精准营销<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li [routerLinkActive]="['active']"><a [routerLink]="['data/precisionmarketing']">典型负荷弹性指标</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['data/precisionmarketinguser']">用户负荷弹性指标</a></li>
+          </ul>
+        </li>           
+        <li [routerLinkActive]="['active']"><a [routerLink]="['manage']">图形管理</a></li>
+         <li class="dropdown" [routerLinkActive]="['active']"><a class="dropdown-toggle" data-toggle="dropdown" href="#">日志<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li [routerLinkActive]="['active']"><a [routerLink]="['log/uwsgi']">uwsgi</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['log/req']">request</a></li>
+            <li [routerLinkActive]="['active']"><a [routerLink]="['log/app']">app</a></li>
+          </ul>
+        </li>
+        <!-- <li [routerLinkActive]="['active']"><a [routerLink]="['IES/main']">综合能源服务系统</a></li> -->
+    </ul>
+  </div>
+</nav>
+<router-outlet></router-outlet>

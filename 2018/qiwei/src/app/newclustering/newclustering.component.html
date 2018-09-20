@@ -1,0 +1,51 @@
+<!-- copied from clustering HTML -->
+<div style="max-width: 2000px; margin: 0 auto; overflow: hidden;">
+  <p-dialog header="信息" [(visible)]="display" width=300 height=100 [closable]="true">
+      <p>此节点或此相无负荷，请尝试其他节点。</p>
+  </p-dialog>
+  <div class="ui-g">
+    <div class="ui-g-12 ui-g-nopad">
+      <div class="ui-g-4">
+        用户ID:
+        <p-dropdown [options]="meters" [(ngModel)]="selectedmeter" [style]="{'width':'100px'}" editable="editable" placeholder="Select ID"
+          (onChange)="changeid()"></p-dropdown>
+      </div>
+      <div class="ui-g-4">
+        相:
+        <p-dropdown [options]="phases" [(ngModel)]="selectedphase" [style]="{'width':'100px'}" editable="editable" placeholder="Select Phase"></p-dropdown>
+      </div>
+      <div class="ui-g-4">
+        <button pButton type="button" style="font-size: 1.1em" label="显示" (click)="plotscat()"></button>
+      </div>
+      <div class="ui-g-8">
+        <chart [options]="options1">
+          <series>
+            <point (mouseOver)="onmouseOver($event)">
+            </point>
+          </series>
+        </chart>
+      </div>
+      <div class="ui-g-4">
+        <chart [options]="pieoptions"></chart>
+      </div>
+      <div class="ui-g-6">
+        <chart [options]="options2">
+        </chart>
+      </div>
+      <div class="ui-g-2"[style.height.px]="list_sh" style="overflow:scroll">
+        <br />
+        <p-dataTable [value]="clusterinfo">
+          <p-header>统计信息</p-header>
+          <p-column *ngFor="let col1 of cols1" [field]="col1.field" [header]="col1.header"></p-column>
+        </p-dataTable>
+      </div>
+      <div class="ui-g-3" [style.height.px]="list_sh" style="overflow:scroll">
+        <div style="font-size:1.2em;text-align:center">典型负荷识别</div>
+        <div *ngFor="let x of typical_lines" style="text-align:center">
+          <chart [options]="x">
+          </chart>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

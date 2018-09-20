@@ -1,0 +1,20 @@
+
+<!-- <div class="row">
+  <div class="col-md-6">
+    <div #container class="graphchart">
+    </div>
+  </div>
+  <div class="col-md-5" style="text-align:right"> -->
+  <p-dataTable [value]="generators" selectionMode="multiple" [metaKeySelection]="false" [(selection)]="selectedGens" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)" [rows]="20" [paginator]="true" [pageLinks]="3" [rowsPerPageOptions]="[20,25,30]" dataKey="Bus" sortMode="multiple">
+    <p-header>电源 运行参数</p-header>
+    <p-column field="UN_ID" header="电源名" [style]="{'width':'15%'}" [sortable]="true"></p-column>
+    <p-column field="Bus" header="电源类型" [style]="{'width':'10%'}" [sortable]="true"></p-column>
+    <p-column field="Pg" header="有功功率(kW)" [sortable]="true"></p-column>
+    <p-column field="Qg" header="无功功率(kVar)" [sortable]="true"></p-column>
+    <p-column field="Qmax" header="无功上限(kVar)" [sortable]="true"></p-column>
+    <p-column field="Qmin" header="无功下限(kVar)" [sortable]="true"></p-column>
+    <p-column field="Reg_bus" header="控制方式" [style]="{'width':'10%'}" [sortable]="true"></p-column>
+    <p-column field="desired_voltage" header="相位" [sortable]="true"></p-column>
+  </p-dataTable>
+  <!-- </div>
+</div> -->

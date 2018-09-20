@@ -1,0 +1,41 @@
+drop query regulatorRes_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query regulatorRes_D()
+for graph powerflow_graph {
+	
+	TYPEDEF TUPLE <string regulatorRes_name, string tap_bus, string phase, double voltage_level, double R, double X, double PT, double CT_rating, int Tap, string startnode> regRes;
+	// SumAccum<int> @@id = 0;
+	ListAccum<regRes> @@regulatorResList; 
+	
+	T0 = {bus_D.*};
+    T1 = SELECT s
+	      FROM T0:s-(foree_D:e)-bus_D:t
+		  where (e.flag==2)
+		  ACCUM 
+		  string phase="ABC",
+		  case when (e.Raa>0.001) then
+		  phase= "A",
+		  @@regulatorResList+=regRes(t.exId, s.exId, phase, t.vol_reg_A, e.Raa, e.Xaa, t.PT_reg, t.CT_reg, t.Tap_A, s.startnode )
+		  end, 
+		  case when (e.Rbb>0.001) then
+		  phase= "B",
+          @@regulatorResList+=regRes(t.exId, s.exId, phase, t.vol_reg_B, e.Rbb, e.Xbb, t.PT_reg, t.CT_reg, t.Tap_B, s.startnode )		  
+		  end, 
+		  case when (e.Rcc>0.001) then
+		  phase= "C",
+          @@regulatorResList+=regRes(t.exId, s.exId, phase, t.vol_reg_C, e.Rcc, e.Xcc, t.PT_reg, t.CT_reg, t.Tap_C, s.startnode )		  
+		  end; 
+		 
+		  
+ 		 
+	
+	foreach x in @@regulatorResList do
+			print x.regulatorRes_name, x.tap_bus, x.phase, x.voltage_level, x.R, x.X, x.PT, x.CT_rating, x.Tap, x.startnode;
+	end;
+	
+}
+
+//install query regulatorRes_D

@@ -1,0 +1,814 @@
+// **********************************************************************************************************************************
+// This code is a fast-decoupled power flow solver, using version of the fast-decoupled. 
+// GRAPHLU is implemented in the code to perform the LU factorization.
+//
+// Some back ground about this query. READ THIS FIRST.
+//
+// ------ This query requires GraphSQLv0.8.1/TigerGraphv1.2.0 at least and the schema is schema_EMS.ddl -----------
+// The orginal version of this query is based on previously developed Fast Decoupled Power Flow query fdpf_flat_graphlu_bmk_v8.gsql and fdpf_flat_nicslu_LU_9_mod_graphsql44.gsql
+
+// The idea here is to separate cases depending on whether the system topology has changed.
+//
+// For power flow analysis, Ybus matrix is used to represent the system as a mathematical model. In Fast-Decoupled method, assumptions
+// and approximations are made to simplify the computational complexity such that constant matrices B' and B" are formed and dependencies
+// between P,Q and V, angle are decoupled such that P depends only on angle and Q depends only on V.
+//
+// B' and B" matrices are constant (depend only on system parameters but not on state variables) and do not change through out the entire
+// iteration process. In this case, B' and B" can be LU factorized once in the beginning and the iterations can be carried out 
+// using the power balance equations and the factorized LU matrices with forward/backward substitution.
+// In the original fdpf_flat_graphlu_bmk_v8 query, GRAPHLU (third party LU factorization library) is used to factorize the B' and B" once
+// every time the query is ran.
+//
+// In power system normal operations, system topology does not change very often. When the topology is unchanged, Ybus matrix remains 
+// unchanged, and B' and B" matrices remain unchanged. There is no need to factorize these matrices again if the LU matrices from
+// the previous run are stored and can be re-used.
+//
+// When running power flow on a particular system for the first time or known topological changes have been made, 
+// LU factorization of B' and B" is performed. The power flow iterations are carried out as usual and the factorized L and U are 
+// stored in memory.  
+//
+// When there is no known topological changes, the query takes the stored factorized LU matrices and proceed with the iterations
+// directly using forward/backward substitution. 
+//
+// In this version, the static classes in C++ used for storing the factorized L'U' and L"U" are STATIC. These static classes are populated in
+// the expression function which performs LU factorization when the "factorize" option is 1. 
+// Once the LU factorization is finished, LU matrices are directly used in sequential run to solve power flow.
+// **********************************************************************************************************************************
+// Developed by: Chen Yuan, chen.yuan@geirina.net
+//               Xinyu Chang, xinyu@graphsql.com (support from graphsql)
+// Version LU 9_mod
+// History:
+//
+// 06/07/2018 [Chen Yuan] Connect with topology processing query. Continuous exId function is employed to assign continuous exId to vertices; With help of topology processing, token bank function is no more needed in this query.
+// 06/08/2018 [Chen Yuan] Use static classes to store LU components of B' and B'', replacing previously STATIC HeapAccum function. In this way, other queries can see these stored information. Otherwise, other queries are hardly to see STATIC HeapAccum Information.
+// 06/10/2018 [Chen Yuan] Calculate M_Vm, M_Va, M_P_TLPF, and M_Q_TLPF and store them in the graph as measurements for state estimation, emulating SCADA system.
+
+// Todo List
+// 06/07/2018 [Chen Yuan] parameters of this query are stored at a vertex. In this way, user can customize these parameters and front-end will correspondingly change these parameters at that vertex. Then this query will fetch thees parameters' information from the vertex. 
+
+
+
+
+
+//*********************************************************************************************************************************************************************************
+//*************************************************** ATTENTION! ATTENTION! ATTENTION! ********************************************************************************************
+//*********************************************************************************************************************************************************************************  
+
+         
+// !!!!!!!!!!  CURRENTLY, NO AVAILABLE DATA FOR VOLTAGE LIMITS (up_V and lo_V) AND TRANSMISSION LINE LIMITS (ls, em, th). RANDOM CHOSEN VALUES ARE SET BELOW FOR TESTING ONLY   !!!!!!!
+
+//*********************************************************************************************************************************************************************************
+//*************************************************** ATTENTION! ATTENTION! ATTENTION! ********************************************************************************************
+//********************************************************************************************************************************************************************************* 
+  
+
+// *****************************************************************************************************************************************************************
+
+// Drop previous queries
+drop query FDPF_SCADA
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+//create query FDPF_SCADA (double max_change, int max_iteration, double initial_Va, double initial_Vm, int flatstart, int factorize)
+create query FDPF_SCADA()
+for graph gsql_EMS {
+  
+// ------------------------------------------------------------------------------------------------
+// 				Define variables and arrays
+// ------------------------------------------------------------------------------------------------
+
+ // define the tuples for the HeapAccums and SetAccums
+ // sort_id_vertex:     for the vertex HeapAccum (key based on exId) 
+ //                     - contains information on the nodes and also for the pointer arrays 
+ typedef tuple<int key, int Bp_p, int Bpp_p, int ep, double Vm, double Va, double Pn, double Qn, int bustype> sort_id_vertex;
+ 
+ // sort_id_matrix_all: for the matrix_all HeapAccum (key based on exId) 
+ //                     - contains Ybus matrix G & B, B' matrix and B" matrix B values 
+ //                       and index array (both edge and node info)
+ typedef tuple<int key, double eG, double eB, int ei, double Bp_x, double Bpp_x, double line_Q1> sort_id_matrix_all;
+
+ // sort_id_vertex_Ybus:for the vertex_Ybus HeapAccum (key based on exId) 
+ //                     - an trim down version of sort_id_matrix_all that contains only Ybus 
+ //                       information on the nodes and also for the pointer arrays 
+ typedef tuple<int key, int ep, double Vm, double Va, double Pn, double Qn, int bustype> sort_id_vertex_Ybus;
+  
+ // sort_id_matrix_Ybus:for the matrix_Ybus HeapAccum (key based on exId) 
+ //                     - an trim down version of sort_id_matrix_all that contains only Ybus matrix G & B, 
+ //                       and index array (both edge and node info)
+ //typedef tuple<int key, double eG, double eB, int ei> sort_id_matrix_Ybus; 
+ 
+ // sort_rpi_cpi_matrix:for the L'U' and L"U" matrix HeapAccums (key based on rpi and cpi)
+ //                     - contains factorized LU values of B' and B" (both edge and node) 
+ typedef tuple<int key, int cpi, double value> sort_rpi_cpi_matrix;
+ 
+ // sort_rpi_vertex:    for the L'U' and L"U" matrix vertex HeapAccums (key based on rpi) 
+ //                     - contains pointers, permutation and scaling info  
+ typedef tuple<int key, int Lp, int Up, int rp, int cpi, double row_scaling, double col_scaling, int exId> sort_rpi_vertex;
+
+ // run_option to indicate whether LU factorization or rebuild HeapAccums is needed.
+ // if 0 - do LU factorization
+ // if 1 - rebuild HeapAccum
+ // if 2 - solve power flow only (LU factorization was performed and HeapAccums already built) 
+ SumAccum<int> @@run_option;
+ 
+ // ************************************************************************************
+ // Definition of variables that are needed regardless of "factorize" option  
+ // ************************************************************************************
+ // define PI value
+ MaxAccum<double> @@PI = 3.1415926535898;
+ 
+ // [Testing for Visualization, Chen Yuan]
+ //SetAccum<edge>  @@edgeSet;    // Added by Chen Yuan
+ ListAccum<edge> @@edgeList;   // Added by Chen Yuan
+ //ListAccum<vertex> @@nodeList;   // Added by Chen Yuan
+
+ SumAccum<double> @sumG  = 0; // store for each node the total G on all of its edges
+ SumAccum<double> @sumB  = 0; //similar...
+ SumAccum<double> @sumBi = 0;
+ SumAccum<double> @cal_P = 0;
+ SumAccum<double> @cal_Q = 0;
+ 
+ //OrAccum @@showLog = false;
+
+ // Bus Types - PQ:0/1 PV:2 SLC:3 GND:4
+ SumAccum<double> @P = 0;
+ SumAccum<double> @Q = 0;
+ SumAccum<double> @Vm = 0;
+ SumAccum<double> @Va = 0;
+ //SumAccum<double> @Vs = 0;
+ 
+ SumAccum<int>    @alldgr = 0;   // the degree (number of edges connecting all buses) of a bus
+ string basecase_result;
+ 
+ // ************************************************************************************
+ // Definition of variables needed only if "factorize" option is enabled(1)
+ // ************************************************************************************ 
+ SumAccum<int>    @pqvdgr = 0;   // the degree (number of edges connecting PV or PQ buses) of a bus
+ SumAccum<int>    @pqdgr = 0;    // the degree (number of edges connecting PQ buses) of a PQ bus
+ 
+ // define the HeapAccums, sorted based on ascending order of the key (key based on exId)
+ // The vertex HeapAccum which contains system state information like P, Q needs to be rebuild
+ // everytime
+ // HeapAccum<sort_id_vertex>(100000000, key asc) @@vertex; 
+ HeapAccum<sort_id_vertex>(100000000, key asc) @@vertex; 
+ 
+ // The HeapAccum for Ybus, B' and B" matrix. This one only needs to be rebuild when there is
+ // known topology changes so LU factorization needs to be performed ("factorize" = 1)
+ //STATIC HeapAccum<sort_id_matrix_all>(100000000, key asc) @@matrix_all; 
+ HeapAccum<sort_id_matrix_all>(100000000, key asc) @@matrix_all;
+ 
+ // store the number of non-zeros in B' and B"
+ SumAccum<int> @@Bp = 0;
+ SumAccum<int> @@Bpp = 0; 
+ 
+ // STATIC HeapAccum<sort_rpi_cpi_matrix>(100000000, key asc) @@p_L_matrix;
+ // STATIC HeapAccum<sort_rpi_cpi_matrix>(100000000, key asc) @@p_U_matrix;
+ // STATIC HeapAccum<sort_rpi_cpi_matrix>(100000000, key asc) @@pp_L_matrix;
+ // STATIC HeapAccum<sort_rpi_cpi_matrix>(100000000, key asc) @@pp_U_matrix;
+ // STATIC HeapAccum<sort_rpi_vertex>(100000000, key asc) @@p_LU_vertex;
+ // STATIC HeapAccum<sort_rpi_vertex>(100000000, key asc) @@pp_LU_vertex;
+ 
+ 
+  
+ // ************************************************************************************
+ // Definition of variables needed only when NOT doing factorization ("factorize" = 0)
+ // ************************************************************************************ 
+ // If NOT performing factorization, use a trim down version of HeapAccums for Ybus.
+ // This one needs to be rebuild everytime since it contains state information  
+ HeapAccum<sort_id_vertex_Ybus>(100000000, key asc) @@vertex_Ybus;
+ 
+ 
+ // ********************************* Attributes Update ********************************
+ // MapAccum<int, double> @G;
+ // MapAccum<int, double> @B;
+ // MapAccum<int, double> @hBsum;
+ // MapAccum<int, double> @K;
+ // //MapAccum<int, double> @kcount;
+ // MapAccum<int, double> @BIJ; 
+ // MapAccum<int, double> @th; 
+ // MapAccum<int, double> @em;
+ // MapAccum<int, double> @sh;  
+  MapAccum<int, int> @@counterMap;
+ 
+ // ********************************* Countinuous exId Attributes ************************
+ ListAccum<int> @@nodeList;
+ //SumAccum<int> @@counter = 0;
+ 
+ 
+ // ********************************* Query Parameters Definition ************************
+ SumAccum<double> @@max_change = 0.05;
+ SumAccum<double> @@initial_Va = 0;
+ SumAccum<double> @@initial_Vm = 1;
+ SumAccum<int> @@max_iteration = 10;
+ SumAccum<int> @@flatstart = 1;
+ SumAccum<int> @@factorize = 1;
+ SumAccum<string> @@outputfile = "/home/graphsql/output/output1.txt";
+
+ // ************************************************************************************
+ // End of variable definition
+ // ************************************************************************************
+ T0= {TopoND.*};   //start from all vertices in the graph
+ T_params = {parameters.*}; // include the parameters vertex
+ 
+ // ****************** Transfer parameters vertex attributes to this query's parameters ********************
+ 
+ //T_params = SELECT s FROM T_params:s 
+			//POST-ACCUM
+			//@@max_change += s.pf_MaxChange,
+			//@@initial_Va += s.initial_Va,
+			//@@initial_Vm += s.initial_Vm,
+			//@@max_iteration += s.pf_MaxIter,
+			//@@flatstart += s.pf_flatstart,
+			//@@factorize += s.factorize,
+			//@@outputfile += s.outputfile;
+			//log(true, s.pf_MaxChange, s.initial_Va, s.initial_Vm, s.pf_MaxIter, s.pf_flatstart, s.factorize);
+			
+ //log(true, @@max_change, @@initial_Va, @@initial_Vm, @@max_iteration, @@flatstart, @@factorize);
+ 
+ //@@counter += T0.size();
+ 
+ 
+ // ********************************* Continuous exId ************************************
+ // T1 = SELECT s
+	  // FROM T0:s-(topo_connect:e)->TopoND:t
+	  // WHERE s.island == 1 and t.island == 1
+	  // post-accum
+	  // @@nodeList += s.TOPOID;
+	  
+ // //FOREACH x in @@nodeList DO
+	// //@@counter += 1;
+	// ////x.exId = @@counter;
+	// //x.exId = @@counter;
+ // //END;
+ 
+ // setCounterMap(@@counterMap, @@nodeList);
+ 
+ // T2 = select s 
+	  // from T1:s 
+	  // WHERE s.island == 1
+	  // post-accum 
+	  // s.exId = @@counterMap.get(s.TOPOID);
+ 
+ 
+ // // ********************************** Token Bank Function *****************************
+ 
+ // T2 = select s
+	  // from T0:s-(connected:e)-:t
+	  // accum
+	   // //int size = e.R.size() - 1,  // need to be double checked and improved later.....
+            // //IF (size < 0) THEN
+                // //size = 0
+            // //END,
+		    // FOREACH i in range[0, e.R.size() - 1] DO
+				// //s.@G += (t.exId -> e.R.get(i)/(e.R.get(i)*e.R.get(i) + e.X.get(i)*e.X.get(i))),
+				// //s.@B += (t.exId -> e.X.get(i)/(e.R.get(i)*e.R.get(i) + e.X.get(i)*e.X.get(i))),
+				// //s.@hBsum += (t.exId -> e.hB.get(i)),
+				// //s.@K += (t.exId -> e.transformer_final_turns_ratio.get(i)),
+				// //s.@kcount += (t.exId -> 1),
+				// //s.@BIJ += (t.exId -> 1.0/e.X.get(i))
+				
+				// s.@G += (t.ID -> e.R.get(i)/(e.R.get(i)*e.R.get(i) + e.X.get(i)*e.X.get(i))),
+				// s.@B += (t.ID -> e.X.get(i)/(e.R.get(i)*e.R.get(i) + e.X.get(i)*e.X.get(i))),
+				// s.@hBsum += (t.ID -> e.hB.get(i)),
+				// s.@K += (t.ID -> e.transformer_final_turns_ratio.get(i)),
+				// //s.@kcount += (t.exId -> 1),
+				// s.@BIJ += (t.ID -> 1.0/e.X.get(i)),
+				// s.@th += (t.ID -> e.line_Q1.get(i)),
+				// s.@em += (t.ID -> e.Line_Q2.get(i)),
+				// s.@sh += (t.ID -> e.Line_Q3.get(i))
+				
+// /* 				e.B = e.B + e.X.get(i)/(e.R.get(i)*e.R.get(i) + e.X.get(i)*e.X.get(i)),
+				// e.hB = e.hB + e.hB.get(i),
+				// e.K = e.K + e.turnsratio.get(i),
+				// e.kcount = e.kcount + 1,
+				// e.BIJ = e.BIJ + 1.0/e.X.get(i) */
+				
+				
+ 			   // // @@edgeList+= row(s.exId, t.exId, e.area, e.zone, e.circuit, e.flag.get(i), e.R.get(i), e.X.get(i), e.hB.get(i), e.line_Q1.get(i), e.Line_Q2.get(i), e.Line_Q3.get(i), e.control_bus, e.side, e.K, e.transformer_final_angle, e.Min_tap, e.Max_tap, e.step_size, e.Min_volt.get(i), e.Max_volt.get(i))
+			// END;
+			
+  // T2 = select s
+	   // from T0:s-(connected:e)-:t
+	   // accum
+		 // e.G = s.@G.get(t.ID),
+		 // e.B = s.@B.get(t.ID),
+		 // e.hBsum = s.@hBsum.get(t.ID),
+		 // e.K = s.@K.get(t.ID),
+		 // //e.kcount = s.@kcount.get(t.exId),
+		 // e.BIJ = s.@BIJ.get(t.ID),
+		 // e.th = s.@th.get(t.ID),
+		 // e.em = s.@em.get(t.ID),
+		 // e.sh = s.@sh.get(t.ID)
+		 
+		 // //CASE WHEN (e.kcount == 0) THEN
+			// //e.kcount = 2   // for fj case edge 66-71 and 71-66
+		 // //END,
+		 // //log(true,s.ID, t.ID, e.kcount)
+	   // post-accum
+		 // s.P = s.GenP - s.LdP,
+		 // s.Q = s.GenQ - s.LdQ,
+		 // s.@G.clear(),
+		 // s.@B.clear(),
+		 // s.@hBsum.clear(),
+		 // s.@K.clear(),
+		 // //s.@kcount.clear(),
+		 // s.@BIJ.clear(),
+		 // s.@th.clear(),
+		 // s.@em.clear(),
+		 // s.@sh.clear();
+	   
+			
+  // // T3 = select s
+	   // // from T0:s-(connected_reverse:e)-:t
+	   // // accum
+	   // // //int size = e.R.size() - 1,  // need to be double checked and improved later.....
+            // // //IF (size < 0) THEN
+                // // //size = 0
+            // // //END,
+		    // // FOREACH i in range[0, e.R.size() - 1] DO
+				// // s.@G += (t.exId -> e.R.get(i)/(e.R.get(i)*e.R.get(i) + e.X.get(i)*e.X.get(i))),
+				// // s.@B += (t.exId -> e.X.get(i)/(e.R.get(i)*e.R.get(i) + e.X.get(i)*e.X.get(i))),
+				// // s.@hBsum += (t.exId -> e.hB.get(i)),
+				// // s.@K += (t.exId -> (-1) * e.transformer_final_turns_ratio.get(i)),
+				// // s.@kcount += (t.exId -> 1),
+				// // s.@BIJ += (t.exId -> 1.0/e.X.get(i))
+				
+				
+ 			   // // //@@edgeList+= row(s.exId, t.exId, e.area, e.zone, e.circuit, e.flag.get(i), e.R.get(i), e.X.get(i), e.hB.get(i), e.line_Q1.get(i), e.Line_Q2.get(i), e.Line_Q3.get(i), e.control_bus, e.side, e.K, e.transformer_final_angle, e.Min_tap, e.Max_tap, e.step_size, e.Min_volt.get(i), e.Max_volt.get(i))
+			// // END;
+			
+			
+  // // T3 = select s
+	   // // from T0:s-(connected_reverse:e)-:t
+	   // // accum
+		 // // e.G = s.@G.get(t.exId),
+		 // // e.B = s.@B.get(t.exId),
+		 // // e.hBsum = s.@hBsum.get(t.exId),
+		 // // e.transformer_final_turns_ratio = s.@transformer_final_turns_ratio.get(t.exId),
+		 // // e.kcount = s.@kcount.get(t.exId),
+		 // // e.BIJ = s.@BIJ.get(t.exId)
+	   // // post-accum
+	     // // s.P = s.GenP - s.LdP,
+		 // // s.Q = s.GenQ - s.LdQ,
+		 // // s.@G.clear(),
+		 // // s.@B.clear(),
+		 // // s.@hBsum.clear(),
+		 // // s.@transformer_final_turns_ratio.clear(),
+		 // // s.@kcount.clear(),
+		 // // s.@BIJ.clear();
+	// // T3 = T1 UNION T2;
+ 
+
+ //print @@p_LU_matrix.size(), @@pp_LU_matrix.size(), @@p_LU_vertex.size(), @@pp_LU_vertex.size();
+ //print @@Lp, @@Up, @@Lpp, @@Upp;
+ // logic to decide whether LU factorization or rebuild of HeapAccum is needed
+ //if (factorize == 1 or @@matrix_all.size() == 0) {
+ if (@@factorize == 1) {
+   // Perform LU factorization from scratch either if
+   // 1 - user option "factorize" is enabled or,
+   // 2 - @@matrix_Ybus is empty indicating LU factorization hasn't been performed 
+   // set run_option to 0 (by default)
+   @@run_option = 0;
+   
+   // topology has been changed and B' and B" are to be factorized, clear all static HeapAccums.
+   // They need to be rebuilt.      
+   // Initialize the STATIC HeapAccums. This is needed here only because GraphSQL 
+   // would need to detect a change to copy it. For more detail, check with Xinyu.
+   // @@matrix_all += sort_id_matrix_all(1, 1, 1, 1, 1, 1);
+   // @@p_LU_vertex += sort_rpi_vertex(1, 1, 1, 1, 1, 1, 1, 1);
+   // @@p_L_matrix += sort_rpi_cpi_matrix(1, 1, 1); 
+   // @@p_U_matrix += sort_rpi_cpi_matrix(1, 1, 1);     
+   // @@pp_LU_vertex += sort_rpi_vertex(1, 1, 1, 1, 1, 1, 1, 1);
+   // @@pp_L_matrix += sort_rpi_cpi_matrix(1, 1, 1);
+   // @@pp_U_matrix += sort_rpi_cpi_matrix(1, 1, 1);
+   
+   // //clear the STATIC HeapAccums
+   // @@matrix_all.clear();
+   // @@p_LU_vertex.clear();
+   // @@p_L_matrix.clear(); 
+   // @@p_U_matrix.clear();     
+   // @@pp_LU_vertex.clear();
+   // @@pp_L_matrix.clear();
+   // @@pp_U_matrix.clear();
+ } 
+ 
+ // comment temporarily
+ // else {  
+ // // When it gets here, it means 
+ // // 1 - @@matrix_Ybus is not empty --> LU factorization was performed in the past
+ // // 2 - HeapAccums for the factorized LU structure have been built
+ // // There is no need to build them in gsql or sort in expression function. 
+ // // set run_option to 2  
+   // @@run_option = 2;
+ // }
+ 
+// ------------------------------------------------------------------------------------------------
+// 			Construct Ybus and get the B matrix for fast-decoupled method
+// ------------------------------------------------------------------------------------------------     
+if (@@run_option == 0)
+{
+  // run_option is 0 --> perform LU factorization from scratch.
+  // Either:
+  // 1 - user option "factorize" is enabled or,
+  // 2 - @@matrix_Ybus is empty indicating LU factorization hasn't been performed 
+  // topology has been changed and B' and B" are to be factorized, all static Accums
+  // have been cleared and resetted to 0 as they need to be rebuilt.
+  print "Performing LU factorization of B' and B'' matrix and solve Power Flow!";
+    
+  //if factorize is true, construct Ybus, B' and B" from scratch
+  T3 = select v
+	   from T0:v-(topo_connect:e)->TopoND:t
+	   //WHERE v.island == 1 and t.island == 1
+	 //where e.outage == 0   // meaning no outage on this line
+     accum   
+       //compute the G and B contribution of the branches to the diagonal terms         
+       case when (e.transformer_final_turns_ratio == 0) then 
+           //compute contribution of each branch to the diagonal terms 
+  		   v.@sumG += e.G, 
+           v.@sumB += -1*e.B + 0.5*e.hB,
+           v.@sumBi += -1*e.BIJ, // used to construct the B' matrix for fast-decoupled method
+           // if it is NOT connecting to the slack bus
+           case when (v.busType != 3 and t.busType != 3) then  
+             @@Bp += 1,   
+             v.@pqvdgr += 1, // get the total number of edges connecting PQ and PV buses to node v 
+             // if both side are PQ bus
+             case when ((v.busType == 0 or v.busType == 1) and (t.busType == 0 or t.busType == 1)) then
+               //both B' and B"
+               @@Bpp += 1,
+               @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G, e.B, t.exId - 1, e.BIJ, e.B, e.line_Q1),
+               v.@pqdgr += 1 // get the total number of edges connecting ONLY PQ buses to node v
+             else //at least one side is PV side
+               //B' only, set Bpp_x to 0
+               @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G, e.B, t.exId - 1, e.BIJ, 0.0, e.line_Q1)
+             end
+           else
+             //slack bus --> no B' or B'', set both Bp_x and Bpp_x to 0
+             @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G, e.B, t.exId - 1, 0.0, 0.0, e.line_Q1)  
+           end
+       when (e.transformer_final_turns_ratio > 0) then
+           //compute contribution of each branch to the diagonal terms
+           double tap_ratio_square = (e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount),
+           double tap_ratio = e.transformer_final_turns_ratio/e.kcount,
+           v.@sumG += 1/(tap_ratio_square)*e.G,
+           v.@sumB += 1/(tap_ratio_square)*(-1*e.B) + 0.5*e.hB, // sqrt
+           v.@sumBi += -1*e.BIJ,
+           case when (v.busType != 3 and t.busType != 3) then   
+             @@Bp += 1,   
+             v.@pqvdgr += 1, // get the total number of edges connecting PQ and PV buses to node v 
+             // if both side are PQ bus
+             case when ((v.busType == 0 or v.busType == 1) and (t.busType == 0 or t.busType == 1)) then
+               //both B' and B"
+               @@Bpp += 1,
+               @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G/tap_ratio, e.B/tap_ratio, t.exId - 1, e.BIJ, e.B/tap_ratio, e.line_Q1),  
+               v.@pqdgr += 1 // get the total number of edges connecting ONLY PQ buses to node v
+             else //at least one side is PV side
+               //B' only, set Bpp_x to 0
+               @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G/tap_ratio, e.B/tap_ratio, t.exId - 1, e.BIJ, 0.0, e.line_Q1)  
+             end
+           else
+             //slack bus --> no B' or B'', set both Bp_x and Bpp_x to 0
+             @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G/tap_ratio, e.B/tap_ratio, t.exId - 1, 0.0, 0.0, e.line_Q1)  
+           end      
+       else
+           //compute contribution of each branch to the diagonal terms 
+           double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount), 
+           v.@sumG += e.G, 
+           v.@sumB += -1*e.B + 0.5*e.hB,
+           v.@sumBi += -1*e.BIJ,
+           case when (v.busType != 3 and t.busType != 3) then
+             @@Bp += 1,
+             v.@pqvdgr += 1, // get the total number of edges connecting PQ and PV buses to node v 
+             // if both side are PQ bus
+             case when ((v.busType == 0 or v.busType == 1) and (t.busType == 0 or t.busType == 1)) then
+               //both B' and B"
+               @@Bpp += 1,
+               @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G/tap_ratio, e.B/tap_ratio, t.exId - 1, e.BIJ, e.B/tap_ratio, e.line_Q1), 
+               v.@pqdgr += 1 // get the total number of edges connecting ONLY PQ buses to node v
+             else //at least one side is PV side
+               //B' only, set Bpp_x to 0
+               @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G/tap_ratio, e.B/tap_ratio, t.exId - 1, e.BIJ, 0.0, e.line_Q1)  
+             end
+           else
+             //slack bus --> no B' or B'', set both Bp_x and Bpp_x to 0
+             @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G/tap_ratio, e.B/tap_ratio, t.exId - 1, 0.0, 0.0, e.line_Q1)  
+           end      
+       end,
+       v.@alldgr += 1 // total number of connected branches
+     post-accum
+       //Initialization of the state variables 
+       case when @@flatstart == 0 then  //not using flat start, set voltage manitude/angle based on input data files
+         case when v.busType == 1 or v.busType == 0 then 
+           //v.P = (v.GenP-v.LdP), v.Q = (v.GenQ-v.LdQ), v.Va = v.Va*@@PI/180
+		   v.@Va = v.Va*@@PI/180, v.@Vm = v.Vm, v.@P = (v.GenP-v.LdP), v.@Q = (v.GenQ-v.LdQ)
+         when v.busType == 2 then 
+		   //v.P = (v.GenP-v.LdP), v.Q = (v.GenQ-v.LdQ), v.Va = v.Va*@@PI/180
+           v.@Va = v.Va*@@PI/180, v.@Vm = v.Vm, v.@P = (v.GenP-v.LdP), v.@Q = (v.GenQ-v.LdQ)
+         when v.busType == 3 then 
+           v.@Va = v.Va*@@PI/180, v.@Vm = v.Vm, v.@P = (v.GenP-v.LdP), v.@Q = (v.GenQ-v.LdQ)
+         when v.busType == 4 then 
+           v.@Vm = 0, v.@Va = 0, v.P =0 , v.Q =0
+         end
+       else                           //flat start, set voltage magnitude/angle based on user input
+         case when v.busType == 1 or v.busType == 0 then 
+           //v.P = (v.GenP-v.LdP), v.Q = (v.GenQ-v.LdQ), v.Vm = initial_Vm, v.Va = initial_Va
+		   v.@P = (v.GenP-v.LdP), v.@Q = (v.GenQ-v.LdQ), v.@Vm = 1, v.@Va = 0
+         when v.busType == 2 then 
+           //v.P = (v.GenP-v.LdP), v.Q = (v.GenQ-v.LdQ), v.Va = initial_Va 
+		   v.@P = (v.GenP-v.LdP), v.@Q = (v.GenQ-v.LdQ), v.@Vm = v.Vm, v.@Va = 0
+         when v.busType == 3 then 
+           v.@P = (v.GenP-v.LdP), v.@Q = (v.GenQ-v.LdQ), v.@Vm = v.Vm, v.@Va = v.Va*@@PI/180  // need to be chaged later  v.@Vr & v.@Vm
+         when v.busType == 4 then 
+           v.@Vm = 0, v.@Va = 0, v.@P =0 , v.@Q =0
+         end
+       end,
+	  
+       
+       // Shunt conductance and shunt susceptance at node v
+       v.@sumG += v.G,
+       v.@sumB += v.B,
+ 
+       @@Bp += 1,
+       @@Bpp += 1;
+	   
+	
+    T4 = select v
+         from T3:v
+	     //WHERE v.island == 1
+		 post-accum
+		   case when (v.busType != 3) then// if it is NOT the slack bus             
+			 case when v.busType == 0 or v.busType == 1 then  //PQ bus
+			   @@matrix_all += sort_id_matrix_all(v.exId*100000 + v.exId, v.@sumG, v.@sumB, v.exId - 1, v.@sumBi, v.@sumB, 0),
+			   @@vertex += sort_id_vertex(v.exId, v.@pqvdgr+1, v.@pqdgr+1, v.@alldgr+1, v.@Vm, v.@Va, v.@P, v.@Q, v.busType)
+			 else   //PV bus 
+			   @@matrix_all += sort_id_matrix_all(v.exId*100000 + v.exId, v.@sumG, v.@sumB, v.exId - 1, v.@sumBi, 1, 0),
+			   @@vertex += sort_id_vertex(v.exId, v.@pqvdgr+1, 1, v.@alldgr+1, v.@Vm, v.@Va, v.@P, v.@Q, v.busType)
+			 end
+		   else     //slack bus
+			 @@matrix_all += sort_id_matrix_all(v.exId*100000 + v.exId, v.@sumG, v.@sumB, v.exId - 1, 1, 1, 0),
+			 @@vertex += sort_id_vertex(v.exId, 1, 1, v.@alldgr+1, v.@Vm, v.@Va, v.@P, v.@Q, v.busType)
+		   end;
+		   //log(true, v.exId); // debug
+}
+
+// comment temporarily
+
+// else 
+// {   
+  // // run_option is 2 which means:
+  // // 1 - @@matrix_Ybus is not empty --> LU factorization was performed in the past
+  // // 2 - HeapAccums for the factorized LU structure have been built
+  // // There is no need to build them in gsql or sort in expression function. 
+  // print "Factorized LU matrices have previously been built. Solve Power Flow!";
+  
+  // T3 = select v
+       // from  T2:v-(topo_connect:e)->TopoND:t
+	   // WHERE v.island == 1 and t.island == 1
+       // accum   
+       // v.@alldgr += 1 // total number of connected branches
+       // post-accum
+       // // Initialization of the state variables 
+       // case when flatstart == 0 then  //not using flat start, set voltage manitude/angle based on input data files
+         // case when v.busType == 1 or v.busType == 0 then 
+           // //v.P = (v.GenP-v.LdP), v.Q = (v.GenQ-v.LdQ), v.Va = v.Va*@@PI/180
+		   // v.Va = v.Va*@@PI/180
+         // when v.busType == 2 then 
+           // //v.P = (v.GenP-v.LdP), v.Q = (v.GenQ-v.LdQ), v.Va = v.Va*@@PI/180
+		   // v.Va = v.Va*@@PI/180
+         // when v.busType == 3 then 
+           // v.Va = v.Va*@@PI/180
+         // when v.busType == 4 then 
+           // v.Vm = 0, v.Va = 0, v.P =0 , v.Q =0
+         // end
+       // else                           //flat start, set voltage magnitude/angle based on user input
+         // case when v.busType == 1 or v.busType == 0 then 
+           // //v.P = (v.GenP-v.LdP), v.Q = (v.GenQ-v.LdQ), v.Vm = initial_Vm, v.Va = initial_Va
+		   // v.Vm = initial_Vm, v.Va = initial_Va
+         // when v.busType == 2 then 
+           // //v.P = (v.GenP-v.LdP), v.Q = (v.GenQ-v.LdQ), v.Va = initial_Va  // need to be chaged later  v.@Vr & v.@Vm
+		   // v.Va = initial_Va  // need to be chaged later  v.@Vr & v.@Vm
+         // when v.busType == 3 then 
+           // v.Va = v.Va*@@PI/180  // need to be chaged later  v.@Vr & v.@Vm
+         // when v.busType == 4 then 
+           // v.Vm = 0, v.Va = 0, v.P =0 , v.Q =0
+         // end
+       // end;
+
+	// T4 = select v
+		 // from T3:v  
+		 // WHERE v.island == 1
+	     // post-accum
+	     // @@vertex_Ybus += sort_id_vertex_Ybus(v.exId, v.@alldgr+1, v.Vm, v.Va, v.P, v.Q, v.busType)
+  // ;                   
+// }   
+  
+//print @@vertex.size(), @@edge_Bp.size(), @@edge_Bpp.size(), @@edge_e.size();
+//print @@vertex, @@edge_Bp, @@edge_Bpp, @@edge_e, @@edge_all;
+//print @@vertex, @@edge_all;
+//print @@Lp_edge, @@Up_edge, @@vertex_p;
+//print @@Lpp_edge, @@Upp_edge, @@vertex_pp;
+//print @@vertex_p_id, @@vertex_pp_id;
+//print @@p_edge, @@vertex_p;
+//print @@pp_edge, @@vertex_pp;
+
+
+// perform fast-decoupled power flow
+if (@@run_option == 0) //perform LU factorization
+{ 
+  //First factorize B' and B" matrix then perform power flow iteration using forward/backward substitution with resulting LU.
+  //add/update of edge and vertex attributes also preform in expression function.
+  basecase_result = GRAPHLU_fdpf_LU_factorize_EMS (@@Bp, @@Bpp, @@vertex, @@matrix_all, @@max_iteration, @@max_change);
+  
+  // Get the solved result
+  // Currently these are @s and are only printing into output file.
+  // They should also be shown on visualization which would require
+  // them to be vertex attributes. 
+  T5 = select  s
+       from T4:s
+       //WHERE s.island == 1
+       post-accum
+       //s.Vm = GRAPHLU_getVm(s.exId, @@vertex),
+       //s.Va = GRAPHLU_getVa(s.exId, @@vertex) *180/@@PI,
+	   //s.cal_Vm = GRAPHLU_getVm(s.exId, @@vertex),  
+	   //s.cal_Va = GRAPHLU_getVa(s.exId, @@vertex)*180/@@PI;	 
+	   s.M_Vm = GRAPHLU_getVm_EMS(s.exId, @@vertex),	   
+	   s.M_Va = GRAPHLU_getVa_EMS(s.exId, @@vertex)*180/@@PI;
+	   //s.M_Vm = GRAPHLU_getVm_EMS(s.exId, @@vertex),	   
+	   //s.M_Va = GRAPHLU_getVa_EMS(s.exId, @@vertex)*180/@@PI;	  
+}
+
+// comment temporarily
+// else
+// {
+  // // run_option is 2, only solve power flow in expression function
+  // basecase_result = GRAPHLU_fdpf_LU_solve_EMS (@@vertex_Ybus, @@matrix_all, max_iteration, max_change); 
+     
+  // // Get the solved result
+  // // Currently these are @s and are only printing into output file.
+  // // They should also be shown on visualization which would require
+  // // them to be vertex attributes. 
+  // T5 = select  s
+       // from T4:s
+	   // WHERE s.island == 1
+       // post-accum
+       // //s.Vm = GRAPHLU_getVm(s.exId, @@vertex_Ybus),
+       // //s.Va = GRAPHLU_getVa(s.exId, @@vertex_Ybus)*180/@@PI,
+	   // //s.cal_Vm = GRAPHLU_getVm(s.exId, @@vertex),  
+	   // //s.cal_Va = GRAPHLU_getVa(s.exId, @@vertex)*180/@@PI;  
+	   // s.Vm = GRAPHLU_getVm_EMS(s.exId, @@vertex),  
+	   // s.Va = GRAPHLU_getVa_EMS(s.exId, @@vertex)*180/@@PI;  
+// }
+
+
+  
+//    T2 = select s
+//        from T2:s-(connected:e)->Gnode:t
+//        where e.flag != 100
+//           accum 
+          
+//         s.@sList += "(" + to_string(s.exId) + "-" + to_string(t.exId) + "," + to_string(
+//          s.@Vr*t.@Vr * (-1*e.G*cos(s.@Vs-t.@Vs) + (e.B * sin(s.@Vs - t.@Vs)))) + "," +
+//          to_string(s.@Vr*t.@Vr * (-1*e.G*sin(s.@Vs-t.@Vs) - (e.B * cos(s.@Vs - t.@Vs)))) + ")"; 
+          
+   
+//    print @@external_counter;
+//    print T2.exId, T2.@P, T2.@Q, T2.@Vr, T2.@Vs, T2.@sList > outputFile;
+//    print T0.exId, T0.@P, T0.@Q, T0.@Vr, T0.@Vs > outputFile;
+
+// [Testing for Visualization, Chen Yuan]
+
+ T6 = select t 
+      from T5:s -(topo_connect:e)->TopoND:t
+	  //WHERE s.island == 1 and t.island == 1
+	  accum
+		//double newG = 0,
+		//double newB = 0,
+		double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+		double tap_ratio_square = abs((e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount)),
+		// case when (e.transformer_final_turns_ratio == 0 or abs(e.transformer_final_turns_ratio) == 1) then
+			// s.@cal_P += s.M_Vm*t.M_Vm * (-1*e.G*cos((s.M_Va-t.M_Va)*@@PI/180) + e.B * sin((s.M_Va - t.M_Va)*@@PI/180)),
+			// s.@cal_Q += s.M_Vm*t.M_Vm * (-1*e.G*sin((s.M_Va-t.M_Va)*@@PI/180) - e.B * cos((s.M_Va - t.M_Va)*@@PI/180))
+			// //log(false, "e.B and e.G", s.exId, t.exId, e.G, e.B)
+		
+		// else
+			// newG = e.G/abs(tap_ratio),
+			// newB = e.B/abs(tap_ratio),
+			// s.@cal_P += s.M_Vm*t.M_Vm * (-1*newG*cos((s.M_Va-t.M_Va)*@@PI/180) + newB * sin((s.M_Va - t.M_Va)*@@PI/180)),
+			// s.@cal_Q += s.M_Vm*t.M_Vm * (-1*newG*sin((s.M_Va-t.M_Va)*@@PI/180) - newB * cos((s.M_Va - t.M_Va)*@@PI/180))
+			// //log(false, "e.B and e.G", s.exId, t.exId, newG, newB)             
+		// end,
+
+			//[Chen Yuan] Testing for Transmission Line Power Flow for Visualization
+			// Receiving end P = Vs*Vr*sin(theta_s - theta_r)/X, Q = Vs*(Vs-Vr)*cos(theta_s - theta_r)/X,
+			//e.P_TLPF = s.Vm * t.Vm * sin((s.Va - t.Va)*@@PI/180)* e.BIJ, // Transmission line active power flow
+			
+			// [Chen Yuan]
+			case when (e.transformer_final_turns_ratio == 0) then
+				e.M_P_TLPF = s.M_Vm * t.M_Vm * sin((s.M_Va - t.M_Va)*@@PI/180)* e.B + (s.M_Vm*s.M_Vm - s.M_Vm*t.M_Vm*cos((s.M_Va - t.M_Va)*@@PI/180)) * e.G,
+				e.M_Q_TLPF = - s.M_Vm * s.M_Vm * (-e.B + 0.5*e.hB) - s.M_Vm * t.M_Vm * (e.G*sin((s.M_Va - t.M_Va)*@@PI/180) - (-e.B)*cos((s.M_Va - t.M_Va)*@@PI/180))
+			when (e.transformer_final_turns_ratio > 0) then
+				e.M_P_TLPF = s.M_Vm * s.M_Vm * (e.G/tap_ratio_square) - s.M_Vm * t.M_Vm * ((e.G/tap_ratio)*cos((s.M_Va - t.M_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.M_Va - t.M_Va)*@@PI/180)),
+				e.M_Q_TLPF = - s.M_Vm * s.M_Vm * (-e.B + 0.5*e.hB) / tap_ratio_square - s.M_Vm * t.M_Vm * ((e.G/tap_ratio)*sin((s.M_Va - t.M_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.M_Va - t.M_Va)*@@PI/180))
+			else
+				e.M_P_TLPF = s.M_Vm * s.M_Vm * e.G - s.M_Vm * t.M_Vm * ((e.G/tap_ratio)*cos((s.M_Va - t.M_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.M_Va - t.M_Va)*@@PI/180)),
+				e.M_Q_TLPF = - s.M_Vm * s.M_Vm * (-e.B + 0.5*e.hB) - s.M_Vm * t.M_Vm * ((e.G/tap_ratio)*sin((s.M_Va - t.M_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.M_Va - t.M_Va)*@@PI/180))
+			end;
+			
+			//e.Q_TLPF = s.M_Vm * (s.M_Vm - t.M_Vm * cos((s.M_Va - t.M_Va)*@@PI/180)) * e.B - s.M_Vm * t.M_Vm * sin((s.M_Va - t.M_Va)*@@PI/180) * e.G
+			//e.Q_TLPF = s.Vm * (s.Vm - t.Vm) * cos((s.Va - t.Va)*@@PI/180) * e.BIJ, // Transmission line reactive power flow
+			//log(true, e.G, e.B)  // debug
+
+		// [Chen Yuan] Testing violation monitoring for Visualization
+		//e.sh = 3.5, // load shedding limit, randomly set for testing
+		//e.em = 2.5, // emergency limit, randomly set for testing
+		//e.th = 1.5, // thermal limit, randomly set for testing
+		//e.CI =0, // transmission line congestion indication
+		// post-accum
+		       // s.@cal_P += s.M_Vm*s.M_Vm*s.@sumG,
+			   // s.@cal_Q += (-1) * s.M_Vm*s.M_Vm*s.@sumB,
+			   // s.cal_P = s.@cal_P,
+			   // s.cal_Q = s.@cal_Q;
+			   //log(true, s.Va, s.Vm);
+ /* 
+ T7 = select t 
+      from T6:s-(topo_connect:e)->TopoND:t
+	  //WHERE s.island == 1 and t.island == 1
+	  accum
+		case when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.th and sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) < e.em) then
+		e.CI = 1
+		when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.em and sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) < e.sh) then
+		e.CI = 2
+		when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.sh) then
+		e.CI = 3
+		else e.CI = 0
+		end,
+			 
+		 
+		//case when (e.P_TLPF > 0) then
+			//case when (e.type == "connected") then
+				//@@edgeList += e   // Added by Chen Yuan
+			//end
+		//when (e.P_TLPF == 0 and s.exId < t.exId) then
+			//case when (e.type == "undirect_line") then
+				  
+				//@@edgeList += changeEdgeType(e)  // CHANGE EDGE TYPE from directed to undirected, since now power flow through this line.
+			//end
+		//end,
+	 log(true, s.exId, t.exId, e.reverse, e.P_TLPF, e.Q_TLPF), // debug
+	 
+	    e.M_P_TLPF = e.P_TLPF,
+		e.M_Q_TLPF = e.Q_TLPF
+	 post-accum
+		 //s.up_V = 1.02, // bus voltage upper limit, randomly set for testing
+		 //s.lo_V = 0.98, // bus voltage lower limit, randomly set for testing
+		 //s.OV = 0, // over voltage indicator
+		 //s.UV = 0, // under voltage indicator
+		 
+		 case when (s.M_Vm >= s.up_V) then
+			s.OV = 1
+		 else s.OV = 0
+		 end,
+		 case when (s.M_Vm <= s.lo_V) then
+			s.UV = 1
+		 else s.UV = 0
+		 end;
+		 s.Vm = s.Vm,
+		 s.Va = s.Va;
+	  
+	 */
+	 
+	 
+	 //****************** Testing temporarily ends here **********************************************
+	 
+
+//	foreach (e in @@edgeList)
+//	{
+//        update into connected values (e.from_id, e.to_id, e.G, e.B, e.hB, e.transformer_final_turns_ratio, e.kcount, e.BIJ, e.flag, e.P_TLPF, e.Q_TLPF); 
+//    }
+ 
+	 
+     //print T4.exId, T4.P, T4.Q, T4.Vr, T4.Va, T4.busType, T4.OV, T4.UV > outputFile;
+	 // print T2.exId, T2.@P, T2.@Q, T2.@Vr, T2.@Vs, T2.busType, sqrt(T2.@Vr*T2.@Vr+T2.@Vs*T2.@Vs),asin(T2.@Vs/sqrt(T2.@Vr*T2.@Vr+T2.@Vs*T2.@Vs))*180/@@PI; 
+     //print @@edgeList;
+	 //print @@edgeList > outputFile;
+	 //print T5;
+	 //print T5.exId, T5.GenP, T5.LdP, T5.@P, T5.@Q, T5.@Vm, T5.@Va, T5.M_Vm, T5.M_Va, T5.busType TO_CSV "/home/graphsql/output/output1.txt";
+	 // print T2;
+	 
+	 
+
+  //print @@p_L_matrix.size(), @@p_U_matrix.size();
+  //print @@pp_L_matrix.size(), @@pp_U_matrix.size();
+  //print @@p_LU_vertex.size(), @@pp_LU_vertex.size(); 
+  //print @@p_LU_vertex_test;
+  //print @@LUp_vertex, @@LUpp_vertex;
+  //print @@LUpSet.size(), @@LUpSet;
+  //print @@LUppSet.size(), @@LUppSet;
+  //print @@LUpSet.size(), @@LUppSet.size();
+  //print @@run_option;  // if @@run_option = 0,  indicating "Performing LU factorization of B' and B'' matrix and solve Power Flow!"; if @@run_option = 2,  indicating "Factorized LU matrices have previously been built. Solve Power Flow!"; 
+  //print basecase_result;
+}
+
+install query -ui FDPF_SCADA
+//install query -optimize
+

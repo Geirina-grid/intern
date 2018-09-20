@@ -1,0 +1,580 @@
+// **********************************************************************************************************************************
+// **********************************************************************************************************************************
+// Developed by: Chen Yuan, chen.yuan@geirina.net
+// Version Node-based state estimation (TESTING VERSION): Used to communicate/work with Network Topology Processing query and following power flow and contingency analysis queries
+
+// History:
+// 06/17/2017 [Chen Yuan] This is query is written for parallel node-based state estimation; Currently, I use tupple to store each column
+//						  information in H matrix and Gain matrix. Later maybe the way directly store each element in H marix and Gain matrix has a better performance.
+// 05/30/2018 [Chen Yuan] This version is modified to communicate/work with Network Topology Processing query and following power flow and contingency analysis queries.
+
+drop query state_estimation_weight_solve
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================	
+
+//create query state_estimation_weight_solve(string outputfile, int flatstart, double initial_Vm, double initial_Va, double tol, int IterLim) // TotalM is the number of the system's total measurements
+create query state_estimation_weight_solve()
+for graph gsql_EMS{
+	
+// ------------------------------------------------------------------------------------------------
+// 				Define variables and arrays
+// ------------------------------------------------------------------------------------------------
+ 
+ // define the tuple for Gain matrix
+ // sort_id_vertex:     for the G array (key1 based on exId) 
+ //                     - contains information on the nodes and also for the pointer arrays 
+ //typedef tuple<int index, double value, int> sort_id_gain; 
+ // Create ArrayAccum for H matrix and Gain matrix
+ 
+ // define the tuple for Va and Vm
+ // sort_id_vertex:     for the h array (key1 based on exId) 
+ //                     - contains information on the nodes and also for the pointer arrays 
+ //typedef tuple<int index, double value> sort_id; 
+ 
+ // sort_rpi_cpi_matrix:for the L'U' and L"U" matrix HeapAccums (key1 based on rpi and cpi)
+ //                     - contains factorized LU values of B' and B" (both edge and node) 
+ //typedef tuple<int key1, int cpi, double value> sort_rpi_cpi_matrix;
+ 
+ // sort_rpi_vertex:    for the L'U' and L"U" matrix vertex HeapAccums (key1 based on rpi) 
+ //                     - contains pointers, permutation and scaling info  
+ //typedef tuple<int key1, int Lp, int Up, int rp, int cpi, double row_scaling, double col_scaling> sort_rpi_vertex;
+
+ 
+ // SumAccum<int> @@Gsize;
+ // SumAccum<int> @Col_Num = 0; // Calculate Number of columns in Hi matrix
+ // SumAccum<int> @Slack = 0; // Check if there is slack bus
+ // SumAccum<int> @Row_Num = 3; // Calculate Number of columns in Hi matrix, each bus/vertex has 3 measurements (Vi, Pi, Qi), 
+  					 //	so the beginning number is set as 3.
+ MaxAccum<double> @@PI = 3.1415926535898;					 
+ 
+ //string sort_result;
+ string cal_result;
+ 
+ SumAccum<double> @P = 0;
+ SumAccum<double> @Q = 0;
+ SumAccum<double> @sumB = 0; // store for each node the total B on all of its edges
+ SumAccum<double> @sumBedge = 0; // store for each node the total e.B
+ SumAccum<double> @sumG = 0; // store for each node the total G on all of its edges
+ SumAccum<double> @sumBi = 0; // store for each node the total 1/X (BIJ) on all of its edges		
+ //SumAccum<double> @sumGii_P = 0; // store for each diagonal element in Gain matrix
+ //SumAccum<double> @sumGij_P = 0; // store for each off-diagonal element in Gain matrix
+ //SumAccum<double> @sumGii_Q = 0; // store for each diagonal element in Gain matrix
+ //SumAccum<double> @sumGij_Q = 0; // store for each off-diagonal element in Gain matrix
+ 
+ SumAccum<double> @deltaP = 0; // store each bus deltaP
+ SumAccum<double> @deltaQ = 0; // store each bus deltaQ
+ SumAccum<double> @deltaPcal = 0; // store each bus deltaP   testing
+ SumAccum<double> @deltaQcal = 0; // store each bus deltaQ   testing
+ 
+ SumAccum<double> @Vm = 0; // store each bus updated Vm
+ SumAccum<double> @Vs = 0; // store each bus updated Vs
+ SumAccum<double> @deltaVm = 0; // store each bus deltaVm, which is the comparison between Vm's measurement and calcualtion
+ SumAccum<double> @deltaVa = 0; // store each bus deltaVm, which is the comparison between Vm's measurement and calcualtion
+ 
+ //SumAccum<double> @2_neighbor_B = 0; // store 2-neighbor info
+ //SumAccum<double> @2_neighbor_BIJ = 0; // store 2-neighbor info
+ //MapAccum<int, double> @neighbor_B;  // store connected edges info (B)
+ //MapAccum<int, double> @neighbor_BIJ;  // store connected edges info (BIJ)
+ //MapAccum<int, double> @neighbor_Pweight; // store weight of neighbor's injection P
+ //MapAccum<int, double> @neighbor_Qweight; // store weight of neighbor's injection Q
+ //MapAccum<int, double> @P_TLPF; // store weight of neighbor's injection P
+ //MapAccum<int, double> @Q_TLPF; // store weight of neighbor's injection Q
+ 
+ 
+ //MapAccum<int, double> @G_offdiag_B;  // store node_based gain matrix offdiag_B
+ //MapAccum<int, double> @G_offdiag_BIJ;  // store node_based gain matrix offdiag_BIJ
+ //MapAccum<int, double> @G_2_neighbor_B;  // store node_based gain matrix offdiag_B
+ //MapAccum<int, double> @G_2_neighbor_BIJ;  // store node_based gain matrix offdiag_BIJ
+ ArrayAccum<SumAccum<double>> @@H_r_P[];  // store H_P matrix multiplies r_P
+ ArrayAccum<SumAccum<double>> @@H_r_Q[];  // store H_Q matrix multiplies r_Q
+ //ArrayAccum<ListAccum<sort_id>> @@GainP[];  // store column index and value in GainP matrix, like CSR's ai and ax
+ //ArrayAccum<ListAccum<sort_id>> @@GainQ[];  // store column index and value in GainQ matrix, like CSR's ai and ax
+ SumAccum<int> @@slackbus = 0;
+ MaxAccum<double> @@max_dVm = 1000000;
+ MaxAccum<double> @@max_dVa = 1000000;
+ 
+ // store the number of non-zeros in GainP and GainQ
+ //SumAccum<int> @@nnz_GainP = 0;
+ //SumAccum<int> @@nnz_GainQ = 0; 
+ 
+ //SumAccum<int>    @nnz_P = 0;   // the degree/non-zeros of a node in GainP
+ //SumAccum<int>    @nnz_Q = 0;   // the degree/non-zeros of a node in GainQ
+ //SumAccum<int>    @pqdgr = 0;    // the degree (number of edges connecting PQ buses) of a PQ bus
+ 
+ // store the number of non-zeros in each row of GainP and GainQ, like CSR's ap
+ //ArrayAccum<SumAccum<int>> @@GainP_p[];
+ //ArrayAccum<SumAccum<int>> @@GainQ_p[]; 
+ ArrayAccum<SumAccum<double>> @@Va[];
+ ArrayAccum<SumAccum<double>> @@Vm[];
+ SumAccum<int> @@counter = 0;
+
+ // Generate HeapAccum for GainP and GainQ LU Decomposition. 
+ // Later, they can be replaced by ListAccum or ArrayAccum.
+ //STATIC HeapAccum<sort_rpi_cpi_matrix>(100000000, key1 asc) @@GainP_L_matrix;   
+ //STATIC HeapAccum<sort_rpi_cpi_matrix>(100000000, key1 asc) @@GainP_U_matrix;
+ //STATIC HeapAccum<sort_rpi_cpi_matrix>(100000000, key1 asc) @@GainQ_L_matrix;
+ //STATIC HeapAccum<sort_rpi_cpi_matrix>(100000000, key1 asc) @@GainQ_U_matrix;
+ //STATIC HeapAccum<sort_rpi_vertex>(100000000, key1 asc) @@GainP_LU_vertex;
+ //STATIC HeapAccum<sort_rpi_vertex>(100000000, key1 asc) @@GainQ_LU_vertex;
+
+ //ListAccum<edge> @@edgeList;
+ 
+ 
+ //testing
+ //ArrayAccum<SumAccum<double>> @@B[118][118];
+ //ArrayAccum<SumAccum<double>> @@G[118][118];
+ 
+ 
+ // ArrayAccum<SumAccum<double>> @h[][]; // node-based H matrix
+ //ListAccum<sort_id> @Gip;
+ //ListAccum<sort_id> @Giq;
+ 
+ // ********************************* Query Parameters Definition ************************
+ SumAccum<double> @@tol = 0.001;
+ SumAccum<double> @@initial_Va = 0;
+ SumAccum<double> @@initial_Vm = 1;
+ SumAccum<int> @@IterLim = 10;
+ SumAccum<int> @@flatstart = 1;
+ SumAccum<string> @@outputfile = "/home/graphsql/output/output2.txt";
+ 
+ 
+ // ************************************************************************************
+ // End of variable definition
+ // ************************************************************************************
+ 
+ T0 = {TopoND.*}; //start from all vertices in the graph
+ T_params = {parameters.*}; // include the parameters vertex
+ 
+ //@@GainP.reallocate(T0.size()-1);
+ //@@GainQ.reallocate(T0.size());
+ //@@GainP_p.reallocate(T0.size()-1);
+ //@@GainQ_p.reallocate(T0.size());
+ @@Va.reallocate(T0.size()-1);
+ @@Vm.reallocate(T0.size());
+ @@H_r_P.reallocate(T0.size()-1);
+ @@H_r_Q.reallocate(T0.size());
+ 
+ 
+ //@@GainP_L_matrix += sort_rpi_cpi_matrix(1, 1, 1);
+ //@@GainP_U_matrix += sort_rpi_cpi_matrix(1, 1, 1);
+ //@@GainQ_L_matrix += sort_rpi_cpi_matrix(1, 1, 1);
+ //@@GainQ_U_matrix += sort_rpi_cpi_matrix(1, 1, 1);
+ //@@GainP_LU_vertex += sort_rpi_vertex(1, 1, 1, 1, 1, 1, 1);
+ //@@GainQ_LU_vertex += sort_rpi_vertex(1, 1, 1, 1, 1, 1, 1);
+
+
+//clear the STATIC HeapAccums 
+ 
+ //@@GainP_L_matrix.clear();
+ //@@GainP_U_matrix.clear(); 
+ //@@GainQ_L_matrix.clear();     
+ //@@GainQ_U_matrix.clear();
+ //@@GainP_LU_vertex.clear();
+ //@@GainQ_LU_vertex.clear();
+ 
+ 
+ 
+ 
+  // ****************** Transfer parameters vertex attributes to this query's parameters ********************
+ 
+ //T_params = SELECT s FROM T_params:s 
+			//POST-ACCUM
+			//@@tol += s.se_MaxChange,
+			//@@initial_Va += s.initial_Va,
+			//@@initial_Vm += s.initial_Vm,
+			//@@IterLim += s.se_MaxIter,
+			//@@flatstart += s.se_flatstart,
+			//@@outputfile += s.outputfile;
+			//log(true, s.se_MaxChange, s.initial_Va, s.initial_Vm, s.se_MaxIter, s.se_flatstart, s.outputfile);
+			
+ //log(true, @@tol, @@initial_Va, @@initial_Vm, @@IterLim, @@flatstart, @@outputfile);
+ 
+ T0 = select s
+	  from T0:s-(topo_connect:e)->TopoND:t
+	  where s.island == 1 and t.island == 1
+	  accum
+		case when (e.transformer_final_turns_ratio == 0) then 
+           //compute contribution of each branch to the diagonal terms 
+           s.@sumG += e.G,
+		   s.@sumB += -1*e.B + 0.5*e.hB,  // used to construct the B'' matrix for fast-decoupled method, for Q
+		   s.@sumBedge += e.B,  // edges' admittence summation for each node
+           s.@sumBi += -1*e.BIJ
+		   
+		   
+		   //s.@sumGii_Q += (e.B - e.hB)*(e.B - e.hB)*e.Ri_eQ,		   // used to construct the B' matrix for fast-decoupled method, for P
+		   //t.@sumGii_Q += (e.B * e.B)*s.Ri_vQ + (e.B*e.B)*e.Ri_eQ,	
+		   
+		   
+		   
+		   //s.@neighbor_B += (t.exId -> e.B)
+		   //@@B[s.exId-1][t.exId-1] += e.B,  //FOR TESTING...
+		   //@@G[s.exId-1][t.exId-1] += -e.G  //FOR TESTING...
+		when (e.transformer_final_turns_ratio > 0) then
+		//compute contribution of each branch to the diagonal terms
+           double tap_ratio_square = (e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount),
+		   double tap_ratio = e.transformer_final_turns_ratio/e.kcount,
+           s.@sumG += 1/(tap_ratio_square)*e.G,
+		   s.@sumB += 1/(tap_ratio_square)*(-1*e.B + 0.5*e.hB), // for Q
+		   s.@sumBedge += e.B/tap_ratio, // edges' admittence summation for each node
+           s.@sumBi += -1*e.BIJ  // for P
+		   
+		   
+		   //s.@sumGii_Q += (e.B/tap_ratio - e.hB)*(e.B/tap_ratio - e.hB)*e.Ri_eQ,
+		   //t.@sumGii_Q += ( e.B * e.B / tap_ratio_square)*s.Ri_vQ + ( e.B * e.B / tap_ratio_square)*e.Ri_eQ,
+		   
+		   
+		   //s.@neighbor_B += (t.exId -> e.B/tap_ratio)
+		   //@@B[s.exId-1][t.exId-1] += e.B / tap_ratio,  //FOR TESTING...
+		   //@@G[s.exId-1][t.exId-1] += -e.G / tap_ratio  //FOR TESTING...
+		else
+		   double tap_ratio_square = (e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount),
+		   double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+		   s.@sumG += e.G,
+		   s.@sumB += -1*e.B + 0.5*e.hB,  // used to construct the B'' matrix for fast-decoupled method, for Q
+		   s.@sumBedge += e.B/tap_ratio, // edges' admittence summation for each node
+           s.@sumBi += -1*e.BIJ
+		   
+		   
+		   //s.@sumGii_Q += (e.B/tap_ratio - e.hB)*(e.B/tap_ratio - e.hB)*e.Ri_eQ,
+		   //t.@sumGii_Q += (e.B * e.B / tap_ratio_square)*s.Ri_vQ + ( e.B * e.B / tap_ratio_square)*e.Ri_eQ,
+		   
+		   
+		   //s.@neighbor_B += (t.exId -> e.B / tap_ratio)
+		   //@@B[s.exId-1][t.exId-1] += e.B / tap_ratio,  //FOR TESTING...
+		   //@@G[s.exId-1][t.exId-1] += -e.G / tap_ratio  //FOR TESTING...
+		end
+		//s.@sumGii_P += (e.BIJ * e.BIJ)*e.Ri_eP, // diagonal element in row i of system Gain matrix_P: Hii'*Hii + sum(Hji'*Hji)
+		//t.@sumGii_P += (e.BIJ * e.BIJ)*e.Ri_eP + (e.BIJ * e.BIJ)*s.Ri_vP,
+		 // diagonal element in row i of system Gain matrix_Q: Hii'*Hii + sum(Hji'*Hji)
+		// the coefficient of 3 indicates Hii'*Hii will have one and Hji'*Hij will have 2     double check....
+		
+		//CASE WHEN (s.exId != @@slackbus and t.exId != @@slackbus) THEN
+		//s.@neighbor_BIJ += (t.exId -> e.BIJ),   // 1-neighbor info store
+		//END,
+		
+		//s.@neighbor_Pweight += (t.exId -> t.Ri_vP),
+		//s.@neighbor_Qweight += (t.exId -> t.Ri_vQ)
+		
+		/* CASE WHEN (e.transformer_final_turns_ratio == 0) THEN
+			s.@neighbor_B += (t.exId -> e.B)
+		ELSE
+			double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+			s.@neighbor_B += (t.exId -> e.B/tap_ratio)
+		END, */
+		
+		
+			    
+	  post-accum
+		//s.@sumGii_P += (s.@sumBi * s.@sumBi)*s.Ri_vP, // diagonal element in row i of system Gain matrix: Hii'*Hii + sum(Hji'*Hji), double check...
+		s.@sumB += s.B,
+		s.@sumG += s.G,
+		//s.@sumGii_Q += (- 2 * s.@sumB - s.@sumBedge) * (- 2 * s.@sumB - s.@sumBedge) * s.Ri_vQ + 1 * s.Ri_V, // diagonal element in row i of system Gain matrix: Hii'*Hii + sum(Hji'*Hji), double check...
+		//if s.busType != 3 then
+			//s.@Gip += sort_id (s.exId, s.@sumGii_P)
+		//end,
+		//s.@Giq += sort_id (s.exId, s.@sumGii_Q),
+		//@@B[s.exId-1][s.exId-1] += s.@sumB,  // FOR TESTING...
+		//@@G[s.exId-1][s.exId-1] += s.@sumG,  // FOR TESTING...
+		CASE WHEN (s.busType == 3) THEN
+			@@slackbus += s.exId
+		END,
+		
+		
+       case when @@flatstart == 0 then  //not using flat start, set voltage manitude/angle based on input data files
+         case when s.busType == 1 or s.busType == 0 then 
+           s.@P = s.GenP - s.LdP, s.@Q = s.GenQ - s.LdQ, s.@Vm = s.M_Vm, s.@Vs = s.M_Va*@@PI/180
+         when s.busType == 2 then 
+           s.@P = s.GenP - s.LdP, s.@Q = s.GenQ - s.LdQ, s.@Vm = s.M_Vm, s.@Vs = s.M_Va*@@PI/180
+         when s.busType == 3 then 
+           s.@Vm = s.M_Vm, s.@Vs = s.M_Va*@@PI/180, s.@P = s.GenP - s.LdP, s.@Q = s.GenQ - s.LdQ
+         when s.busType == 4 then 
+           s.@Vm = 0, s.@Vs = 0, s.@P =0 , s.@Q =0
+         end
+       else                           //flat start, set voltage magnitude/angle based on user input
+         case when s.busType == 1 or s.busType == 0 then 
+           s.@P = s.GenP - s.LdP, s.@Q = s.GenQ - s.LdQ, s.@Vm = 1, s.@Vs = 0
+         when s.busType == 2 then 
+           s.@P = s.GenP - s.LdP, s.@Q = s.GenQ - s.LdQ, s.@Vm = 1, s.@Vs = 0
+         when s.busType == 3 then 
+           s.@Vm = s.M_Vm, s.@Vs = 0, s.@P = s.GenP - s.LdP, s.@Q = s.GenQ - s.LdQ
+         when s.busType == 4 then 
+           s.@Vm = 0, s.@Vs = 0, s.@P = 0, s.@Q = 0
+         end
+       end;
+		
+		//log(true, s.exId, s.@neighbor_BIJ, s.@Gip);
+
+
+ 
+ // ************************************** Iteration *********************************************
+		 
+ while( @@max_dVm > 0.001 or @@max_dVa > 0.001) limit 15
+ {
+	  @@counter += 1;
+	  @@max_dVm = 0;
+	  @@max_dVa = 0;
+	
+	//************************************ P measurement update **************************************
+	// *************************************** Building H'*r *************************************************
+	T0 = select s
+	  from T0:s-(topo_connect:e)->TopoND:t
+	  where s.island ==1 and t.island == 1
+	  accum
+		double newG = 0,
+		double newB = 0,
+		double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+		double tap_ratio_square = (e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount),
+		//s.@deltaP = - s.@P,
+		//s.@deltaQ = - s.@Q,
+		//log(true, s.exId, s.@deltaP),
+		case when (e.transformer_final_turns_ratio == 0 or abs(e.transformer_final_turns_ratio) == 1) then
+		   s.@deltaP += s.@Vm*t.@Vm * (-1*e.G*cos(s.@Vs-t.@Vs) + (e.B * sin(s.@Vs - t.@Vs)))
+		   
+		   //log(false, "e.B and e.G", s.exId, t.exId, e.G, e.B)
+		else
+		   newG = e.G/tap_ratio,
+		   newB = e.B/tap_ratio,
+		   s.@deltaP += s.@Vm*t.@Vm * (-1*newG*cos(s.@Vs-t.@Vs) + (newB * sin(s.@Vs - t.@Vs)))
+		   //log(false, "e.B and e.G", s.exId, t.exId, newG, newB)             
+		end,
+
+
+		case when (s.exId > @@slackbus) then
+			
+			case when (e.transformer_final_turns_ratio == 0) then
+				@@H_r_P[s.exId-2] += e.BIJ * (e.M_P_TLPF - (s.@Vm * s.@Vm * e.G - s.@Vm * t.@Vm * (e.G*cos(s.@Vs - t.@Vs) + (-e.B)*sin(s.@Vs - t.@Vs)))) * e.Ri_eP
+			when (e.transformer_final_turns_ratio > 0) then
+				@@H_r_P[s.exId-2] += e.BIJ * (e.M_P_TLPF - (s.@Vm * s.@Vm * (e.G/tap_ratio_square) - s.@Vm * t.@Vm * ((e.G/tap_ratio)*cos(s.@Vs - t.@Vs) + (-e.B/tap_ratio)*sin(s.@Vs - t.@Vs)))) * e.Ri_eP
+			else
+				@@H_r_P[s.exId-2] += e.BIJ * (e.M_P_TLPF - (s.@Vm * s.@Vm * e.G - s.@Vm * t.@Vm * ((e.G/tap_ratio)*cos(s.@Vs - t.@Vs) + (-e.B/tap_ratio)*sin(s.@Vs - t.@Vs)))) * e.Ri_eP
+			end
+
+		when (s.exId < @@slackbus) then			
+			
+			case when (e.transformer_final_turns_ratio == 0) then
+				@@H_r_P[s.exId-1] += e.BIJ * (e.M_P_TLPF - (s.@Vm * s.@Vm * e.G - s.@Vm * t.@Vm * (e.G*cos(s.@Vs - t.@Vs) + (-e.B)*sin(s.@Vs - t.@Vs)))) * e.Ri_eP
+			when (e.transformer_final_turns_ratio > 0) then
+				@@H_r_P[s.exId-1] += e.BIJ * (e.M_P_TLPF - (s.@Vm * s.@Vm * (e.G/tap_ratio_square) - s.@Vm * t.@Vm * ((e.G/tap_ratio)*cos(s.@Vs - t.@Vs) + (-e.B/tap_ratio)*sin(s.@Vs - t.@Vs)))) * e.Ri_eP
+			else
+				@@H_r_P[s.exId-1] += e.BIJ * (e.M_P_TLPF - (s.@Vm * s.@Vm * e.G - s.@Vm * t.@Vm * ((e.G/tap_ratio)*cos(s.@Vs - t.@Vs) + (-e.B/tap_ratio)*sin(s.@Vs - t.@Vs)))) * e.Ri_eP
+			end
+		end,
+
+		case when (t.exId > @@slackbus) then
+			case when (e.transformer_final_turns_ratio == 0) then
+				@@H_r_P[t.exId-2] += (-1) * e.BIJ * (e.M_P_TLPF - (s.@Vm * s.@Vm * e.G - s.@Vm * t.@Vm * (e.G*cos(s.@Vs - t.@Vs) + (-e.B)*sin(s.@Vs - t.@Vs)))) * e.Ri_eP
+			when (e.transformer_final_turns_ratio > 0) then
+				@@H_r_P[t.exId-2] += (-1) * e.BIJ * (e.M_P_TLPF - (s.@Vm * s.@Vm * (e.G/tap_ratio_square) - s.@Vm * t.@Vm * ((e.G/tap_ratio)*cos(s.@Vs - t.@Vs) + (-e.B/tap_ratio)*sin(s.@Vs - t.@Vs)))) * e.Ri_eP
+			else
+				@@H_r_P[t.exId-2] += (-1) * e.BIJ * (e.M_P_TLPF - (s.@Vm * s.@Vm * e.G - s.@Vm * t.@Vm * ((e.G/tap_ratio)*cos(s.@Vs - t.@Vs) + (-e.B/tap_ratio)*sin(s.@Vs - t.@Vs)))) * e.Ri_eP 
+			end
+
+		when (t.exId < @@slackbus) then
+
+			case when (e.transformer_final_turns_ratio == 0) then
+				@@H_r_P[t.exId-1] += (-1) * e.BIJ * (e.M_P_TLPF - (s.@Vm * s.@Vm * e.G - s.@Vm * t.@Vm * (e.G*cos(s.@Vs - t.@Vs) + (-e.B)*sin(s.@Vs - t.@Vs)))) * e.Ri_eP 
+			when (e.transformer_final_turns_ratio > 0) then
+				@@H_r_P[t.exId-1] += (-1) * e.BIJ * (e.M_P_TLPF - (s.@Vm * s.@Vm * (e.G/tap_ratio_square) - s.@Vm * t.@Vm * ((e.G/tap_ratio)*cos(s.@Vs - t.@Vs) + (-e.B/tap_ratio)*sin(s.@Vs - t.@Vs)))) * e.Ri_eP 
+			else
+				@@H_r_P[t.exId-1] += (-1) * e.BIJ * (e.M_P_TLPF - (s.@Vm * s.@Vm * e.G - s.@Vm * t.@Vm * ((e.G/tap_ratio)*cos(s.@Vs - t.@Vs) + (-e.B/tap_ratio)*sin(s.@Vs - t.@Vs)))) * e.Ri_eP 
+			end
+
+		end
+		   
+		   
+		// case when (e.transformer_final_turns_ratio == 0) then
+			// s.@P_TLPF += (t.exId -> (e.M_P_TLPF - (s.@Vm * s.@Vm * e.G - s.@Vm * t.@Vm * (e.G*cos(s.@Vs - t.@Vs) + (-e.B)*sin(s.@Vs - t.@Vs)))))
+
+		// when (e.transformer_final_turns_ratio > 0) then
+			// s.@P_TLPF += (t.exId -> (e.M_P_TLPF - (s.@Vm * s.@Vm * (e.G/tap_ratio_square) - s.@Vm * t.@Vm * ((e.G/tap_ratio)*cos(s.@Vs - t.@Vs) + (-e.B/tap_ratio)*sin(s.@Vs - t.@Vs)))))
+			
+
+		// else
+			// s.@P_TLPF += (t.exId -> (e.M_P_TLPF - (s.@Vm * s.@Vm * e.G - s.@Vm * t.@Vm * ((e.G/tap_ratio)*cos(s.@Vs - t.@Vs) + (-e.B/tap_ratio)*sin(s.@Vs - t.@Vs)))))
+
+		// end
+
+
+		   
+	  post-accum
+           //case when (s.busType != 3) then
+		       //s.@deltaP = s.@deltaP + s.@Vm*s.@Vm*s.@sumG,     // for debugging
+			   //s.@deltaPcal = s.@deltaP - s.@P,    // for debugging
+		s.@deltaP = s.@P - (s.@deltaP + s.@Vm*s.@Vm*s.@sumG),  
+
+		case when (s.exId > @@slackbus) then
+			@@H_r_P[s.exId-2] += (-1) * s.@sumBi * s.@deltaP * s.Ri_vP
+		when (s.exId < @@slackbus) then
+			@@H_r_P[s.exId-1] += (-1) * s.@sumBi * s.@deltaP * s.Ri_vP
+		end,
+		
+		case when (s.exId > @@slackbus) then
+			@@Va[s.exId-2] += s.@Vs	
+		when (s.exId < @@slackbus) then
+			@@Va[s.exId-1] += s.@Vs
+		end;
+
+	  
+ T0 = select s
+	  from T0:s-(topo_connect:e)->TopoND:t
+	  where s.island ==1 and t.island == 1
+	  accum	
+		CASE WHEN (t.exId > @@slackbus) THEN
+			@@H_r_P[t.exId-2] +=  (-1) * e.BIJ * s.@deltaP * s.Ri_vP
+		WHEN (t.exId < @@slackbus) THEN
+			@@H_r_P[t.exId-1] +=  (-1) * e.BIJ * s.@deltaP * s.Ri_vP
+		END,
+		s.@deltaP = 0;
+
+			
+			
+   // ************************************** Solve Gain P *********************************************
+   cal_result = SE_solve_GainP_static(@@Va, @@H_r_P, @@max_dVa); 	//	needing another tuple to store Va, may not need @@GainP
+   
+   // ************************************** Update Va *****************************************
+	T0 = select s
+       from T0:s
+	   where s.island ==1
+       post-accum
+		 uint exId = 0,
+		 
+		 CASE WHEN (s.exId > @@slackbus) THEN
+			exId = s.exId - 2,
+			s.@Vs = SE_getVa(exId, @@Va)
+		 WHEN (s.exId < @@slackbus) THEN
+			exId = s.exId - 1,
+			s.@Vs = SE_getVa(exId, @@Va)
+		 END;
+		 
+	     @@H_r_P.reallocate(T0.size()-1);
+		 @@Va.reallocate(T0.size()-1); // in radian  
+		 print @@max_dVa;
+
+		 
+		 
+
+	 //************************************ Q measurement update **************************************
+	 // ********************************* Building H'*r *************************************************
+	T0 = select s
+		 from T0:s-(topo_connect:e)->TopoND:t
+		 where s.island ==1 and t.island == 1
+		 accum
+			double newG = 0,
+			double newB = 0,
+			double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+			double tap_ratio_square = (e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount),
+			case when (e.transformer_final_turns_ratio == 0 or abs(e.transformer_final_turns_ratio) == 1) then
+			   s.@deltaQ += s.@Vm*t.@Vm * (-1*e.G*sin(s.@Vs-t.@Vs) - (e.B * cos(s.@Vs - t.@Vs)))
+			else
+			   newG = e.G/tap_ratio,
+			   newB = e.B/tap_ratio,
+			   s.@deltaQ += s.@Vm*t.@Vm * (-1*newG*sin(s.@Vs-t.@Vs) - (newB * cos(s.@Vs - t.@Vs)))
+			   //log(false, "e.B and e.G", s.exId, t.exId, newG, newB)             
+			end,
+
+			case when (e.transformer_final_turns_ratio == 0) then 
+
+				@@H_r_Q[s.exId-1] += (e.B - e.hB) * (e.M_Q_TLPF - (- s.@Vm * s.@Vm * (-e.B + 0.5*e.hB) - s.@Vm * t.@Vm * (e.G*sin(s.@Vs - t.@Vs) - (-e.B)*cos(s.@Vs - t.@Vs)))) * e.Ri_eQ,
+				@@H_r_Q[t.exId-1] += (-1) * e.B * (e.M_Q_TLPF - (- s.@Vm * s.@Vm * (-e.B + 0.5*e.hB) - s.@Vm * t.@Vm * (e.G*sin(s.@Vs - t.@Vs) - (-e.B)*cos(s.@Vs - t.@Vs)))) * e.Ri_eQ
+			when (e.transformer_final_turns_ratio > 0) then
+				double tap_ratio = e.transformer_final_turns_ratio/e.kcount,
+				@@H_r_Q[s.exId-1] += (e.B/tap_ratio - e.hB) * (e.M_Q_TLPF - (- s.@Vm * s.@Vm * (-e.B + 0.5*e.hB) / tap_ratio_square - s.@Vm * t.@Vm * ((e.G/tap_ratio)*sin(s.@Vs - t.@Vs) - (-e.B/tap_ratio)*cos(s.@Vs - t.@Vs)))) * e.Ri_eQ,
+				@@H_r_Q[t.exId-1] += (-1) * (e.B/tap_ratio) * (e.M_Q_TLPF - (- s.@Vm * s.@Vm * (-e.B + 0.5*e.hB) / tap_ratio_square - s.@Vm * t.@Vm * ((e.G/tap_ratio)*sin(s.@Vs - t.@Vs) - (-e.B/tap_ratio)*cos(s.@Vs - t.@Vs)))) * e.Ri_eQ
+			else
+				double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount), 			
+				@@H_r_Q[s.exId - 1] += (e.B/tap_ratio - e.hB) * (e.M_Q_TLPF - (- s.@Vm * s.@Vm * (-e.B + 0.5*e.hB) - s.@Vm * t.@Vm * ((e.G/tap_ratio)*sin(s.@Vs - t.@Vs) - (-e.B/tap_ratio)*cos(s.@Vs - t.@Vs)))) * e.Ri_eQ,
+				@@H_r_Q[t.exId - 1] += (-1) * (e.B/tap_ratio) * (e.M_Q_TLPF - (- s.@Vm * s.@Vm * (-e.B + 0.5*e.hB) - s.@Vm * t.@Vm * ((e.G/tap_ratio)*sin(s.@Vs - t.@Vs) - (-e.B/tap_ratio)*cos(s.@Vs - t.@Vs)))) * e.Ri_eQ
+				end
+
+		// case when (e.transformer_final_turns_ratio == 0) then
+			// s.@Q_TLPF += (t.exId -> (e.M_Q_TLPF - (- s.@Vm * s.@Vm * (-e.B + 0.5*e.hB) - s.@Vm * t.@Vm * (e.G*sin(s.@Vs - t.@Vs) - (-e.B)*cos(s.@Vs - t.@Vs))))) // Transmission line reactive power flow				
+		// when (e.transformer_final_turns_ratio > 0) then		
+			// s.@Q_TLPF += (t.exId -> (e.M_Q_TLPF - (- s.@Vm * s.@Vm * (-e.B + 0.5*e.hB) / tap_ratio_square - s.@Vm * t.@Vm * ((e.G/tap_ratio)*sin(s.@Vs - t.@Vs) - (-e.B/tap_ratio)*cos(s.@Vs - t.@Vs))))) // Transmission line reactive power flow
+		// else
+			
+			// s.@Q_TLPF += (t.exId -> (e.M_Q_TLPF - (- s.@Vm * s.@Vm * (-e.B + 0.5*e.hB) - s.@Vm * t.@Vm * ((e.G/tap_ratio)*sin(s.@Vs - t.@Vs) - (-e.B/tap_ratio)*cos(s.@Vs - t.@Vs)))))
+		// end
+		   
+		post-accum
+			s.@deltaQ = s.@Q - (s.@deltaQ - s.@Vm*s.@Vm*s.@sumB),
+			s.@deltaVm = s.M_Vm - s.@Vm,
+			@@H_r_Q[s.exId-1] += (-1) * (2*s.@sumB + s.@sumBedge)* s.@deltaQ * s.Ri_vQ + s.@deltaVm * s.Ri_V,
+			@@Vm[s.exId-1] += s.@Vm;
+	  
+
+ T0 = select s
+	  from T0:s-(topo_connect:e)->TopoND:t
+	  where s.island ==1 and t.island == 1
+	  accum
+		case when (e.transformer_final_turns_ratio == 0) then 
+			@@H_r_Q[t.exId-1] += (-1) * e.B * s.@deltaQ * s.Ri_vQ 
+		when (e.transformer_final_turns_ratio > 0) then
+			double tap_ratio = e.transformer_final_turns_ratio/e.kcount,
+			@@H_r_Q[t.exId-1] += (-1) * (e.B/tap_ratio) * s.@deltaQ * s.Ri_vQ
+		else
+			double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount), 			
+			@@H_r_Q[t.exId - 1] += (-1) * (e.B/tap_ratio) * s.@deltaQ * s.Ri_vQ 
+		end,
+		s.@deltaQ = 0;
+			
+
+   
+
+// ************************************** Solve Gain Q *********************************************
+   cal_result = SE_solve_GainQ_static(@@Vm, @@H_r_Q, @@max_dVm); 	//	needing another tuple to store Vm, may not need @@GainQ
+
+// ************************************** Update Vm *****************************************
+	T0 = select s
+       from T0:s
+	   where s.island ==1
+       post-accum
+
+		 uint exId = s.exId-1,
+         //s.Vm = SE_getVm(s.exId, @@vertex_Ybus),  // magnitude in p.u.
+         s.@Vm = SE_getVm(exId, @@Vm);  // in radian  
+		 //@@max_dVa = SE_getMAXdVa(@@max_dVa)
+		 
+		 @@H_r_Q.reallocate(T0.size());
+		 @@Vm.reallocate(T0.size());
+
+		 print @@max_dVm;
+		
+	
+	// T0 = select  s
+       // from T0:s
+       // post-accum
+		 // uint exId = 0,
+         // //s.Vm = SE_getVm(s.exId, @@vertex_Ybus),  // magnitude in p.u.
+		 // CASE WHEN (s.exId > @@slackbus) THEN
+			// exId = s.exId - 2,
+			// s.@Vs = SE_getVa(exId, @@Va)
+		 // WHEN (s.exId < @@slackbus) THEN
+			// exId = s.exId - 1,
+			// s.@Vs = SE_getVa(exId, @@Va)
+		 // END;  // in radian  
+		 // //@@max_dVa = SE_getMAXdVa(@@max_dVa)
+	     // @@H_r_P.clear();
+		 // @@Va.reallocate(T0.size()-1);
+		 
+	
+ 
+ //print @@edgeList > outputfile; 
+  }
+  
+  T0 = select s
+       from T0:s
+	   where s.island ==1
+       post-accum
+	   s.SE_Vm = s.@Vm,
+	   s.SE_Va = s.@Vs;
+  
+  print @@counter;
+  print T0.exId, T0.M_Vm, T0.Vm, T0.@Vm, T0.M_Va, T0.@Vs*180/@@PI TO_CSV "/home/graphsql/output/output2.txt";
+ 		
+	
+}
+
+install query -ui state_estimation_weight_solve
+//install query -OPTIMIZE

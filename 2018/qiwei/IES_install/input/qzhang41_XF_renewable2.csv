@@ -1,0 +1,2 @@
+from,to,XF_name,phase,fromNode,toNode,config,XFC_name,connect_type,install_type,power_rating,powerA_rating,powerB_rating,powerC_rating,primary_voltage,secondary_voltage,resistance,reactance
+64,1,XF_res_1,ABCN,node_64,meterwind,XF_res1_config,XF_res1_config,DELTA_DELTA,POLETOP,500,,,,4160.03963,480,0.0127,0.0272

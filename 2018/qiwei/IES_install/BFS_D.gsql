@@ -1,0 +1,1340 @@
+// Author: Jun Tan   Email: jun.daniel.tan@gmail.com/jun.tan@geirina.net
+// Backward sweep is to calculate the total complex power through two nodes. Forwardsweep is to calcualte the voltage at each node (except V1 is known)This code calculates the matrix A = inv(a) and B = inv(a)*b for the use of distribution level load flow
+// ***********************************************************************************************************************************
+// [Histroy] 
+// array A is the matrix defined as ArrayAccum in BFS.gsql query
+// **********************************************************************************************************************************
+DROP QUERY BFS_D
+
+CREATE QUERY BFS_D(double threshold, int maxIt) FOR GRAPH powerflow_graph
+{  
+	// Define variables and initialization
+	ListAccum<edge> @@edgeList;
+	SumAccum<int> @@numIteration = 0; 
+	ArrayAccum<SumAccum<double>>@Areal[3][3];
+	ArrayAccum<SumAccum<double>>@Aimg[3][3];
+	ArrayAccum<SumAccum<double>>@Breal[3][3];
+	ArrayAccum<SumAccum<double>>@Bimg[3][3];
+	ArrayAccum<SumAccum<double>>@areal[3][3];
+	ArrayAccum<SumAccum<double>>@aimg[3][3];
+	ArrayAccum<SumAccum<double>>@breal[3][3];
+	ArrayAccum<SumAccum<double>>@bimg[3][3];
+	ArrayAccum<SumAccum<double>>@creal[3][3];
+	ArrayAccum<SumAccum<double>>@cimg[3][3];
+	ArrayAccum<SumAccum<double>>@at[3][3];
+	ArrayAccum<SumAccum<double>>@btreal[3][3];
+	ArrayAccum<SumAccum<double>>@btimg[3][3];
+	ArrayAccum<SumAccum<double>>@dt[3][3];
+	ArrayAccum<SumAccum<double>>@At[3][3];
+	MaxAccum<double> @@maxChange = 0;
+	SumAccum<int> @@numBackCompute = 0; // algorithm can only be terminated after at least one back and forward computation
+	SumAccum<int> @count = 0; // This is used to flag the node which has multiple roots. In backsweep, whenever each root touch the father node, the count will be added 1.
+	SumAccum<double> @aRa = 1;
+	SumAccum<double> @aRb = 1;
+	SumAccum<double> @aRc = 1;
+	SumAccum<double> @dRa = 1;
+	SumAccum<double> @dRb = 1;
+	SumAccum<double> @dRc = 1;
+	SumAccum<double> @VphaseAreal = 0;
+	SumAccum<double> @VphaseBreal = 0;
+	SumAccum<double> @VphaseCreal = 0;
+	SumAccum<double> @VphaseAimg = 0;
+	SumAccum<double> @VphaseBimg = 0;
+	SumAccum<double> @VphaseCimg = 0;
+	SumAccum<double> @IphaseAreal = 0; 
+	SumAccum<double> @IphaseBreal = 0; 
+	SumAccum<double> @IphaseCreal = 0;  
+	SumAccum<double> @IphaseAimg = 0; 
+	SumAccum<double> @IphaseBimg = 0; 
+	SumAccum<double> @IphaseCimg = 0; 
+	SumAccum<double> @VphaseABreal = 0;
+	SumAccum<double> @VphaseBCreal = 0;
+	SumAccum<double> @VphaseCAreal = 0;
+	SumAccum<double> @VphaseABimg = 0;
+	SumAccum<double> @VphaseBCimg = 0;
+	SumAccum<double> @VphaseCAimg = 0;
+	SumAccum<double> @IphaseABreal = 0; 
+	SumAccum<double> @IphaseBCreal = 0; 
+	SumAccum<double> @IphaseCAreal = 0;  
+	SumAccum<double> @IphaseABimg = 0; 
+	SumAccum<double> @IphaseBCimg = 0; 
+	SumAccum<double> @IphaseCAimg = 0; 
+	SumAccum<double> @VAmag = 0;
+	SumAccum<double> @VBmag = 0;
+	SumAccum<double> @VCmag = 0;
+	SumAccum<double> @VABmag = 0;
+	SumAccum<double> @VBCmag = 0;
+	SumAccum<double> @VCAmag = 0;
+	SumAccum<double> @VAmagold = 0;
+	SumAccum<double> @VBmagold = 0;
+	SumAccum<double> @VCmagold = 0;
+	SumAccum<double> @VAdeg = 0;
+	SumAccum<double> @VBdeg = 0;
+	SumAccum<double> @VCdeg = 0;
+	SumAccum<double> @RGTap_A = 0;
+	SumAccum<double> @RGTap_B = 0;
+	SumAccum<double> @RGTap_C = 0;
+	SumAccum<double> @PdA_dis = 0;
+	SumAccum<double> @PdB_dis = 0;
+	SumAccum<double> @PdC_dis = 0;
+	SumAccum<double> @QdA_dis = 0;
+	SumAccum<double> @QdB_dis = 0;
+	SumAccum<double> @QdC_dis = 0;
+	SumAccum<double> @PdA_sum = 0;
+	SumAccum<double> @PdB_sum = 0;
+	SumAccum<double> @PdC_sum = 0;
+	SumAccum<double> @QdA_sum = 0;
+	SumAccum<double> @QdB_sum = 0;
+	SumAccum<double> @QdC_sum = 0;
+	SumAccum<double> @V_unbal = 0;
+	SumAccum<string> @Loadmodel_dis = "None";
+	MaxAccum<double> @@PI = 3.14159265359;
+	double Accuracy = 0;
+	double VNbase = 0;
+    BagAccum<double> @Vunbalance;
+	BagAccum<double> @ConvergeDiff;
+	string startnode; 
+	
+	T0 = {bus_D.*};
+	TC = {customer_D.*};
+	//PRINT T0;
+	sinkNodeSet = SELECT m
+	FROM T0:m   
+	where m.outdegree("foree_D") == 0 // till here, sinkNodeSet is all the terminal ends
+	POST-ACCUM
+	log(true, m.exId); 
+	
+	//Determine startnode;
+	
+	startNodeSet = SELECT n
+	      FROM T0:n
+	      where n.outdegree("backe_D") == 0 // till here, the startNodeSet is the substation node
+	      POST-ACCUM
+	      startnode=n.exId;
+		  
+	T1 = SELECT s
+	      FROM T0:s
+		  POST-ACCUM 
+		  s.startnode=startnode;
+	
+	T4 = SELECT s 
+	     FROM T0:s - (customerlink_D:e) - customer_D:f
+		 ACCUM
+		 s.@PdA_sum += f.PA,
+		 s.@QdA_sum += f.QA,
+		 s.@PdB_sum += f.PB,
+		 s.@QdB_sum += f.QB,
+		 s.@PdC_sum += f.PC,
+		 s.@QdC_sum += f.QC;
+		 
+    T5 = SELECT s
+         FROM T0:s
+	     POST-ACCUM 
+		  s.PdA=s.@PdA_sum*1000,
+		  s.QdA=s.@QdA_sum*1000,
+		  s.PdB=s.@PdB_sum*1000,
+		  s.QdB=s.@QdB_sum*1000,
+		  s.PdC=s.@PdC_sum*1000,
+		  s.QdC=s.@QdC_sum*1000;
+		  
+	//startNodeSet= SELECT n
+	//FROM startNodeSet - (foree_D: e) - node:n; // till herre, startNodeSet is the node 1(substation).
+	//print startNodeSet.exId;
+	
+	// This while loop is to preProcess data which calculates the generalized 3by3 matrix and save them on nodes.
+	child = sinkNodeSet;
+	WHILE child.size() > 0 DO		
+		child = SELECT f
+		FROM child:cc - (backe_D:e) - bus_D:f  
+		//Where f != startSink  //Note that 'Node 1' is not included in all child sets in the interations except for the first iteration. 
+		// e.g. 4 bus system: the first iteration, child set is {4}，{3}，{2}，{1}, the following iterations, child set is {4},{3},{2}.
+		
+		ACCUM
+		
+		//LOG(TRUE, cc.exId, cc.PdA, cc.@A, cc.@B, cc.@a, cc.@b, cc.@at, cc.@bt),
+		cc.@areal.reallocate(3,3),
+		cc.@aimg.reallocate(3,3),
+		cc.@breal.reallocate(3,3),
+		cc.@bimg.reallocate(3,3),
+		cc.@creal.reallocate(3,3),
+		cc.@cimg.reallocate(3,3),
+		cc.@Areal.reallocate(3,3),
+		cc.@Aimg.reallocate(3,3),
+		cc.@Breal.reallocate(3,3),
+		cc.@Bimg.reallocate(3,3),
+		cc.@At.reallocate(3,3),
+		cc.@btreal.reallocate(3,3),
+		cc.@btimg.reallocate(3,3),
+		cc.@at.reallocate(3,3), 
+		cc.@dt.reallocate(3,3), 
+		
+		double temp11real =  - (e.Xaa*e.Baa + e.Xab*e.Bba + e.Xac*e.Bca),
+		double temp11img = e.Raa*e.Baa + e.Rab*e.Bba + e.Rac*e.Bca,
+		double temp12real = - (e.Xaa*e.Bab + e.Xab*e.Bbb + e.Xac*e.Bcb),
+		double temp12img =   e.Raa*e.Bab + e.Rab*e.Bbb + e.Rac*e.Bcb,
+		double temp13real =  - (e.Xaa*e.Bac + e.Xab*e.Bbc + e.Xac*e.Bcc),
+		double temp13img = e.Raa*e.Bac + e.Rab*e.Bbc + e.Rac*e.Bcc,
+		double temp21real = - (e.Xba*e.Baa + e.Xbb*e.Bba + e.Xbc*e.Bca),
+		double temp21img =  e.Rba*e.Baa + e.Rbb*e.Bba + e.Rbc*e.Bca,
+		double temp22real = - (e.Xba*e.Bab + e.Xbb*e.Bbb + e.Xbc*e.Bcb),
+		double temp22img = e.Rba*e.Bab + e.Rbb*e.Bbb + e.Rbc*e.Bcb,
+		double temp23real =  - (e.Xba*e.Bac + e.Xbb*e.Bbc + e.Xbc*e.Bcc),
+		double temp23img = e.Rba*e.Bac + e.Rbb*e.Bbc + e.Rbc*e.Bcc,
+		double temp31real = - (e.Xca*e.Baa + e.Xcb*e.Bba + e.Xcc*e.Bca),
+		double temp31img = e.Rca*e.Baa + e.Rcb*e.Bba + e.Rcc*e.Bca,
+		double temp32real = - (e.Xca*e.Bab + e.Xcb*e.Bbb + e.Xcc*e.Bcb),
+		double temp32img = e.Rca*e.Bab + e.Rcb*e.Bbb + e.Rcc*e.Bcb,
+		double temp33real = - (e.Xca*e.Bac + e.Xcb*e.Bbc + e.Xcc*e.Bcc),
+		double temp33img =  e.Rca*e.Bac + e.Rcb*e.Bbc + e.Rcc*e.Bcc,
+		cc.@areal[0][0] += 1 + 0.5*temp11real,
+		cc.@areal[0][1] += 0.5*temp12real,
+		cc.@areal[0][2] += 0.5*temp13real,
+		cc.@areal[1][0] += 0.5*temp21real,
+		cc.@areal[1][1] += 1 + 0.5*temp22real,
+		cc.@areal[1][2] += 0.5*temp23real,
+		cc.@areal[2][0] += 0.5*temp31real,
+		cc.@areal[2][1] += 0.5*temp32real,
+		cc.@areal[2][2] +=1 + 0.5*temp33real, 
+		
+		cc.@aimg[0][0] += 0.5*temp11img,
+		cc.@aimg[0][1] += 0.5*temp12img,
+		cc.@aimg[0][2] += 0.5*temp13img,
+		cc.@aimg[1][0] += 0.5*temp21img,
+		cc.@aimg[1][1] += 0.5*temp22img,
+		cc.@aimg[1][2] += 0.5*temp23img,
+		cc.@aimg[2][0] += 0.5*temp31img,
+		cc.@aimg[2][1] += 0.5*temp32img,
+		cc.@aimg[2][2] += 0.5*temp33img, 
+		
+		cc.@breal[0][0] += e.Raa, cc.@breal[0][1] += e.Rab, cc.@breal[0][2] += e.Rac,
+		cc.@breal[1][0] += e.Rba, cc.@breal[1][1] += e.Rbb, cc.@breal[1][2] += e.Rbc,
+		cc.@breal[2][0] += e.Rca, cc.@breal[2][1] += e.Rcb, cc.@breal[2][2] += e.Rcc,  
+		
+		cc.@bimg[0][0] += e.Xaa, cc.@bimg[0][1] += e.Xab, cc.@bimg[0][2] += e.Xac,
+		cc.@bimg[1][0] += e.Xba, cc.@bimg[1][1] += e.Xbb, cc.@bimg[1][2] += e.Xbc,
+		cc.@bimg[2][0] += e.Xca, cc.@bimg[2][1] += e.Xcb, cc.@bimg[2][2] += e.Xcc, 
+		
+		cc.@creal[0][0] += -(e.Baa*temp11img + e.Bab*temp21img + e.Bac*temp31img),
+		cc.@creal[0][1] += -(e.Baa*temp12img + e.Bab*temp22img + e.Bac*temp32img),
+		cc.@creal[0][2] += -(e.Baa*temp13img + e.Bab*temp23img + e.Bac*temp33img),
+		cc.@creal[1][0] += -(e.Bba*temp11img + e.Bbb*temp21img + e.Bbc*temp31img),
+		cc.@creal[1][1] += -(e.Bba*temp12img + e.Bbb*temp22img + e.Bbc*temp32img),
+		cc.@creal[1][2] += -(e.Bba*temp13img + e.Bbb*temp23img + e.Bbc*temp33img),
+		cc.@creal[2][0] += -(e.Bca*temp11img + e.Bcb*temp21img + e.Bcc*temp31img),
+		cc.@creal[2][1] += -(e.Bca*temp12img + e.Bcb*temp22img + e.Bcc*temp32img),
+		cc.@creal[2][2] += -(e.Bca*temp13img + e.Bcb*temp23img + e.Bcc*temp33img),	
+		
+		cc.@cimg[0][0] += e.Baa + 0.25*(e.Baa*temp11real + e.Bab*temp21real + e.Bac*temp31real),
+		cc.@cimg[0][1] += e.Bab + 0.25*(e.Baa*temp12real + e.Bab*temp22real + e.Bac*temp32real),
+		cc.@cimg[0][2] += e.Bac + 0.25*(e.Baa*temp13real + e.Bab*temp23real + e.Bac*temp33real),
+		cc.@cimg[1][0] += e.Bba + 0.25*(e.Bba*temp11real + e.Bbb*temp21real + e.Bbc*temp31real),
+		cc.@cimg[1][1] += e.Bbb + 0.25*(e.Bba*temp12real + e.Bbb*temp22real + e.Bbc*temp32real),
+		cc.@cimg[1][2] += e.Bbc + 0.25*(e.Bba*temp13real + e.Bbb*temp23real + e.Bbc*temp33real),
+		cc.@cimg[2][0] += e.Bca + 0.25*(e.Bca*temp11real + e.Bcb*temp21real + e.Bcc*temp31real),
+		cc.@cimg[2][1] += e.Bcb + 0.25*(e.Bca*temp12real + e.Bcb*temp22real + e.Bcc*temp32real),
+		cc.@cimg[2][2] += e.Bcc + 0.25*(e.Bca*temp13real + e.Bcb*temp23real + e.Bcc*temp33real),
+		
+		
+		CASE WHEN (e.flag==1) THEN
+		//DELTA-Grounded Wye transformer
+		CASE WHEN (e.connection_T=="DELTA_GY") THEN
+	    cc.@at[0][0] += 0,
+		cc.@at[0][1] += -2*e.Nt/3,
+		cc.@at[0][2] += -e.Nt/3,
+		cc.@at[1][0] += -e.Nt/3,
+		cc.@at[1][1] += 0,
+		cc.@at[1][2] += -2*e.Nt/3,
+		cc.@at[2][0] += -2*e.Nt/3,
+		cc.@at[2][1] += -e.Nt/3,
+		cc.@at[2][2] +=0,
+		
+		cc.@btreal[0][0] += 0, cc.@btreal[0][1] += -2*e.Nt/3*e.Rbb, cc.@btreal[0][2] += -e.Nt/3*e.Rcc,
+		cc.@btreal[1][0] += -e.Nt/3*e.Raa, cc.@btreal[1][1] += 0, cc.@btreal[1][2] += -2*e.Nt/3*e.Rcc,
+		cc.@btreal[2][0] += -2*e.Nt/3*e.Raa, cc.@btreal[2][1] += -e.Nt/3*e.Rbb, cc.@btreal[2][2] += 0,	
+		
+		cc.@btimg[0][0] += 0, cc.@btimg[0][1] += -2*e.Nt/3*e.Xbb, cc.@btimg[0][2] += -e.Nt/3*e.Xcc,
+		cc.@btimg[1][0] += -e.Nt/3*e.Xaa, cc.@btimg[1][1] += 0, cc.@btimg[1][2] += -2*e.Nt/3*e.Xcc,
+		cc.@btimg[2][0] += -2*e.Nt/3*e.Xaa, cc.@btimg[2][1] += -e.Nt/3*e.Xbb, cc.@btimg[2][2] += 0,
+		
+		cc.@dt[0][0] += 1/e.Nt,
+		cc.@dt[0][1] += -1/e.Nt,
+		cc.@dt[0][2] += 0,
+		cc.@dt[1][0] += 0, 
+		cc.@dt[1][1] += 1/e.Nt,
+		cc.@dt[1][2] += -1/e.Nt,
+		cc.@dt[2][0] += -1/e.Nt,
+		cc.@dt[2][1] += 0,
+		cc.@dt[2][2] += 1/e.Nt,
+		
+		cc.@At[0][0] += 1/e.Nt,
+		cc.@At[0][1] += 0,
+		cc.@At[0][2] += -1/e.Nt,
+		cc.@At[1][0] += -1/e.Nt,
+		cc.@At[1][1] += 1/e.Nt,
+		cc.@At[1][2] += 0,
+		cc.@At[2][0] += 0,
+		cc.@At[2][1] += -1/e.Nt,
+		cc.@At[2][2] += 1/e.Nt 
+		END,
+		//*****************************************************************************************************//
+		//Ungrounded Wye-DELTA
+		CASE WHEN (e.connection_T=="Y_DELTA") THEN
+		cc.@at[0][0] += e.Nt,
+		cc.@at[0][1] += -e.Nt,
+		cc.@at[0][2] += 0,
+		cc.@at[1][0] += 0,
+		cc.@at[1][1] += e.Nt,
+		cc.@at[1][2] += -e.Nt,
+		cc.@at[2][0] += -e.Nt,
+		cc.@at[2][1] += 0,
+		cc.@at[2][2] += e.Nt,
+		
+		cc.@btreal[0][0] += e.Nt/3*e.Rab, cc.@btreal[0][1] += -e.Nt/3*e.Rab, cc.@btreal[0][2] += 0,
+		cc.@btreal[1][0] += e.Nt/3*e.Rbc, cc.@btreal[1][1] += 2*e.Nt/3*e.Rbc, cc.@btreal[1][2] += 0,
+		cc.@btreal[2][0] += -2*e.Nt/3*e.Rca, cc.@btreal[2][1] += -e.Nt/3*e.Rca, cc.@btreal[2][2] += 0,	
+		
+		cc.@btimg[0][0] += e.Nt/3*e.Xab, cc.@btimg[0][1] += -e.Nt/3*e.Xab, cc.@btimg[0][2] += 0,
+		cc.@btimg[1][0] += e.Nt/3*e.Xbc, cc.@btimg[1][1] += 2*e.Nt/3*e.Xbc, cc.@btimg[1][2] += 0,
+		cc.@btimg[2][0] += -2*e.Nt/3*e.Xca, cc.@btimg[2][1] += -e.Nt/3*e.Xca, cc.@btimg[2][2] += 0,
+		
+		cc.@dt[0][0] += 1/(3*e.Nt),
+		cc.@dt[0][1] += -1/(3*e.Nt),
+		cc.@dt[0][2] += 0,
+		cc.@dt[1][0] += 1/(3*e.Nt), 
+		cc.@dt[1][1] += 2/(3*e.Nt),
+		cc.@dt[1][2] += 0,
+		cc.@dt[2][0] += -2/(3*e.Nt),
+		cc.@dt[2][1] += -1/(3*e.Nt),
+		cc.@dt[2][2] += 0,
+		
+		cc.@At[0][0] += 2/(3*e.Nt),
+		cc.@At[0][1] += 1/(3*e.Nt),
+		cc.@At[0][2] += 0,
+		cc.@At[1][0] += 0,
+		cc.@At[1][1] += 2/(3*e.Nt),
+		cc.@At[1][2] += 1/(3*e.Nt),
+		cc.@At[2][0] += 1/(3*e.Nt),
+		cc.@At[2][1] += 0,
+		cc.@At[2][2] += 2/(3*e.Nt)
+		END,
+		//****************************************************************************************************//
+		//Grounded Wye-Grounded Wye transformer
+		CASE WHEN (e.connection_T=="GY_GY") THEN
+		cc.@at[0][0] += e.Nt,
+		cc.@at[0][1] += 0,
+		cc.@at[0][2] += 0,
+		cc.@at[1][0] += 0,
+		cc.@at[1][1] += e.Nt,
+		cc.@at[1][2] += 0,
+		cc.@at[2][0] += 0,
+		cc.@at[2][1] += 0,
+		cc.@at[2][2] += e.Nt,
+		
+		cc.@btreal[0][0] += e.Nt*e.Raa, cc.@btreal[0][1] += 0, cc.@btreal[0][2] += 0,
+		cc.@btreal[1][0] += 0, cc.@btreal[1][1] += e.Nt*e.Rbb, cc.@btreal[1][2] += 0,
+		cc.@btreal[2][0] += 0, cc.@btreal[2][1] += 0, cc.@btreal[2][2] += e.Nt*e.Rcc,	
+		
+		cc.@btimg[0][0] += e.Nt*e.Xaa, cc.@btimg[0][1] += 0, cc.@btimg[0][2] += 0,
+		cc.@btimg[1][0] += 0, cc.@btimg[1][1] += e.Nt*e.Xbb, cc.@btimg[1][2] += 0,
+		cc.@btimg[2][0] += 0, cc.@btimg[2][1] += 0, cc.@btimg[2][2] += e.Nt*e.Xcc,
+		
+		cc.@dt[0][0] += 1/e.Nt,
+		cc.@dt[0][1] += 0,
+		cc.@dt[0][2] += 0,
+		cc.@dt[1][0] += 0, 
+		cc.@dt[1][1] += 1/e.Nt,
+		cc.@dt[1][2] += 0,
+		cc.@dt[2][0] += 0,
+		cc.@dt[2][1] += 0,
+		cc.@dt[2][2] += 1/e.Nt,
+		
+		cc.@At[0][0] += 1/e.Nt,
+		cc.@At[0][1] += 0,
+		cc.@At[0][2] += 0,
+		cc.@At[1][0] += 0,
+		cc.@At[1][1] += 1/e.Nt,
+		cc.@At[1][2] += 0,
+		cc.@At[2][0] += 0,
+		cc.@At[2][1] += 0,
+		cc.@At[2][2] += 1/e.Nt
+		END,
+		//***********************************************************************************************//
+		//DELTA_DELTA
+		CASE WHEN (e.connection_T=="DELTA_DELTA") THEN
+		cc.@at[0][0] += 2*e.Nt/3,
+		cc.@at[0][1] += -e.Nt/3,
+		cc.@at[0][2] += -e.Nt/3,
+		cc.@at[1][0] += -e.Nt/3,
+		cc.@at[1][1] += 2*e.Nt/3,
+		cc.@at[1][2] += -e.Nt/3,
+		cc.@at[2][0] += -e.Nt/3,
+		cc.@at[2][1] += -e.Nt/3,
+		cc.@at[2][2] += 2*e.Nt/3,
+		
+		cc.@btreal[0][0] += e.Nt*e.Raa, cc.@btreal[0][1] += 0, cc.@btreal[0][2] += 0,
+		cc.@btreal[1][0] += 0, cc.@btreal[1][1] += e.Nt*e.Rbb, cc.@btreal[1][2] += 0,
+		cc.@btreal[2][0] += 0, cc.@btreal[2][1] += 0, cc.@btreal[2][2] += e.Nt*e.Rcc,	
+		
+		cc.@btimg[0][0] += e.Nt*e.Xaa, cc.@btimg[0][1] += 0, cc.@btimg[0][2] += 0,
+		cc.@btimg[1][0] += 0, cc.@btimg[1][1] += e.Nt*e.Xbb, cc.@btimg[1][2] += 0,
+		cc.@btimg[2][0] += 0, cc.@btimg[2][1] += 0, cc.@btimg[2][2] += e.Nt*e.Xcc,
+		
+		cc.@dt[0][0] += 1/e.Nt,
+		cc.@dt[0][1] += 0,
+		cc.@dt[0][2] += 0,
+		cc.@dt[1][0] += 0, 
+		cc.@dt[1][1] += 1/e.Nt,
+		cc.@dt[1][2] += 0,
+		cc.@dt[2][0] += 0,
+		cc.@dt[2][1] += 0,
+		cc.@dt[2][2] += 1/e.Nt,
+		
+		cc.@At[0][0] += 2/(3*e.Nt),
+		cc.@At[0][1] += -1/(3*e.Nt),
+		cc.@At[0][2] += -1/(3*e.Nt),
+		cc.@At[1][0] += -1/(3*e.Nt),
+		cc.@At[1][1] += 2/(3*e.Nt),
+		cc.@At[1][2] += -1/(3*e.Nt),
+		cc.@At[2][0] += -1/(3*e.Nt),
+		cc.@At[2][1] += 2/(3*e.Nt),
+		cc.@At[2][2] += -1/(3*e.Nt) 
+		END
+		//***********************************************************************************************//	
+		END,
+		IF (e.PdA_dis+e.PdB_dis+e.PdC_dis>0) THEN // if there is distributed load along the line
+			 cc.@PdA_dis=e.PdA_dis/2,
+			 cc.@PdB_dis=e.PdB_dis/2,
+			 cc.@PdC_dis=e.PdC_dis/2,
+			 cc.@QdA_dis=e.QdA_dis/2,
+			 cc.@QdB_dis=e.QdB_dis/2,
+			 cc.@QdC_dis=e.QdC_dis/2,
+			 cc.@Loadmodel_dis=e.Load_Model_dis
+	    END,
+		f.@count += 1,
+		cc.@count = 0 // reset @count
+		
+		POST-ACCUM
+		matCalculateA(cc.@Areal,cc.@Aimg,cc.@areal,cc.@aimg),
+		matCalculateB(cc.@Areal,cc.@Aimg,cc.@breal,cc.@bimg,cc.@Breal,cc.@Bimg),
+	    log(true, cc.exId, cc.@areal, cc.@aimg, cc.@breal, cc.@bimg,  cc.@Areal, cc.@Aimg, cc.@At, cc.@at, cc.@dt)
+	//	log(true, cc.@Areal.size())
+		having f.@count == f.outdegree("foree_D"); // select the nodes when they've received all info from their roots. b.outdegree("foree_D") gives the number of roots.
+		//PRINT child.exId;
+		//PRINT @@PI;
+		
+	END;
+	//PRINT T0.exId,T0.@VphaseA, T0.@VphaseB, T0.@VphaseC, T0.@IphaseA, T0.@IphaseB, T0.@IphaseC; 
+	
+	// From here, the while loop is to execute BFS algorithm.
+	WHILE(@@maxChange/3 > threshold*VNbase or @@numBackCompute < 2) LIMIT maxIt DO
+		@@maxChange = 0;
+		@@numIteration +=1;
+		child = SELECT aa 
+		FROM sinkNodeSet:aa 
+		POST-ACCUM
+		IF @@numBackCompute == 0 THEN   // first round sweep: initialize the 'terminal nodes'
+		aa.@VphaseAreal = 1*aa.Vbase, aa.@VphaseBreal = -0.5*aa.Vbase, aa.@VphaseCreal = -0.5*aa.Vbase,
+		aa.@VphaseAimg = 0, aa.@VphaseBimg = -0.866025*aa.Vbase, aa.@VphaseCimg = 0.866025*aa.Vbase
+		END,
+		// when iterating more than once. Voltages of "terminal nodes" will be maintained as the calculated values in forward phase.
+		    aa.@VAmag = sqrt(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+	        aa.@VBmag = sqrt(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+	        aa.@VCmag = sqrt(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg),		
+			aa.@VphaseABreal = aa.@VphaseAreal - aa.@VphaseBreal,
+			aa.@VphaseABimg = aa.@VphaseAimg - aa.@VphaseBimg,
+			aa.@VphaseBCreal = aa.@VphaseBreal - aa.@VphaseCreal,
+			aa.@VphaseBCimg = aa.@VphaseBimg - aa.@VphaseCimg,
+			aa.@VphaseCAreal = aa.@VphaseCreal - aa.@VphaseAreal,
+			aa.@VphaseCAimg = aa.@VphaseCimg - aa.@VphaseAimg,
+			aa.@VABmag = sqrt(aa.@VphaseABreal*aa.@VphaseABreal + aa.@VphaseABimg*aa.@VphaseABimg),
+			aa.@VBCmag = sqrt(aa.@VphaseBCreal*aa.@VphaseBCreal + aa.@VphaseBCimg*aa.@VphaseBCimg),
+			aa.@VCAmag = sqrt(aa.@VphaseCAreal*aa.@VphaseCAreal + aa.@VphaseCAimg*aa.@VphaseCAimg),
+			// if this node point has shunt capacitor, the reactive power of the capacitor should be included.
+			aa.CapA_cal=aa.CapA*(aa.@VAmag/aa.Vbase)*(aa.@VAmag/aa.Vbase),
+			aa.CapB_cal=aa.CapB*(aa.@VBmag/aa.Vbase)*(aa.@VBmag/aa.Vbase),
+			aa.CapC_cal=aa.CapC*(aa.@VCmag/aa.Vbase)*(aa.@VCmag/aa.Vbase),
+			//load model includes: Y-PQ, Y-Z, Y-I, D-PQ, D-Z, D-I
+			CASE WHEN (aa.Load_Model=="Y-PQ") then
+			    aa.PdA_cal=aa.PdA,
+			    aa.QdA_cal=aa.QdA,
+				aa.PdB_cal=aa.PdB,
+			    aa.QdB_cal=aa.QdB,
+				aa.PdC_cal=aa.PdC,
+			    aa.QdC_cal=aa.QdC,
+				aa.@IphaseAreal = (aa.PdA_cal*aa.@VphaseAreal + (aa.QdA_cal-aa.CapA_cal)*aa.@VphaseAimg)/(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+			    aa.@IphaseBreal = (aa.PdB_cal*aa.@VphaseBreal + (aa.QdB_cal-aa.CapB_cal)*aa.@VphaseBimg)/(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+			    aa.@IphaseCreal = (aa.PdC_cal*aa.@VphaseCreal + (aa.QdC_cal-aa.CapC_cal)*aa.@VphaseCimg)/(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg),		
+			    aa.@IphaseAimg = (aa.PdA_cal*aa.@VphaseAimg - (aa.QdA_cal-aa.CapA_cal)*aa.@VphaseAreal)/(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+			    aa.@IphaseBimg = (aa.PdB_cal*aa.@VphaseBimg - (aa.QdB_cal-aa.CapB_cal)*aa.@VphaseBreal)/(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+			    aa.@IphaseCimg = (aa.PdC_cal*aa.@VphaseCimg - (aa.QdC_cal-aa.CapC_cal)*aa.@VphaseCreal)/(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg)
+			END,
+			CASE WHEN (aa.Load_Model=="Y-Z") THEN
+			    aa.PdA_cal=aa.PdA*(aa.@VAmag/aa.Vbase)*(aa.@VAmag/aa.Vbase),
+			    aa.QdA_cal=aa.QdA*(aa.@VAmag/aa.Vbase)*(aa.@VAmag/aa.Vbase),
+				aa.PdB_cal=aa.PdB*(aa.@VBmag/aa.Vbase)*(aa.@VBmag/aa.Vbase),
+			    aa.QdB_cal=aa.QdB*(aa.@VBmag/aa.Vbase)*(aa.@VBmag/aa.Vbase),
+				aa.PdC_cal=aa.PdC*(aa.@VCmag/aa.Vbase)*(aa.@VCmag/aa.Vbase),
+			    aa.QdC_cal=aa.QdC*(aa.@VCmag/aa.Vbase)*(aa.@VCmag/aa.Vbase),
+				aa.@IphaseAreal = (aa.PdA_cal*aa.@VphaseAreal + (aa.QdA_cal-aa.CapA_cal)*aa.@VphaseAimg)/(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+			    aa.@IphaseBreal = (aa.PdB_cal*aa.@VphaseBreal + (aa.QdB_cal-aa.CapB_cal)*aa.@VphaseBimg)/(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+			    aa.@IphaseCreal = (aa.PdC_cal*aa.@VphaseCreal + (aa.QdC_cal-aa.CapC_cal)*aa.@VphaseCimg)/(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg),		
+			    aa.@IphaseAimg = (aa.PdA_cal*aa.@VphaseAimg - (aa.QdA_cal-aa.CapA_cal)*aa.@VphaseAreal)/(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+			    aa.@IphaseBimg = (aa.PdB_cal*aa.@VphaseBimg - (aa.QdB_cal-aa.CapB_cal)*aa.@VphaseBreal)/(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+			    aa.@IphaseCimg = (aa.PdC_cal*aa.@VphaseCimg - (aa.QdC_cal-aa.CapC_cal)*aa.@VphaseCreal)/(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg)
+			END,
+			CASE WHEN (aa.Load_Model=="Y-I") THEN
+			    aa.PdA_cal=aa.PdA*(aa.@VAmag/aa.Vbase),
+			    aa.QdA_cal=aa.QdA*(aa.@VAmag/aa.Vbase),
+				aa.PdB_cal=aa.PdB*(aa.@VBmag/aa.Vbase),
+			    aa.QdB_cal=aa.QdB*(aa.@VBmag/aa.Vbase),
+				aa.PdC_cal=aa.PdC*(aa.@VCmag/aa.Vbase),
+			    aa.QdC_cal=aa.QdC*(aa.@VCmag/aa.Vbase),
+				aa.@IphaseAreal = (aa.PdA_cal*aa.@VphaseAreal + (aa.QdA_cal-aa.CapA_cal)*aa.@VphaseAimg)/(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+			    aa.@IphaseBreal = (aa.PdB_cal*aa.@VphaseBreal + (aa.QdB_cal-aa.CapB_cal)*aa.@VphaseBimg)/(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+			    aa.@IphaseCreal = (aa.PdC_cal*aa.@VphaseCreal + (aa.QdC_cal-aa.CapC_cal)*aa.@VphaseCimg)/(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg),		
+			    aa.@IphaseAimg = (aa.PdA_cal*aa.@VphaseAimg - (aa.QdA_cal-aa.CapA_cal)*aa.@VphaseAreal)/(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+			    aa.@IphaseBimg = (aa.PdB_cal*aa.@VphaseBimg - (aa.QdB_cal-aa.CapB_cal)*aa.@VphaseBreal)/(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+			    aa.@IphaseCimg = (aa.PdC_cal*aa.@VphaseCimg - (aa.QdC_cal-aa.CapC_cal)*aa.@VphaseCreal)/(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg)
+			END,
+			CASE WHEN (aa.Load_Model=="D-PQ") THEN
+			    aa.PdAB_cal=aa.PdA,
+				aa.QdAB_cal=aa.QdA,
+				aa.PdBC_cal=aa.PdB,
+				aa.QdBC_cal=aa.QdB,
+				aa.PdCA_cal=aa.PdC,
+				aa.QdCA_cal=aa.QdC,
+				aa.@IphaseABreal = (aa.PdAB_cal*aa.@VphaseABreal + aa.QdAB_cal*aa.@VphaseABimg)/(aa.@VphaseABreal*aa.@VphaseABreal + aa.@VphaseABimg*aa.@VphaseABimg),
+				aa.@IphaseABimg = (aa.PdAB_cal*aa.@VphaseABimg - aa.QdAB_cal*aa.@VphaseABreal)/(aa.@VphaseABreal*aa.@VphaseABreal + aa.@VphaseABimg*aa.@VphaseABimg),
+				aa.@IphaseBCreal = (aa.PdBC_cal*aa.@VphaseBCreal + aa.QdBC_cal*aa.@VphaseBCimg)/(aa.@VphaseBCreal*aa.@VphaseBCreal + aa.@VphaseBCimg*aa.@VphaseBCimg),
+				aa.@IphaseBCimg = (aa.PdBC_cal*aa.@VphaseBCimg - aa.QdBC_cal*aa.@VphaseBCreal)/(aa.@VphaseBCreal*aa.@VphaseBCreal + aa.@VphaseBCimg*aa.@VphaseBCimg),
+				aa.@IphaseCAreal = (aa.PdCA_cal*aa.@VphaseCAreal + aa.QdCA_cal*aa.@VphaseCAimg)/(aa.@VphaseCAreal*aa.@VphaseCAreal + aa.@VphaseCAimg*aa.@VphaseCAimg),
+				aa.@IphaseCAimg = (aa.PdCA_cal*aa.@VphaseCAimg - aa.QdCA_cal*aa.@VphaseCAreal)/(aa.@VphaseCAreal*aa.@VphaseCAreal + aa.@VphaseCAimg*aa.@VphaseCAimg),
+				aa.@IphaseAreal = aa.@IphaseABreal - aa.@IphaseCAreal - aa.CapA_cal*aa.@VphaseAimg/(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+				aa.@IphaseAimg = aa.@IphaseABimg - aa.@IphaseCAimg + aa.CapA_cal*aa.@VphaseAreal/(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+				aa.@IphaseBreal = aa.@IphaseBCreal - aa.@IphaseABreal - aa.CapB_cal*aa.@VphaseBimg/(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+				aa.@IphaseBimg = aa.@IphaseBCimg - aa.@IphaseABimg + aa.CapB_cal*aa.@VphaseBreal/(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+				aa.@IphaseCreal = aa.@IphaseCAreal - aa.@IphaseBCreal - aa.CapC_cal*aa.@VphaseCimg/(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg),
+				aa.@IphaseCimg = aa.@IphaseCAimg - aa.@IphaseBCimg + aa.CapC_cal*aa.@VphaseCreal/(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg)
+			END,
+			CASE WHEN (aa.Load_Model=="D-Z") THEN
+			    aa.PdAB_cal=aa.PdA*(aa.@VABmag/aa.Vbase/sqrt(3))*(aa.@VABmag/aa.Vbase/sqrt(3)),
+				aa.QdAB_cal=aa.QdA*(aa.@VABmag/aa.Vbase/sqrt(3))*(aa.@VABmag/aa.Vbase/sqrt(3)),
+				aa.PdBC_cal=aa.PdB*(aa.@VBCmag/aa.Vbase/sqrt(3))*(aa.@VBCmag/aa.Vbase/sqrt(3)),
+				aa.QdBC_cal=aa.QdB*(aa.@VBCmag/aa.Vbase/sqrt(3))*(aa.@VBCmag/aa.Vbase/sqrt(3)),
+				aa.PdCA_cal=aa.PdC*(aa.@VCAmag/aa.Vbase/sqrt(3))*(aa.@VCAmag/aa.Vbase/sqrt(3)),
+				aa.QdCA_cal=aa.QdC*(aa.@VCAmag/aa.Vbase/sqrt(3))*(aa.@VCAmag/aa.Vbase/sqrt(3)),
+				aa.@IphaseABreal = (aa.PdAB_cal*aa.@VphaseABreal + aa.QdAB_cal*aa.@VphaseABimg)/(aa.@VphaseABreal*aa.@VphaseABreal + aa.@VphaseABimg*aa.@VphaseABimg),
+				aa.@IphaseABimg = (aa.PdAB_cal*aa.@VphaseABimg - aa.QdAB_cal*aa.@VphaseABreal)/(aa.@VphaseABreal*aa.@VphaseABreal + aa.@VphaseABimg*aa.@VphaseABimg),
+				aa.@IphaseBCreal = (aa.PdBC_cal*aa.@VphaseBCreal + aa.QdBC_cal*aa.@VphaseBCimg)/(aa.@VphaseBCreal*aa.@VphaseBCreal + aa.@VphaseBCimg*aa.@VphaseBCimg),
+				aa.@IphaseBCimg = (aa.PdBC_cal*aa.@VphaseBCimg - aa.QdBC_cal*aa.@VphaseBCreal)/(aa.@VphaseBCreal*aa.@VphaseBCreal + aa.@VphaseBCimg*aa.@VphaseBCimg),
+				aa.@IphaseCAreal = (aa.PdCA_cal*aa.@VphaseCAreal + aa.QdCA_cal*aa.@VphaseCAimg)/(aa.@VphaseCAreal*aa.@VphaseCAreal + aa.@VphaseCAimg*aa.@VphaseCAimg),
+				aa.@IphaseCAimg = (aa.PdCA_cal*aa.@VphaseCAimg - aa.QdCA_cal*aa.@VphaseCAreal)/(aa.@VphaseCAreal*aa.@VphaseCAreal + aa.@VphaseCAimg*aa.@VphaseCAimg),
+				aa.@IphaseAreal = aa.@IphaseABreal - aa.@IphaseCAreal - aa.CapA_cal*aa.@VphaseAimg/(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+				aa.@IphaseAimg = aa.@IphaseABimg - aa.@IphaseCAimg + aa.CapA_cal*aa.@VphaseAreal/(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+				aa.@IphaseBreal = aa.@IphaseBCreal - aa.@IphaseABreal - aa.CapB_cal*aa.@VphaseBimg/(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+				aa.@IphaseBimg = aa.@IphaseBCimg - aa.@IphaseABimg + aa.CapB_cal*aa.@VphaseBreal/(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+				aa.@IphaseCreal = aa.@IphaseCAreal - aa.@IphaseBCreal - aa.CapC_cal*aa.@VphaseCimg/(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg),
+				aa.@IphaseCimg = aa.@IphaseCAimg - aa.@IphaseBCimg + aa.CapC_cal*aa.@VphaseCreal/(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg)
+			END,
+			CASE WHEN (aa.Load_Model=="D-I") THEN
+			    aa.PdAB_cal=aa.PdA*(aa.@VABmag/aa.Vbase/sqrt(3)),
+				aa.QdAB_cal=aa.QdA*(aa.@VABmag/aa.Vbase/sqrt(3)),
+				aa.PdBC_cal=aa.PdB*(aa.@VBCmag/aa.Vbase/sqrt(3)),
+				aa.QdBC_cal=aa.QdB*(aa.@VBCmag/aa.Vbase/sqrt(3)),
+				aa.PdCA_cal=aa.PdC*(aa.@VCAmag/aa.Vbase/sqrt(3)),
+				aa.QdCA_cal=aa.QdC*(aa.@VCAmag/aa.Vbase/sqrt(3)),
+				aa.@IphaseABreal = (aa.PdAB_cal*aa.@VphaseABreal + aa.QdAB_cal*aa.@VphaseABimg)/(aa.@VphaseABreal*aa.@VphaseABreal + aa.@VphaseABimg*aa.@VphaseABimg),
+				aa.@IphaseABimg = (aa.PdAB_cal*aa.@VphaseABimg - aa.QdAB_cal*aa.@VphaseABreal)/(aa.@VphaseABreal*aa.@VphaseABreal + aa.@VphaseABimg*aa.@VphaseABimg),
+				aa.@IphaseBCreal = (aa.PdBC_cal*aa.@VphaseBCreal + aa.QdBC_cal*aa.@VphaseBCimg)/(aa.@VphaseBCreal*aa.@VphaseBCreal + aa.@VphaseBCimg*aa.@VphaseBCimg),
+				aa.@IphaseBCimg = (aa.PdBC_cal*aa.@VphaseBCimg - aa.QdBC_cal*aa.@VphaseBCreal)/(aa.@VphaseBCreal*aa.@VphaseBCreal + aa.@VphaseBCimg*aa.@VphaseBCimg),
+				aa.@IphaseCAreal = (aa.PdCA_cal*aa.@VphaseCAreal + aa.QdCA_cal*aa.@VphaseCAimg)/(aa.@VphaseCAreal*aa.@VphaseCAreal + aa.@VphaseCAimg*aa.@VphaseCAimg),
+				aa.@IphaseCAimg = (aa.PdCA_cal*aa.@VphaseCAimg - aa.QdCA_cal*aa.@VphaseCAreal)/(aa.@VphaseCAreal*aa.@VphaseCAreal + aa.@VphaseCAimg*aa.@VphaseCAimg),
+				aa.@IphaseAreal = aa.@IphaseABreal - aa.@IphaseCAreal - aa.CapA_cal*aa.@VphaseAimg/(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+				aa.@IphaseAimg = aa.@IphaseABimg - aa.@IphaseCAimg + aa.CapA_cal*aa.@VphaseAreal/(aa.@VphaseAreal*aa.@VphaseAreal + aa.@VphaseAimg*aa.@VphaseAimg),
+				aa.@IphaseBreal = aa.@IphaseBCreal - aa.@IphaseABreal - aa.CapB_cal*aa.@VphaseBimg/(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+				aa.@IphaseBimg = aa.@IphaseBCimg - aa.@IphaseABimg + aa.CapB_cal*aa.@VphaseBreal/(aa.@VphaseBreal*aa.@VphaseBreal + aa.@VphaseBimg*aa.@VphaseBimg),
+				aa.@IphaseCreal = aa.@IphaseCAreal - aa.@IphaseBCreal - aa.CapC_cal*aa.@VphaseCimg/(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg),
+				aa.@IphaseCimg = aa.@IphaseCAimg - aa.@IphaseBCimg + aa.CapC_cal*aa.@VphaseCreal/(aa.@VphaseCreal*aa.@VphaseCreal + aa.@VphaseCimg*aa.@VphaseCimg)
+			END,	
+
+		Log(true, aa.exId,aa.@VphaseAreal, aa.@VphaseAimg, aa.@VphaseBreal, aa.@VphaseBimg, aa.@VphaseCreal, aa.@VphaseCimg),
+		Log(true, aa.exId,aa.@IphaseAreal, aa.@IphaseAimg, aa.@IphaseBreal, aa.@IphaseBimg, aa.@IphaseCreal, aa.@IphaseCimg);   // initialize V and I at sinkNodeSet. In the first iteration, V is assumped to be nominal voltage. In the following iterations, V uses the calcuated value from forward phase.
+		//PRINT child.exId, child.@VphaseA, child.@VphaseB, child.@VphaseC;	  // The voltage and current of terminal nodes have been set.
+		
+		
+		// Backward computation. Start with all terminal nodes.
+		child = sinkNodeSet;
+		WHILE child.size() > 0 DO
+			
+			child = SELECT f
+			FROM child:cc - (backe_D:e) - bus_D:f  
+			
+			ACCUM
+			
+			CASE WHEN (e.flag==0) THEN  // When there is no transformer in this line segment.
+			// calculate real part of voltage 
+			// Note that for all VOLTAGE calculation, use "=" instead of "+=" because we want the father node voltage to be replaced by the recent calculation of the children if 
+			// there are multiple children nodes connected.
+			f.@VphaseAreal = child.@areal[0][0]*child.@VphaseAreal + child.@areal[0][1]*child.@VphaseBreal + child.@areal[0][2]*child.@VphaseCreal 
+			-child.@aimg[0][0]*child.@VphaseAimg - child.@aimg[0][1]*child.@VphaseBimg - child.@aimg[0][2]*child.@VphaseCimg
+			+ child.@breal[0][0]*child.@IphaseAreal + child.@breal[0][1]*child.@IphaseBreal + child.@breal[0][2]*child.@IphaseCreal
+			- child.@bimg[0][0]*child.@IphaseAimg - child.@bimg[0][1]*child.@IphaseBimg - child.@bimg[0][2]*child.@IphaseCimg,
+			
+			f.@VphaseBreal = child.@areal[1][0]*child.@VphaseAreal + child.@areal[1][1]*child.@VphaseBreal + child.@areal[1][2]*child.@VphaseCreal 
+			-child.@aimg[1][0]*child.@VphaseAimg - child.@aimg[1][1]*child.@VphaseBimg - child.@aimg[1][2]*child.@VphaseCimg
+			+child.@breal[1][0]*child.@IphaseAreal + child.@breal[1][1]*child.@IphaseBreal + child.@breal[1][2]*child.@IphaseCreal
+			-child.@bimg[1][0]*child.@IphaseAimg - child.@bimg[1][1]*child.@IphaseBimg - child.@bimg[1][2]*child.@IphaseCimg,
+			
+			f.@VphaseCreal = child.@areal[2][0]*child.@VphaseAreal + child.@areal[2][1]*child.@VphaseBreal + child.@areal[2][2]*child.@VphaseCreal 
+			-child.@aimg[2][0]*child.@VphaseAimg - child.@aimg[2][1]*child.@VphaseBimg - child.@aimg[2][2]*child.@VphaseCimg
+			+ child.@breal[2][0]*child.@IphaseAreal + child.@breal[2][1]*child.@IphaseBreal + child.@breal[2][2]*child.@IphaseCreal
+			- child.@bimg[2][0]*child.@IphaseAimg - child.@bimg[2][1]*child.@IphaseBimg - child.@bimg[2][2]*child.@IphaseCimg,
+			
+			// calculate imaginary part of voltage
+			f.@VphaseAimg = child.@aimg[0][0]*child.@VphaseAreal + child.@aimg[0][1]*child.@VphaseBreal + child.@aimg[0][2]*child.@VphaseCreal 
+			+ child.@areal[0][0]*child.@VphaseAimg + child.@areal[0][1]*child.@VphaseBimg + child.@areal[0][2]*child.@VphaseCimg
+			+ child.@bimg[0][0]*child.@IphaseAreal + child.@bimg[0][1]*child.@IphaseBreal + child.@bimg[0][2]*child.@IphaseCreal
+			+ child.@breal[0][0]*child.@IphaseAimg + child.@breal[0][1]*child.@IphaseBimg + child.@breal[0][2]*child.@IphaseCimg,
+			
+			f.@VphaseBimg = child.@aimg[1][0]*child.@VphaseAreal + child.@aimg[1][1]*child.@VphaseBreal + child.@aimg[1][2]*child.@VphaseCreal 
+			+child.@areal[1][0]*child.@VphaseAimg + child.@areal[1][1]*child.@VphaseBimg + child.@areal[1][2]*child.@VphaseCimg
+			+child.@bimg[1][0]*child.@IphaseAreal + child.@bimg[1][1]*child.@IphaseBreal + child.@bimg[1][2]*child.@IphaseCreal
+			+child.@breal[1][0]*child.@IphaseAimg + child.@breal[1][1]*child.@IphaseBimg + child.@breal[1][2]*child.@IphaseCimg,
+			
+			f.@VphaseCimg = child.@aimg[2][0]*child.@VphaseAreal + child.@aimg[2][1]*child.@VphaseBreal + child.@aimg[2][2]*child.@VphaseCreal 
+			+ child.@areal[2][0]*child.@VphaseAimg + child.@areal[2][1]*child.@VphaseBimg + child.@areal[2][2]*child.@VphaseCimg
+			+ child.@bimg[2][0]*child.@IphaseAreal + child.@bimg[2][1]*child.@IphaseBreal + child.@bimg[2][2]*child.@IphaseCreal
+			+ child.@breal[2][0]*child.@IphaseAimg + child.@breal[2][1]*child.@IphaseBimg + child.@breal[2][2]*child.@IphaseCimg,
+			
+			// calculate real part of current (note that for all CURRENT calculation, we need to use "+=" because it's a process of summing branch currents)
+			f.@IphaseAreal += child.@creal[0][0]*child.@VphaseAreal + child.@creal[0][1]*child.@VphaseBreal + child.@creal[0][2]*child.@VphaseCreal 
+			-child.@cimg[0][0]*child.@VphaseAimg - child.@cimg[0][1]*child.@VphaseBimg - child.@cimg[0][2]*child.@VphaseCimg
+			+ child.@areal[0][0]*child.@IphaseAreal + child.@areal[0][1]*child.@IphaseBreal + child.@areal[0][2]*child.@IphaseCreal
+			- child.@aimg[0][0]*child.@IphaseAimg - child.@aimg[0][1]*child.@IphaseBimg - child.@aimg[0][2]*child.@IphaseCimg,
+			
+			
+			f.@IphaseBreal += child.@creal[1][0]*child.@VphaseAreal + child.@creal[1][1]*child.@VphaseBreal + child.@creal[1][2]*child.@VphaseCreal 
+			-child.@cimg[1][0]*child.@VphaseAimg - child.@cimg[1][1]*child.@VphaseBimg - child.@cimg[1][2]*child.@VphaseCimg
+			+child.@areal[1][0]*child.@IphaseAreal + child.@areal[1][1]*child.@IphaseBreal + child.@areal[1][2]*child.@IphaseCreal
+			-child.@aimg[1][0]*child.@IphaseAimg - child.@aimg[1][1]*child.@IphaseBimg - child.@aimg[1][2]*child.@IphaseCimg,
+			
+			
+			f.@IphaseCreal += child.@creal[2][0]*child.@VphaseAreal + child.@creal[2][1]*child.@VphaseBreal + child.@creal[2][2]*child.@VphaseCreal 
+			-child.@cimg[2][0]*child.@VphaseAimg - child.@cimg[2][1]*child.@VphaseBimg - child.@cimg[2][2]*child.@VphaseCimg
+			+ child.@areal[2][0]*child.@IphaseAreal + child.@areal[2][1]*child.@IphaseBreal + child.@areal[2][2]*child.@IphaseCreal
+			- child.@aimg[2][0]*child.@IphaseAimg - child.@aimg[2][1]*child.@IphaseBimg - child.@aimg[2][2]*child.@IphaseCimg,
+			
+			// calculate imaginary part of current
+			f.@IphaseAimg += child.@cimg[0][0]*child.@VphaseAreal + child.@cimg[0][1]*child.@VphaseBreal + child.@cimg[0][2]*child.@VphaseCreal 
+			+ child.@creal[0][0]*child.@VphaseAimg + child.@creal[0][1]*child.@VphaseBimg + child.@creal[0][2]*child.@VphaseCimg
+			+ child.@aimg[0][0]*child.@IphaseAreal + child.@aimg[0][1]*child.@IphaseBreal + child.@aimg[0][2]*child.@IphaseCreal
+			+ child.@areal[0][0]*child.@IphaseAimg + child.@areal[0][1]*child.@IphaseBimg + child.@areal[0][2]*child.@IphaseCimg,
+			
+			f.@IphaseBimg += child.@cimg[1][0]*child.@VphaseAreal + child.@cimg[1][1]*child.@VphaseBreal + child.@cimg[1][2]*child.@VphaseCreal 
+			+child.@creal[1][0]*child.@VphaseAimg + child.@creal[1][1]*child.@VphaseBimg + child.@creal[1][2]*child.@VphaseCimg
+			+child.@aimg[1][0]*child.@IphaseAreal + child.@aimg[1][1]*child.@IphaseBreal + child.@aimg[1][2]*child.@IphaseCreal
+			+child.@areal[1][0]*child.@IphaseAimg + child.@areal[1][1]*child.@IphaseBimg + child.@areal[1][2]*child.@IphaseCimg,
+			
+			f.@IphaseCimg += child.@cimg[2][0]*child.@VphaseAreal + child.@cimg[2][1]*child.@VphaseBreal + child.@cimg[2][2]*child.@VphaseCreal 
+			+ child.@creal[2][0]*child.@VphaseAimg + child.@creal[2][1]*child.@VphaseBimg + child.@creal[2][2]*child.@VphaseCimg
+			+ child.@aimg[2][0]*child.@IphaseAreal + child.@aimg[2][1]*child.@IphaseBreal + child.@aimg[2][2]*child.@IphaseCreal
+			+ child.@areal[2][0]*child.@IphaseAimg + child.@areal[2][1]*child.@IphaseBimg + child.@areal[2][2]*child.@IphaseCimg
+			//LOG(TRUE,child.exId, child.VAreal, child.VBreal,child.VCreal, child.VAimg,child.VBimg,child.VCimg)
+			END,  // for CASE
+			
+			CASE WHEN (e.flag==1) THEN // When there is transformer in this line segment.
+			// calculate real part of voltage   Note: using "=" here
+			f.@VphaseAreal = child.@at[0][0]*child.@VphaseAreal + child.@at[0][1]*child.@VphaseBreal + child.@at[0][2]*child.@VphaseCreal + 
+			child.@btreal[0][0]*child.@IphaseAreal + child.@btreal[0][1]*child.@IphaseBreal + child.@btreal[0][2]*child.@IphaseCreal
+			-child.@btimg[0][0]*child.@IphaseAimg - child.@btimg[0][1]*child.@IphaseBimg - child.@btimg[0][2]*child.@IphaseCimg,
+			
+			f.@VphaseBreal = child.@at[1][0]*child.@VphaseAreal + child.@at[1][1]*child.@VphaseBreal + child.@at[1][2]*child.@VphaseCreal + 
+			child.@btreal[1][0]*child.@IphaseAreal + child.@btreal[1][1]*child.@IphaseBreal + child.@btreal[1][2]*child.@IphaseCreal
+			- child.@btimg[1][0]*child.@IphaseAimg - child.@btimg[1][1]*child.@IphaseBimg - child.@btimg[1][2]*child.@IphaseCimg,
+			
+			f.@VphaseCreal = child.@at[2][0]*child.@VphaseAreal + child.@at[2][1]*child.@VphaseBreal + child.@at[2][2]*child.@VphaseCreal + 
+			child.@btreal[2][0]*child.@IphaseAreal + child.@btreal[2][1]*child.@IphaseBreal + child.@btreal[2][2]*child.@IphaseCreal
+			-child.@btimg[2][0]*child.@IphaseAimg - child.@btimg[2][1]*child.@IphaseBimg - child.@btimg[2][2]*child.@IphaseCimg,
+			
+			
+			// calculate imaginary part of voltage
+			f.@VphaseAimg = child.@at[0][0]*child.@VphaseAimg + child.@at[0][1]*child.@VphaseBimg + child.@at[0][2]*child.@VphaseCimg + 
+			child.@btimg[0][0]*child.@IphaseAreal + child.@btimg[0][1]*child.@IphaseBreal + child.@btimg[0][2]*child.@IphaseCreal + 
+			child.@btreal[0][0]*child.@IphaseAimg + child.@btreal[0][1]*child.@IphaseBimg + child.@btreal[0][2]*child.@IphaseCimg,
+			
+			f.@VphaseBimg = child.@at[1][0]*child.@VphaseAimg + child.@at[1][1]*child.@VphaseBimg + child.@at[1][2]*child.@VphaseCimg + 
+			child.@btimg[1][0]*child.@IphaseAreal + child.@btimg[1][1]*child.@IphaseBreal + child.@btimg[1][2]*child.@IphaseCreal +
+			child.@btreal[1][0]*child.@IphaseAimg + child.@btreal[1][1]*child.@IphaseBimg + child.@btreal[1][2]*child.@IphaseCimg,
+			
+			f.@VphaseCimg = child.@at[2][0]*child.@VphaseAimg + child.@at[2][1]*child.@VphaseBimg + child.@at[2][2]*child.@VphaseCimg + 
+			child.@btimg[2][0]*child.@IphaseAreal + child.@btimg[2][1]*child.@IphaseBreal + child.@btimg[2][2]*child.@IphaseCreal + 
+			child.@btreal[2][0]*child.@IphaseAimg + child.@btreal[2][1]*child.@IphaseBimg + child.@btreal[2][2]*child.@IphaseCimg,
+			//LOG(TRUE,@@PI,child.exId, child.VAreal, child.VBreal,child.VCreal, child.VAimg,child.VBimg,child.VCimg)
+			
+			// calculate real part of current
+			f.@IphaseAreal += child.@dt[0][0]*child.@IphaseAreal + child.@dt[0][1]*child.@IphaseBreal + child.@dt[0][2]*child.@IphaseCreal,
+			f.@IphaseBreal += child.@dt[1][0]*child.@IphaseAreal + child.@dt[1][1]*child.@IphaseBreal + child.@dt[1][2]*child.@IphaseCreal,	
+			f.@IphaseCreal += child.@dt[2][0]*child.@IphaseAreal + child.@dt[2][1]*child.@IphaseBreal + child.@dt[2][2]*child.@IphaseCreal,
+			// calculate imaginary part of current
+			f.@IphaseAimg += child.@dt[0][0]*child.@IphaseAimg + child.@dt[0][1]*child.@IphaseBimg + child.@dt[0][2]*child.@IphaseCimg,
+			f.@IphaseBimg += child.@dt[1][0]*child.@IphaseAimg + child.@dt[1][1]*child.@IphaseBimg + child.@dt[1][2]*child.@IphaseCimg,
+			f.@IphaseCimg += child.@dt[2][0]*child.@IphaseAimg + child.@dt[2][1]*child.@IphaseBimg + child.@dt[2][2]*child.@IphaseCimg
+			END, 
+			
+			
+			CASE WHEN (e.flag==2)  THEN // When there is a regulator in this line segment. For regulator: BW_reg double, PT_reg double, CT_reg double, vol_reg double,
+			//find the voltage across the voltage relay,need to determine which phase has regulator and which phase does not.    
+			//clacuate the father node voltage
+			f.@VphaseAreal = child.@dRa*child.@VphaseAreal,
+			f.@VphaseAimg = child.@dRa*child.@VphaseAimg,
+			f.@VphaseBreal = child.@dRb*child.@VphaseBreal,
+			f.@VphaseBimg = child.@dRb*child.@VphaseBimg,
+			f.@VphaseCreal = child.@dRc*child.@VphaseCreal,
+			f.@VphaseCimg = child.@dRc*child.@VphaseCimg,
+			//claculate the father node current
+			f.@IphaseAreal += child.@aRa*child.@IphaseAreal,		
+			f.@IphaseAimg += child.@aRa*child.@IphaseAimg,
+			f.@IphaseBreal += child.@aRb*child.@IphaseBreal,		
+			f.@IphaseBimg += child.@aRb*child.@IphaseBimg,
+			f.@IphaseCreal += child.@aRc*child.@IphaseCreal,		
+			f.@IphaseCimg += child.@aRc*child.@IphaseCimg 
+
+			END,	
+			e.IAmag_cal=sqrt(child.@IphaseAreal*child.@IphaseAreal+child.@IphaseAimg*child.@IphaseAimg),
+		//	IF (child.@IphaseAreal>0) THEN
+			    e.IAang_cal=atan2(child.@IphaseAimg,child.@IphaseAreal),
+		//	ELSE
+		//	    e.IAang_cal=atan2(child.@IphaseAimg,child.@IphaseAreal)+@@PI		
+		//	END,
+			e.IBmag_cal=sqrt(child.@IphaseBreal*child.@IphaseBreal+child.@IphaseBimg*child.@IphaseBimg),
+		//	IF (child.@IphaseBreal>0) THEN
+			    e.IBang_cal=atan2(child.@IphaseBimg,child.@IphaseBreal),
+		//	ELSE
+		//	    e.IBang_cal=atan2(child.@IphaseBimg,child.@IphaseBreal)+@@PI		
+		//	END,
+			e.ICmag_cal=sqrt(child.@IphaseCreal*child.@IphaseCreal+child.@IphaseCimg*child.@IphaseCimg),
+		//	IF (child.@IphaseCreal>0) THEN
+			    e.ICang_cal=atan2(child.@IphaseCimg,child.@IphaseCreal),
+		//	ELSE
+		//	    e.ICang_cal=atan2(child.@IphaseCimg,child.@IphaseCreal)+@@PI
+		//	END,		
+		
+			log(true, child.exId, child.flag, child.PT_reg, child.CT_reg, child.@aRa, child.@aRb, child.@aRc, e.flag, e.Raa, e.Xaa, e.Rbb, e.Xbb, e.Rcc, e.Xcc), 
+			
+			
+			f.@count += 1
+			
+			//PRINT @@maxChange;
+			
+		  POST-ACCUM
+		  
+	 	  IF (f.@count == f.outdegree("foree_D") and abs(f.PdA)+abs(f.PdB)+abs(f.PdC)+abs(f.QdA)+abs(f.QdB)+abs(f.QdC)+(f.@PdA_dis)+abs(f.@PdB_dis)+abs(f.@PdC_dis)> 0.001) THEN // if this Node contains a load, the load currents must be included.
+			// calculate real part of current (note that for all CURRENT calculation, we need to use "+=" because it's a process of summing branch currents)		
+			f.@VAmag = sqrt(f.@VphaseAreal*f.@VphaseAreal + f.@VphaseAimg*f.@VphaseAimg),
+			f.@VBmag = sqrt(f.@VphaseBreal*f.@VphaseBreal + f.@VphaseBimg*f.@VphaseBimg),
+			f.@VCmag = sqrt(f.@VphaseCreal*f.@VphaseCreal + f.@VphaseCimg*f.@VphaseCimg),
+			
+			f.@VphaseABreal = f.@VphaseAreal - f.@VphaseBreal,
+			f.@VphaseABimg = f.@VphaseAimg - f.@VphaseBimg,
+			f.@VphaseBCreal = f.@VphaseBreal - f.@VphaseCreal,
+			f.@VphaseBCimg = f.@VphaseBimg - f.@VphaseCimg,
+			f.@VphaseCAreal = f.@VphaseCreal - f.@VphaseAreal,
+			f.@VphaseCAimg = f.@VphaseCimg - f.@VphaseAimg,
+			f.@VABmag = sqrt(f.@VphaseABreal*f.@VphaseABreal + f.@VphaseABimg*f.@VphaseABimg),
+			f.@VBCmag = sqrt(f.@VphaseBCreal*f.@VphaseBCreal + f.@VphaseBCimg*f.@VphaseBCimg),
+			f.@VCAmag = sqrt(f.@VphaseCAreal*f.@VphaseCAreal + f.@VphaseCAimg*f.@VphaseCAimg),
+			// if this node point has shunt capacitor, the reactive power of the capacitor should be included.
+			f.CapA_cal=f.CapA*(f.@VAmag/f.Vbase)*(f.@VAmag/f.Vbase),
+			f.CapB_cal=f.CapB*(f.@VBmag/f.Vbase)*(f.@VBmag/f.Vbase),
+			f.CapC_cal=f.CapC*(f.@VCmag/f.Vbase)*(f.@VCmag/f.Vbase),
+			//load model includes: Y-PQ, Y-Z, Y-I, D-PQ, D-Z, D-I
+			CASE WHEN (f.Load_Model=="Y-PQ" or f.@Loadmodel_dis=="Y-PQ") THEN
+			   IF (f.Load_Model=="Y-PQ" and f.@Loadmodel_dis=="Y-PQ") THEN
+			    f.PdA_cal=f.PdA+f.@PdA_dis,
+			    f.QdA_cal=f.QdA+f.@QdA_dis,
+				f.PdB_cal=f.PdB+f.@PdB_dis,
+			    f.QdB_cal=f.QdB+f.@QdB_dis,
+				f.PdC_cal=f.PdC+f.@PdC_dis,
+			    f.QdC_cal=f.QdC+f.@QdC_dis
+			   ELSE IF (f.Load_Model!="Y-PQ" and f.@Loadmodel_dis=="Y-PQ") THEN
+				f.PdA_cal=f.@PdA_dis,
+			    f.QdA_cal=f.@QdA_dis,
+				f.PdB_cal=f.@PdB_dis,
+			    f.QdB_cal=f.@QdB_dis,
+				f.PdC_cal=f.@PdC_dis,
+			    f.QdC_cal=f.@QdC_dis  
+			   ELSE IF (f.Load_Model=="Y-PQ" and f.@Loadmodel_dis!="Y-PQ") THEN
+			    f.PdA_cal=f.PdA,
+			    f.QdA_cal=f.QdA,
+				f.PdB_cal=f.PdB,
+			    f.QdB_cal=f.QdB,
+				f.PdC_cal=f.PdC,
+			    f.QdC_cal=f.QdC			   
+			   END,
+				f.@IphaseAreal += (f.PdA_cal*f.@VphaseAreal + f.QdA_cal*f.@VphaseAimg)/(f.@VphaseAreal*f.@VphaseAreal + f.@VphaseAimg*f.@VphaseAimg),
+			    f.@IphaseBreal += (f.PdB_cal*f.@VphaseBreal + f.QdB_cal*f.@VphaseBimg)/(f.@VphaseBreal*f.@VphaseBreal + f.@VphaseBimg*f.@VphaseBimg),
+			    f.@IphaseCreal += (f.PdC_cal*f.@VphaseCreal + f.QdC_cal*f.@VphaseCimg)/(f.@VphaseCreal*f.@VphaseCreal + f.@VphaseCimg*f.@VphaseCimg),		
+			    f.@IphaseAimg += (f.PdA_cal*f.@VphaseAimg - f.QdA_cal*f.@VphaseAreal)/(f.@VphaseAreal*f.@VphaseAreal + f.@VphaseAimg*f.@VphaseAimg),
+			    f.@IphaseBimg += (f.PdB_cal*f.@VphaseBimg - f.QdB_cal*f.@VphaseBreal)/(f.@VphaseBreal*f.@VphaseBreal + f.@VphaseBimg*f.@VphaseBimg),
+			    f.@IphaseCimg += (f.PdC_cal*f.@VphaseCimg - f.QdC_cal*f.@VphaseCreal)/(f.@VphaseCreal*f.@VphaseCreal + f.@VphaseCimg*f.@VphaseCimg)
+			END,
+			CASE WHEN (f.Load_Model=="Y-Z" or f.@Loadmodel_dis=="Y-Z") THEN
+			   IF (f.Load_Model=="Y-Z" and f.@Loadmodel_dis=="Y-Z") THEN
+			    f.PdA_cal=(f.PdA+f.@PdA_dis)*(f.@VAmag/f.Vbase)*(f.@VAmag/f.Vbase),
+			    f.QdA_cal=(f.QdA+f.@QdA_dis)*(f.@VAmag/f.Vbase)*(f.@VAmag/f.Vbase),
+				f.PdB_cal=(f.PdB+f.@PdB_dis)*(f.@VBmag/f.Vbase)*(f.@VBmag/f.Vbase),
+			    f.QdB_cal=(f.QdB+f.@QdB_dis)*(f.@VBmag/f.Vbase)*(f.@VBmag/f.Vbase),
+				f.PdC_cal=(f.PdC+f.@PdC_dis)*(f.@VCmag/f.Vbase)*(f.@VCmag/f.Vbase),
+			    f.QdC_cal=(f.QdC+f.@QdC_dis)*(f.@VCmag/f.Vbase)*(f.@VCmag/f.Vbase)
+			   ELSE IF (f.Load_Model!="Y-Z" and f.@Loadmodel_dis=="Y-Z") THEN
+			    f.PdA_cal=f.@PdA_dis*(f.@VAmag/f.Vbase)*(f.@VAmag/f.Vbase),
+			    f.QdA_cal=f.@QdA_dis*(f.@VAmag/f.Vbase)*(f.@VAmag/f.Vbase),
+				f.PdB_cal=f.@PdB_dis*(f.@VBmag/f.Vbase)*(f.@VBmag/f.Vbase),
+			    f.QdB_cal=f.@QdB_dis*(f.@VBmag/f.Vbase)*(f.@VBmag/f.Vbase),
+				f.PdC_cal=f.@PdC_dis*(f.@VCmag/f.Vbase)*(f.@VCmag/f.Vbase),
+			    f.QdC_cal=f.@QdC_dis*(f.@VCmag/f.Vbase)*(f.@VCmag/f.Vbase)
+			   ELSE IF (f.Load_Model=="Y-Z" and f.@Loadmodel_dis!="Y-Z") THEN
+			    f.PdA_cal=f.PdA*(f.@VAmag/f.Vbase)*(f.@VAmag/f.Vbase),
+			    f.QdA_cal=f.QdA*(f.@VAmag/f.Vbase)*(f.@VAmag/f.Vbase),
+				f.PdB_cal=f.PdB*(f.@VBmag/f.Vbase)*(f.@VBmag/f.Vbase),
+			    f.QdB_cal=f.QdB*(f.@VBmag/f.Vbase)*(f.@VBmag/f.Vbase),
+				f.PdC_cal=f.PdC*(f.@VCmag/f.Vbase)*(f.@VCmag/f.Vbase),
+			    f.QdC_cal=f.QdC*(f.@VCmag/f.Vbase)*(f.@VCmag/f.Vbase)
+			   END,
+				f.@IphaseAreal += (f.PdA_cal*f.@VphaseAreal + f.QdA_cal*f.@VphaseAimg)/(f.@VphaseAreal*f.@VphaseAreal + f.@VphaseAimg*f.@VphaseAimg),
+			    f.@IphaseBreal += (f.PdB_cal*f.@VphaseBreal + f.QdB_cal*f.@VphaseBimg)/(f.@VphaseBreal*f.@VphaseBreal + f.@VphaseBimg*f.@VphaseBimg),
+			    f.@IphaseCreal += (f.PdC_cal*f.@VphaseCreal + f.QdC_cal*f.@VphaseCimg)/(f.@VphaseCreal*f.@VphaseCreal + f.@VphaseCimg*f.@VphaseCimg),		
+			    f.@IphaseAimg += (f.PdA_cal*f.@VphaseAimg - f.QdA_cal*f.@VphaseAreal)/(f.@VphaseAreal*f.@VphaseAreal + f.@VphaseAimg*f.@VphaseAimg),
+			    f.@IphaseBimg += (f.PdB_cal*f.@VphaseBimg - f.QdB_cal*f.@VphaseBreal)/(f.@VphaseBreal*f.@VphaseBreal + f.@VphaseBimg*f.@VphaseBimg),
+			    f.@IphaseCimg += (f.PdC_cal*f.@VphaseCimg - f.QdC_cal*f.@VphaseCreal)/(f.@VphaseCreal*f.@VphaseCreal + f.@VphaseCimg*f.@VphaseCimg)
+			END,
+			CASE WHEN (f.Load_Model=="Y-I" or f.@Loadmodel_dis=="Y-I") THEN
+			    IF (f.Load_Model=="Y-I" and f.@Loadmodel_dis=="Y-I") THEN
+			    f.PdA_cal=(f.PdA+f.@PdA_dis)*(f.@VAmag/f.Vbase),
+			    f.QdA_cal=(f.QdA+f.@QdA_dis)*(f.@VAmag/f.Vbase),
+				f.PdB_cal=(f.PdB+f.@PdB_dis)*(f.@VBmag/f.Vbase),
+			    f.QdB_cal=(f.QdB+f.@QdB_dis)*(f.@VBmag/f.Vbase),
+				f.PdC_cal=(f.PdC+f.@PdC_dis)*(f.@VCmag/f.Vbase),
+			    f.QdC_cal=(f.QdC+f.@QdC_dis)*(f.@VCmag/f.Vbase)
+			   ELSE IF (f.Load_Model!="Y-I" and f.@Loadmodel_dis=="Y-I") THEN
+			    f.PdA_cal=f.@PdA_dis*(f.@VAmag/f.Vbase),
+			    f.QdA_cal=f.@QdA_dis*(f.@VAmag/f.Vbase),
+				f.PdB_cal=f.@PdB_dis*(f.@VBmag/f.Vbase),
+			    f.QdB_cal=f.@QdB_dis*(f.@VBmag/f.Vbase),
+				f.PdC_cal=f.@PdC_dis*(f.@VCmag/f.Vbase),
+			    f.QdC_cal=f.@QdC_dis*(f.@VCmag/f.Vbase)
+			   ELSE IF (f.Load_Model=="Y-I" and f.@Loadmodel_dis!="Y-I") THEN
+			    f.PdA_cal=f.PdA*(f.@VAmag/f.Vbase),
+			    f.QdA_cal=f.QdA*(f.@VAmag/f.Vbase),
+				f.PdB_cal=f.PdB*(f.@VBmag/f.Vbase),
+			    f.QdB_cal=f.QdB*(f.@VBmag/f.Vbase),
+				f.PdC_cal=f.PdC*(f.@VCmag/f.Vbase),
+			    f.QdC_cal=f.QdC*(f.@VCmag/f.Vbase)
+			   END,
+				f.@IphaseAreal += (f.PdA_cal*f.@VphaseAreal + f.QdA_cal*f.@VphaseAimg)/(f.@VphaseAreal*f.@VphaseAreal + f.@VphaseAimg*f.@VphaseAimg),
+			    f.@IphaseBreal += (f.PdB_cal*f.@VphaseBreal + f.QdB_cal*f.@VphaseBimg)/(f.@VphaseBreal*f.@VphaseBreal + f.@VphaseBimg*f.@VphaseBimg),
+			    f.@IphaseCreal += (f.PdC_cal*f.@VphaseCreal + f.QdC_cal*f.@VphaseCimg)/(f.@VphaseCreal*f.@VphaseCreal + f.@VphaseCimg*f.@VphaseCimg),		
+			    f.@IphaseAimg += (f.PdA_cal*f.@VphaseAimg - f.QdA_cal*f.@VphaseAreal)/(f.@VphaseAreal*f.@VphaseAreal + f.@VphaseAimg*f.@VphaseAimg),
+			    f.@IphaseBimg += (f.PdB_cal*f.@VphaseBimg - f.QdB_cal*f.@VphaseBreal)/(f.@VphaseBreal*f.@VphaseBreal + f.@VphaseBimg*f.@VphaseBimg),
+			    f.@IphaseCimg += (f.PdC_cal*f.@VphaseCimg - f.QdC_cal*f.@VphaseCreal)/(f.@VphaseCreal*f.@VphaseCreal + f.@VphaseCimg*f.@VphaseCimg)
+			END,
+			CASE WHEN (f.Load_Model=="D-PQ" or f.@Loadmodel_dis=="D-PQ") THEN
+			   IF (f.Load_Model=="D-PQ" and f.@Loadmodel_dis=="D-PQ") THEN
+			    f.PdAB_cal=f.PdA+f.@PdA_dis,
+			    f.QdAB_cal=f.QdA+f.@QdA_dis,
+				f.PdBC_cal=f.PdB+f.@PdB_dis,
+			    f.QdBC_cal=f.QdB+f.@QdB_dis,
+				f.PdCA_cal=f.PdC+f.@PdC_dis,
+			    f.QdCA_cal=f.QdC+f.@QdC_dis
+			   ELSE IF (f.Load_Model!="D-PQ" and f.@Loadmodel_dis=="D-PQ") THEN
+				f.PdAB_cal=f.@PdA_dis,
+			    f.QdAB_cal=f.@QdA_dis,
+				f.PdBC_cal=f.@PdB_dis,
+			    f.QdBC_cal=f.@QdB_dis,
+				f.PdCA_cal=f.@PdC_dis,
+			    f.QdCA_cal=f.@QdC_dis  
+			   ELSE IF (f.Load_Model=="D-PQ" and f.@Loadmodel_dis!="D-PQ") THEN
+			    f.PdAB_cal=f.PdA,
+			    f.QdAB_cal=f.QdA,
+				f.PdBC_cal=f.PdB,
+			    f.QdBC_cal=f.QdB,
+				f.PdCA_cal=f.PdC,
+			    f.QdCA_cal=f.QdC			   
+			   END,
+				f.@IphaseABreal = (f.PdAB_cal*f.@VphaseABreal + f.QdAB_cal*f.@VphaseABimg)/(f.@VphaseABreal*f.@VphaseABreal + f.@VphaseABimg*f.@VphaseABimg),
+				f.@IphaseABimg = (f.PdAB_cal*f.@VphaseABimg - f.QdAB_cal*f.@VphaseABreal)/(f.@VphaseABreal*f.@VphaseABreal + f.@VphaseABimg*f.@VphaseABimg),
+				f.@IphaseBCreal = (f.PdBC_cal*f.@VphaseBCreal + f.QdBC_cal*f.@VphaseBCimg)/(f.@VphaseBCreal*f.@VphaseBCreal + f.@VphaseBCimg*f.@VphaseBCimg),
+				f.@IphaseBCimg = (f.PdBC_cal*f.@VphaseBCimg - f.QdBC_cal*f.@VphaseBCreal)/(f.@VphaseBCreal*f.@VphaseBCreal + f.@VphaseBCimg*f.@VphaseBCimg),
+				f.@IphaseCAreal = (f.PdCA_cal*f.@VphaseCAreal + f.QdCA_cal*f.@VphaseCAimg)/(f.@VphaseCAreal*f.@VphaseCAreal + f.@VphaseCAimg*f.@VphaseCAimg),
+				f.@IphaseCAimg = (f.PdCA_cal*f.@VphaseCAimg - f.QdCA_cal*f.@VphaseCAreal)/(f.@VphaseCAreal*f.@VphaseCAreal + f.@VphaseCAimg*f.@VphaseCAimg),
+				f.@IphaseAreal += f.@IphaseABreal - f.@IphaseCAreal,
+				f.@IphaseAimg += f.@IphaseABimg - f.@IphaseCAimg,
+				f.@IphaseBreal += f.@IphaseBCreal - f.@IphaseABreal,
+				f.@IphaseBimg += f.@IphaseBCimg - f.@IphaseABimg,
+				f.@IphaseCreal += f.@IphaseCAreal - f.@IphaseBCreal,
+				f.@IphaseCimg += f.@IphaseCAimg - f.@IphaseBCimg
+			END,
+			CASE WHEN (f.Load_Model=="D-Z" or f.@Loadmodel_dis=="D-Z") THEN
+
+			   IF (f.Load_Model=="D-Z" and f.@Loadmodel_dis=="D-Z") THEN
+			    f.PdAB_cal=(f.PdA+f.@PdA_dis)*(f.@VABmag/f.Vbase/sqrt(3))*(f.@VABmag/f.Vbase/sqrt(3)),
+			    f.QdAB_cal=(f.QdA+f.@QdA_dis)*(f.@VABmag/f.Vbase/sqrt(3))*(f.@VABmag/f.Vbase/sqrt(3)),
+				f.PdBC_cal=(f.PdB+f.@PdB_dis)*(f.@VBCmag/f.Vbase/sqrt(3))*(f.@VBCmag/f.Vbase/sqrt(3)),
+			    f.QdBC_cal=(f.QdB+f.@QdB_dis)*(f.@VBCmag/f.Vbase/sqrt(3))*(f.@VBCmag/f.Vbase/sqrt(3)),
+				f.PdCA_cal=(f.PdC+f.@PdC_dis)*(f.@VCAmag/f.Vbase/sqrt(3))*(f.@VCAmag/f.Vbase/sqrt(3)),
+			    f.QdCA_cal=(f.QdC+f.@QdC_dis)*(f.@VCAmag/f.Vbase/sqrt(3))*(f.@VCAmag/f.Vbase/sqrt(3))
+			   ELSE IF (f.Load_Model!="D-Z" and f.@Loadmodel_dis=="D-Z") THEN
+				f.PdAB_cal=f.@PdA_dis*(f.@VABmag/f.Vbase/sqrt(3))*(f.@VABmag/f.Vbase/sqrt(3)),
+			    f.QdAB_cal=f.@QdA_dis*(f.@VABmag/f.Vbase/sqrt(3))*(f.@VABmag/f.Vbase/sqrt(3)),
+				f.PdBC_cal=f.@PdB_dis*(f.@VBCmag/f.Vbase/sqrt(3))*(f.@VBCmag/f.Vbase/sqrt(3)),
+			    f.QdBC_cal=f.@QdB_dis*(f.@VBCmag/f.Vbase/sqrt(3))*(f.@VBCmag/f.Vbase/sqrt(3)),
+				f.PdCA_cal=f.@PdC_dis*(f.@VCAmag/f.Vbase/sqrt(3))*(f.@VCAmag/f.Vbase/sqrt(3)),
+			    f.QdCA_cal=f.@QdC_dis*(f.@VCAmag/f.Vbase/sqrt(3))*(f.@VCAmag/f.Vbase/sqrt(3)) 
+			   ELSE IF (f.Load_Model=="D-Z" and f.@Loadmodel_dis!="D-Z") THEN
+			    f.PdAB_cal=f.PdA*(f.@VABmag/f.Vbase/sqrt(3))*(f.@VABmag/f.Vbase/sqrt(3)),
+			    f.QdAB_cal=f.QdA*(f.@VABmag/f.Vbase/sqrt(3))*(f.@VABmag/f.Vbase/sqrt(3)),
+				f.PdBC_cal=f.PdB*(f.@VBCmag/f.Vbase/sqrt(3))*(f.@VBCmag/f.Vbase/sqrt(3)),
+			    f.QdBC_cal=f.QdB*(f.@VBCmag/f.Vbase/sqrt(3))*(f.@VBCmag/f.Vbase/sqrt(3)),
+				f.PdCA_cal=f.PdC*(f.@VCAmag/f.Vbase/sqrt(3))*(f.@VCAmag/f.Vbase/sqrt(3)),
+			    f.QdCA_cal=f.QdC*(f.@VCAmag/f.Vbase/sqrt(3))*(f.@VCAmag/f.Vbase/sqrt(3))			   
+			   END,	
+				f.@IphaseABreal = (f.PdAB_cal*f.@VphaseABreal + f.QdAB_cal*f.@VphaseABimg)/(f.@VphaseABreal*f.@VphaseABreal + f.@VphaseABimg*f.@VphaseABimg),
+				f.@IphaseABimg = (f.PdAB_cal*f.@VphaseABimg - f.QdAB_cal*f.@VphaseABreal)/(f.@VphaseABreal*f.@VphaseABreal + f.@VphaseABimg*f.@VphaseABimg),
+				f.@IphaseBCreal = (f.PdBC_cal*f.@VphaseBCreal + f.QdBC_cal*f.@VphaseBCimg)/(f.@VphaseBCreal*f.@VphaseBCreal + f.@VphaseBCimg*f.@VphaseBCimg),
+				f.@IphaseBCimg = (f.PdBC_cal*f.@VphaseBCimg - f.QdBC_cal*f.@VphaseBCreal)/(f.@VphaseBCreal*f.@VphaseBCreal + f.@VphaseBCimg*f.@VphaseBCimg),
+				f.@IphaseCAreal = (f.PdCA_cal*f.@VphaseCAreal + f.QdCA_cal*f.@VphaseCAimg)/(f.@VphaseCAreal*f.@VphaseCAreal + f.@VphaseCAimg*f.@VphaseCAimg),
+				f.@IphaseCAimg = (f.PdCA_cal*f.@VphaseCAimg - f.QdCA_cal*f.@VphaseCAreal)/(f.@VphaseCAreal*f.@VphaseCAreal + f.@VphaseCAimg*f.@VphaseCAimg),
+				f.@IphaseAreal += f.@IphaseABreal - f.@IphaseCAreal,
+				f.@IphaseAimg += f.@IphaseABimg - f.@IphaseCAimg ,
+				f.@IphaseBreal += f.@IphaseBCreal - f.@IphaseABreal,
+				f.@IphaseBimg += f.@IphaseBCimg - f.@IphaseABimg,
+				f.@IphaseCreal += f.@IphaseCAreal - f.@IphaseBCreal,
+				f.@IphaseCimg += f.@IphaseCAimg - f.@IphaseBCimg
+			END,
+			CASE WHEN (f.Load_Model=="D-I" or f.@Loadmodel_dis=="D-I") THEN
+			   IF (f.Load_Model=="D-I" and f.@Loadmodel_dis=="D-I") THEN
+			    f.PdAB_cal=(f.PdA+f.@PdA_dis)*(f.@VABmag/f.Vbase/sqrt(3)),
+			    f.QdAB_cal=(f.QdA+f.@QdA_dis)*(f.@VABmag/f.Vbase/sqrt(3)),
+				f.PdBC_cal=(f.PdB+f.@PdB_dis)*(f.@VBCmag/f.Vbase/sqrt(3)),
+			    f.QdBC_cal=(f.QdB+f.@QdB_dis)*(f.@VBCmag/f.Vbase/sqrt(3)),
+				f.PdCA_cal=(f.PdC+f.@PdC_dis)*(f.@VCAmag/f.Vbase/sqrt(3)),
+			    f.QdCA_cal=(f.QdC+f.@QdC_dis)*(f.@VCAmag/f.Vbase/sqrt(3))
+			   ELSE IF (f.Load_Model!="D-I" and f.@Loadmodel_dis=="D-I") THEN
+				f.PdAB_cal=f.@PdA_dis*(f.@VABmag/f.Vbase/sqrt(3)),
+			    f.QdAB_cal=f.@QdA_dis*(f.@VABmag/f.Vbase/sqrt(3)),
+				f.PdBC_cal=f.@PdB_dis*(f.@VBCmag/f.Vbase/sqrt(3)),
+			    f.QdBC_cal=f.@QdB_dis*(f.@VBCmag/f.Vbase/sqrt(3)),
+				f.PdCA_cal=f.@PdC_dis*(f.@VCAmag/f.Vbase/sqrt(3)),
+			    f.QdCA_cal=f.@QdC_dis*(f.@VCAmag/f.Vbase/sqrt(3))  
+			   ELSE IF (f.Load_Model=="D-I" and f.@Loadmodel_dis!="D-I") THEN
+			    f.PdAB_cal=f.PdA*(f.@VABmag/f.Vbase/sqrt(3)),
+			    f.QdAB_cal=f.QdA*(f.@VABmag/f.Vbase/sqrt(3)),
+				f.PdBC_cal=f.PdB*(f.@VBCmag/f.Vbase/sqrt(3)),
+			    f.QdBC_cal=f.QdB*(f.@VBCmag/f.Vbase/sqrt(3)),
+				f.PdCA_cal=f.PdC*(f.@VCAmag/f.Vbase/sqrt(3)),
+			    f.QdCA_cal=f.QdC*(f.@VCAmag/f.Vbase/sqrt(3))			   
+			   END,
+				f.@IphaseABreal = (f.PdAB_cal*f.@VphaseABreal + f.QdAB_cal*f.@VphaseABimg)/(f.@VphaseABreal*f.@VphaseABreal + f.@VphaseABimg*f.@VphaseABimg),
+				f.@IphaseABimg = (f.PdAB_cal*f.@VphaseABimg - f.QdAB_cal*f.@VphaseABreal)/(f.@VphaseABreal*f.@VphaseABreal + f.@VphaseABimg*f.@VphaseABimg),
+				f.@IphaseBCreal = (f.PdBC_cal*f.@VphaseBCreal + f.QdBC_cal*f.@VphaseBCimg)/(f.@VphaseBCreal*f.@VphaseBCreal + f.@VphaseBCimg*f.@VphaseBCimg),
+				f.@IphaseBCimg = (f.PdBC_cal*f.@VphaseBCimg - f.QdBC_cal*f.@VphaseBCreal)/(f.@VphaseBCreal*f.@VphaseBCreal + f.@VphaseBCimg*f.@VphaseBCimg),
+				f.@IphaseCAreal = (f.PdCA_cal*f.@VphaseCAreal + f.QdCA_cal*f.@VphaseCAimg)/(f.@VphaseCAreal*f.@VphaseCAreal + f.@VphaseCAimg*f.@VphaseCAimg),
+				f.@IphaseCAimg = (f.PdCA_cal*f.@VphaseCAimg - f.QdCA_cal*f.@VphaseCAreal)/(f.@VphaseCAreal*f.@VphaseCAreal + f.@VphaseCAimg*f.@VphaseCAimg),
+				f.@IphaseAreal += f.@IphaseABreal - f.@IphaseCAreal,
+				f.@IphaseAimg += f.@IphaseABimg - f.@IphaseCAimg,
+				f.@IphaseBreal += f.@IphaseBCreal - f.@IphaseABreal,
+				f.@IphaseBimg += f.@IphaseBCimg - f.@IphaseABimg,
+				f.@IphaseCreal += f.@IphaseCAreal - f.@IphaseBCreal,
+				f.@IphaseCimg += f.@IphaseCAimg - f.@IphaseBCimg
+			END,		
+			//add the current injected by capacitors
+				f.@IphaseAreal += (-1*f.CapA_cal)*f.@VphaseAimg/(f.@VphaseAreal*f.@VphaseAreal + f.@VphaseAimg*f.@VphaseAimg),
+				f.@IphaseAimg += f.CapA_cal*f.@VphaseAreal/(f.@VphaseAreal*f.@VphaseAreal + f.@VphaseAimg*f.@VphaseAimg),
+				f.@IphaseBreal += (-1*f.CapB_cal)*f.@VphaseBimg/(f.@VphaseBreal*f.@VphaseBreal + f.@VphaseBimg*f.@VphaseBimg),
+				f.@IphaseBimg +=  f.CapB_cal*f.@VphaseBreal/(f.@VphaseBreal*f.@VphaseBreal + f.@VphaseBimg*f.@VphaseBimg),
+				f.@IphaseCreal += (-1*f.CapC_cal)*f.@VphaseCimg/(f.@VphaseCreal*f.@VphaseCreal + f.@VphaseCimg*f.@VphaseCimg),
+				f.@IphaseCimg +=  f.CapC_cal*f.@VphaseCreal/(f.@VphaseCreal*f.@VphaseCreal + f.@VphaseCimg*f.@VphaseCimg)
+		  END, //end of if 
+
+		   
+			
+			CASE WHEN (f.exId == startnode) THEN  // if this is substation node 
+			VNbase = f.Vbase,
+			double VAmag = sqrt(f.@VphaseAreal*f.@VphaseAreal + f.@VphaseAimg*f.@VphaseAimg),
+			double VBmag = sqrt(f.@VphaseBreal*f.@VphaseBreal + f.@VphaseBimg*f.@VphaseBimg),
+			double VCmag = sqrt(f.@VphaseCreal*f.@VphaseCreal + f.@VphaseCimg*f.@VphaseCimg),
+			@@maxChange += abs(VAmag - f.Vbase),
+			@@maxChange += abs(VBmag - f.Vbase),
+			@@maxChange += abs(VCmag - f.Vbase),
+			f.@VAmagold = VAmag,
+			f.@VBmagold = VBmag, 
+			f.@VCmagold = VCmag,
+			f.@ConvergeDiff += @@maxChange,
+			f.@VphaseAreal = 1*f.Vbase,
+			f.@VphaseBreal = -0.5*f.Vbase,
+			f.@VphaseCreal = -0.5*f.Vbase, 
+			f.@VphaseAimg = 0,
+			f.@VphaseBimg =  -0.866025*f.Vbase,
+			f.@VphaseCimg =  0.866025*f.Vbase,
+			log(true, f.exId, f.@VAmagold, f.@VBmagold, f.@VCmagold),
+			
+			f.@VAmag = sqrt(f.@VphaseAreal*f.@VphaseAreal + f.@VphaseAimg*f.@VphaseAimg),
+			IF (f.@VphaseAreal>0) THEN
+			    f.@VAdeg = atan(f.@VphaseAimg/f.@VphaseAreal)*180/@@PI
+			ELSE
+			    f.@VAdeg = atan(f.@VphaseAimg/f.@VphaseAreal)*180/@@PI+180
+			
+			END,
+			f.@VBmag = sqrt(f.@VphaseBreal*f.@VphaseBreal + f.@VphaseBimg*f.@VphaseBimg),
+			IF (f.@VphaseBreal>0) THEN
+			    f.@VBdeg = atan(f.@VphaseBimg/f.@VphaseBreal)*180/@@PI
+			ELSE
+			    f.@VBdeg = atan(f.@VphaseBimg/f.@VphaseBreal)*180/@@PI+180
+			
+			END,
+			f.@VCmag = sqrt(f.@VphaseCreal*f.@VphaseCreal + f.@VphaseCimg*f.@VphaseCimg),
+			IF (f.@VphaseCreal>0) THEN
+			    f.@VCdeg = atan(f.@VphaseCimg/f.@VphaseCreal)*180/@@PI
+			ELSE
+			    f.@VCdeg = atan(f.@VphaseCimg/f.@VphaseCreal)*180/@@PI+180
+			
+			END
+			END,   // always keep node 1 voltage (substation voltage) as given value. 
+			
+			cc.@count = 0  // reset @count
+			having f.@count == f.outdegree("foree_D"); // select the nodes when they've received all info from their roots. b.outdegree("foree_D") gives the number of roots.
+			//	PRINT child.exId;
+			//	PRINT @@PI;
+		END;
+		//PRINT @@numIteration;
+		@@numBackCompute += 1;
+		
+		
+		// Forward computation. 
+		parent = startNodeSet;
+		
+		WHILE parent.size() > 0 DO
+			parent = SELECT q
+			FROM parent:p - (foree_D:e) - bus_D:q  // parent set does not include node '1' for all iterations  
+			//where q != terminalSink            // e.g. 4 bus system: for all iterations, parent sets are {2},{3},{4}.
+			
+			ACCUM
+			@@edgeList += e, 
+			CASE WHEN (e.flag==0) THEN
+			double newVAreal = q.@Areal[0][0]*p.@VphaseAreal + q.@Areal[0][1]*p.@VphaseBreal + q.@Areal[0][2]*p.@VphaseCreal 
+			-q.@Aimg[0][0]*p.@VphaseAimg - q.@Aimg[0][1]*p.@VphaseBimg - q.@Aimg[0][2]*p.@VphaseCimg 
+			- q.@Breal[0][0]*q.@IphaseAreal - q.@Breal[0][1]*q.@IphaseBreal - q.@Breal[0][2]*q.@IphaseCreal
+			+ q.@Bimg[0][0]*q.@IphaseAimg + q.@Bimg[0][1]*q.@IphaseBimg + q.@Bimg[0][2]*q.@IphaseCimg, 
+			
+			double newVBreal = q.@Areal[1][0]*p.@VphaseAreal + q.@Areal[1][1]*p.@VphaseBreal + q.@Areal[1][2]*p.@VphaseCreal 
+			- q.@Aimg[1][0]*p.@VphaseAimg - q.@Aimg[1][1]*p.@VphaseBimg - q.@Aimg[1][2]*p.@VphaseCimg
+			- q.@Breal[1][0]*q.@IphaseAreal - q.@Breal[1][1]*q.@IphaseBreal - q.@Breal[1][2]*q.@IphaseCreal
+			+ q.@Bimg[1][0]*q.@IphaseAimg + q.@Bimg[1][1]*q.@IphaseBimg + q.@Bimg[1][2]*q.@IphaseCimg,
+			
+			double newVCreal = q.@Areal[2][0]*p.@VphaseAreal + q.@Areal[2][1]*p.@VphaseBreal + q.@Areal[2][2]*p.@VphaseCreal 
+			- q.@Aimg[2][0]*p.@VphaseAimg - q.@Aimg[2][1]*p.@VphaseBimg - q.@Aimg[2][2]*p.@VphaseCimg 
+			- q.@Breal[2][0]*q.@IphaseAreal - q.@Breal[2][1]*q.@IphaseBreal - q.@Breal[2][2]*q.@IphaseCreal
+			+ q.@Bimg[2][0]*q.@IphaseAimg + q.@Bimg[2][1]*q.@IphaseBimg + q.@Bimg[2][2]*q.@IphaseCimg,
+			
+			double newVAimg = q.@Aimg[0][0]*p.@VphaseAreal + q.@Aimg[0][1]*p.@VphaseBreal + q.@Aimg[0][2]*p.@VphaseCreal
+			+ q.@Areal[0][0]*p.@VphaseAimg + q.@Areal[0][1]*p.@VphaseBimg + q.@Areal[0][2]*p.@VphaseCimg
+			- q.@Breal[0][0]*q.@IphaseAimg - q.@Breal[0][1]*q.@IphaseBimg - q.@Breal[0][2]*q.@IphaseCimg
+			- q.@Bimg[0][0]*q.@IphaseAreal - q.@Bimg[0][1]*q.@IphaseBreal - q.@Bimg[0][2]*q.@IphaseCreal,
+			
+			double newVBimg = q.@Aimg[1][0]*p.@VphaseAreal + q.@Aimg[1][1]*p.@VphaseBreal + q.@Aimg[1][2]*p.@VphaseCreal 
+			+ q.@Areal[1][0]*p.@VphaseAimg + q.@Areal[1][1]*p.@VphaseBimg + q.@Areal[1][2]*p.@VphaseCimg 
+			- q.@Breal[1][0]*q.@IphaseAimg - q.@Breal[1][1]*q.@IphaseBimg - q.@Breal[1][2]*q.@IphaseCimg
+			- q.@Bimg[1][0]*q.@IphaseAreal - q.@Bimg[1][1]*q.@IphaseBreal - q.@Bimg[1][2]*q.@IphaseCreal,
+			
+			double newVCimg = q.@Aimg[2][0]*p.@VphaseAreal + q.@Aimg[2][1]*p.@VphaseBreal + q.@Aimg[2][2]*p.@VphaseCreal 
+			+ q.@Areal[2][0]*p.@VphaseAimg + q.@Areal[2][1]*p.@VphaseBimg + q.@Areal[2][2]*p.@VphaseCimg 
+			- q.@Breal[2][0]*q.@IphaseAimg - q.@Breal[2][1]*q.@IphaseBimg - q.@Breal[2][2]*q.@IphaseCimg
+			- q.@Bimg[2][0]*q.@IphaseAreal - q.@Bimg[2][1]*q.@IphaseBreal - q.@Bimg[2][2]*q.@IphaseCreal,
+			
+			q.@VphaseAreal = newVAreal,
+			q.@VphaseBreal = newVBreal,
+			q.@VphaseCreal = newVCreal,
+			q.@VphaseAimg = newVAimg,
+			q.@VphaseBimg = newVBimg,
+			q.@VphaseCimg = newVCimg
+			//LOG(TRUE, q.exId,q.@VphaseA,q.@VphaseB,q.@VphaseC)
+			END,
+			
+			CASE WHEN (e.flag==1) THEN
+			double newVAreal = q.@At[0][0]*p.@VphaseAreal + q.@At[0][1]*p.@VphaseBreal + q.@At[0][2]*p.@VphaseCreal - e.Raa*q.@IphaseAreal + e.Xaa*q.@IphaseAimg, 
+			double newVBreal = q.@At[1][0]*p.@VphaseAreal + q.@At[1][1]*p.@VphaseBreal + q.@At[1][2]*p.@VphaseCreal - e.Rbb*q.@IphaseBreal + e.Xbb*q.@IphaseBimg,
+			double newVCreal = q.@At[2][0]*p.@VphaseAreal + q.@At[2][1]*p.@VphaseBreal + q.@At[2][2]*p.@VphaseCreal - e.Rcc*q.@IphaseCreal + e.Xcc*q.@IphaseCimg,
+			
+			double newVAimg = q.@At[0][0]*p.@VphaseAimg + q.@At[0][1]*p.@VphaseBimg + q.@At[0][2]*p.@VphaseCimg - e.Xaa*q.@IphaseAreal - e.Raa*q.@IphaseAimg, 
+			double newVBimg = q.@At[1][0]*p.@VphaseAimg + q.@At[1][1]*p.@VphaseBimg + q.@At[1][2]*p.@VphaseCimg - e.Xbb*q.@IphaseBreal - e.Rbb*q.@IphaseBimg,
+			double newVCimg = q.@At[2][0]*p.@VphaseAimg + q.@At[2][1]*p.@VphaseBimg + q.@At[2][2]*p.@VphaseCimg - e.Xcc*q.@IphaseCreal - e.Rcc*q.@IphaseCimg,
+			
+			q.@VphaseAreal = newVAreal,
+			q.@VphaseBreal = newVBreal,
+			q.@VphaseCreal = newVCreal,
+			q.@VphaseAimg = newVAimg,
+			q.@VphaseBimg = newVBimg,
+			q.@VphaseCimg = newVCimg
+			//LOG(TRUE, q.exId,q.@VphaseA,q.@VphaseB,q.@VphaseC)
+			END,
+		
+	    	CASE WHEN (e.flag==2)  THEN // When there is a regulator in this line segment. For regulator: BW_reg double, PT_reg double, CT_reg double, vol_reg double,
+			//find the voltage across the voltage relay,need to determine the monitoring phase and which phase has regulator and which phase does not.
+			double tempVregAR = p.@VphaseAreal/q.PT_reg,
+			double tempVregAI = p.@VphaseAimg/q.PT_reg,
+			double tempVregBR = p.@VphaseBreal/q.PT_reg,
+			double tempVregBI = p.@VphaseBimg/q.PT_reg,
+			double tempVregCR = p.@VphaseCreal/q.PT_reg,
+			double tempVregCI = p.@VphaseCimg/q.PT_reg,
+			double tempIcompAR = q.@IphaseAreal/q.CT_reg,
+			double tempIcompAI = q.@IphaseAimg/q.CT_reg,
+			double tempIcompBR = q.@IphaseBreal/q.CT_reg,
+			double tempIcompBI = q.@IphaseBimg/q.CT_reg,
+			double tempIcompCR = q.@IphaseCreal/q.CT_reg,
+			double tempIcompCI = q.@IphaseCimg/q.CT_reg,
+			double VrelyAR = tempVregAR - (e.Raa*tempIcompAR - e.Xaa*tempIcompAI),
+			double VrelyAI = tempVregAI - (e.Raa*tempIcompAI + e.Xaa*tempIcompAR),
+			double VrelyBR = tempVregBR - (e.Rbb*tempIcompBR - e.Xbb*tempIcompBI),
+			double VrelyBI = tempVregBI - (e.Rbb*tempIcompBI + e.Xbb*tempIcompBR),
+			double VrelyCR = tempVregCR - (e.Rcc*tempIcompCR - e.Xcc*tempIcompCI),
+			double VrelyCI = tempVregCI - (e.Rcc*tempIcompCI + e.Xcc*tempIcompCR),
+			double VrelyAmag = sqrt(VrelyAR*VrelyAR + VrelyAI*VrelyAI),
+			double VrelyBmag = sqrt(VrelyBR*VrelyBR + VrelyBI*VrelyBI),
+			double VrelyCmag = sqrt(VrelyCR*VrelyCR + VrelyCI*VrelyCI),
+			//calcuate tap 
+			double TapVlow_A=q.vol_reg_A - 0.5*q.BW_reg,
+			double TapVhigh_A=q.vol_reg_A + 0.5*q.BW_reg,
+			double TapVlow_B=q.vol_reg_B - 0.5*q.BW_reg,
+			double TapVhigh_B=q.vol_reg_B + 0.5*q.BW_reg,
+			double TapVlow_C=q.vol_reg_C - 0.5*q.BW_reg,
+			double TapVhigh_C=q.vol_reg_C + 0.5*q.BW_reg,
+			double TapA = 0,
+			double TapB = 0,
+			double TapC = 0,
+			
+			IF (TapVlow_A>VrelyAmag) THEN
+			    TapA = floor((TapVlow_A - VrelyAmag)/0.75)+1,
+				IF (TapA>16) THEN
+				TapA=16
+				END
+			ELSE IF (TapVhigh_A<VrelyAmag) THEN
+			    TapA = floor((TapVhigh_A - VrelyAmag)/0.75),
+				IF (TapA<-16) THEN
+				TapA=-16
+				END
+			END,
+			IF (TapVlow_B>VrelyBmag) THEN
+			    TapB = floor((TapVlow_B - VrelyBmag)/0.75)+1,
+				IF (TapB>16) THEN
+				TapB = 16
+				END
+		    ELSE IF (TapVhigh_B<VrelyBmag) THEN
+			    TapB = floor((TapVhigh_B - VrelyBmag)/0.75),
+				IF (TapB<-16) THEN
+				TapB=-16
+				END
+			END,
+			IF (TapVlow_C>VrelyCmag) THEN
+			    TapC = floor((TapVlow_C - VrelyCmag)/0.75)+1,
+				IF (TapC>16) THEN
+				TapC = 16
+				END
+			ELSE IF (TapVhigh_C<VrelyCmag) THEN
+			    TapC = floor((TapVhigh_C - VrelyCmag)/0.75),
+				IF (TapC<-16) THEN
+				TapC=-16
+				END	
+			END, 
+			//determine the monitoring phase
+			CASE WHEN (q.control_phase_reg=="A") THEN
+			TapB=TapA,
+			TapC=TapA
+			END,
+			CASE WHEN (q.control_phase_reg=="B") THEN
+			TapA=TapB,
+			TapC=TapB
+			END,
+			CASE WHEN (q.control_phase_reg=="C") THEN
+			TapA=TapC,
+			TapB=TapC
+			END,
+			q.@RGTap_A=TapA,
+			q.@RGTap_B=TapB,
+			q.@RGTap_C=TapC,
+			//find the matrix Type B regulator
+			/*
+			double aRa = 1 - 0.00625*TapA,
+			double aRb = 1 - 0.00625*TapB,
+			double aRc = 1 - 0.00625*TapC,
+			*/
+			//Type A regulator
+			double aRa = 1 + 0.00625*TapA,
+			double aRb = 1 + 0.00625*TapB,
+			double aRc = 1 + 0.00625*TapC,
+			q.@aRa = aRa,
+			q.@aRb = aRb,
+			q.@aRc = aRc,
+			q.@dRa = 1/aRa,
+			q.@dRb = 1/aRb,
+			q.@dRc = 1/aRc,
+			//clacuate the father node voltage
+			q.@VphaseAreal = p.@VphaseAreal*aRa,
+			q.@VphaseAimg = p.@VphaseAimg*aRa,
+			q.@VphaseBreal = p.@VphaseBreal*aRb,
+			q.@VphaseBimg = p.@VphaseBimg*aRb,
+			q.@VphaseCreal = p.@VphaseCreal*aRc,
+			q.@VphaseCimg = p.@VphaseCimg*aRc,
+			log(true, q.exId, q.@aRa, q.@aRb, q.@aRc, TapA,VrelyAmag,VrelyAR, tempVregAR, tempIcompAR, tempIcompAI)
+			END,
+            			
+			e.IAmag_cal=sqrt(q.@IphaseAreal*q.@IphaseAreal+q.@IphaseAimg*q.@IphaseAimg),
+			//IF (q.@IphaseAreal>0) THEN
+			    e.IAang_cal=atan2(q.@IphaseAimg,q.@IphaseAreal),
+			//ELSE
+			   // e.IAang_cal=atan2(q.@IphaseAimg,q.@IphaseAreal)+@@PI		
+			//END,
+			e.IBmag_cal=sqrt(q.@IphaseBreal*q.@IphaseBreal+q.@IphaseBimg*q.@IphaseBimg),
+			//IF (q.@IphaseBreal>0) THEN
+			    e.IBang_cal=atan2(q.@IphaseBimg,q.@IphaseBreal),
+			//ELSE
+			  //  e.IBang_cal=atan2(q.@IphaseBimg,q.@IphaseBreal)+@@PI
+			//END,
+			e.ICmag_cal=sqrt(q.@IphaseCreal*q.@IphaseCreal+q.@IphaseCimg*q.@IphaseCimg),
+			//IF (q.@IphaseCreal>0) THEN
+			    e.ICang_cal=atan2(q.@IphaseCimg,q.@IphaseCreal),
+			//ELSE
+			  //  e.ICang_cal=atan2(q.@IphaseCimg,q.@IphaseCreal)+@@PI
+			//END	
+	        log(true, q.exId, q.@IphaseAreal, q.@IphaseBreal, q.@IphaseCreal, e.IAang_cal, e.IBmag_cal, e.ICmag_cal)
+
+			POST-ACCUM
+			
+			q.Tap_A=q.@RGTap_A,
+			q.Tap_B=q.@RGTap_B,
+			q.Tap_C=q.@RGTap_C,
+			LOG(TRUE, q.exId, q.@VphaseAreal, q.@VphaseBreal, q.@VphaseCreal, q.@VphaseAimg, q.@VphaseBimg, q.@VphaseCimg),
+			q.@VAmag = sqrt(q.@VphaseAreal*q.@VphaseAreal + q.@VphaseAimg*q.@VphaseAimg),
+			IF (q.@VphaseAreal>0) THEN
+			    q.@VAdeg = atan(q.@VphaseAimg/q.@VphaseAreal)*180/@@PI
+			ELSE
+			    q.@VAdeg = atan(q.@VphaseAimg/q.@VphaseAreal)*180/@@PI+180
+			END,
+			q.@VBmag = sqrt(q.@VphaseBreal*q.@VphaseBreal + q.@VphaseBimg*q.@VphaseBimg),
+			IF (q.@VphaseBreal>0) THEN
+			    q.@VBdeg = atan(q.@VphaseBimg/q.@VphaseBreal)*180/@@PI
+			ELSE
+			    q.@VBdeg = atan(q.@VphaseBimg/q.@VphaseBreal)*180/@@PI+180
+			END,
+			q.@VCmag = sqrt(q.@VphaseCreal*q.@VphaseCreal + q.@VphaseCimg*q.@VphaseCimg),
+			IF (q.@VphaseCreal>0) THEN
+			    q.@VCdeg = atan(q.@VphaseCimg/q.@VphaseCreal)*180/@@PI
+			ELSE
+			    q.@VCdeg = atan(q.@VphaseCimg/q.@VphaseCreal)*180/@@PI+180
+			END,
+			
+			
+			
+			
+			
+			
+		//	p.@VphaseAreal = 0, p.@VphaseBreal = 0, p.@VphaseCreal = 0,
+		//	p.@VphaseAimg = 0, p.@VphaseBimg = 0, p.@VphaseCimg = 0,
+			p.@IphaseAreal = 0, p.@IphaseBreal = 0, p.@IphaseCreal = 0,
+			p.@IphaseAimg = 0, p.@IphaseBimg = 0, p.@IphaseCimg = 0;  // reset voltages and currents
+		END; 
+
+	END;
+	
+	T0 = {bus_D.*};
+    parent = startNodeSet;
+	WHILE parent.size() > 0 DO
+	       parent =  SELECT t
+		   FROM parent:s-(foree_D:e)-bus_D:t    
+		 ACCUM	
+		  IF (abs(e.Raa-0)>0.000001 and abs(e.Rbb-0)>0.000001 and abs(e.Rcc-0)>0.000001) THEN
+		  t.@Vunbalance+=abs(t.@VAmag-(t.@VAmag+t.@VBmag+t.@VCmag)/3),
+		  t.@Vunbalance+=abs(t.@VBmag-(t.@VAmag+t.@VBmag+t.@VCmag)/3),
+		  t.@Vunbalance+=abs(t.@VCmag-(t.@VAmag+t.@VBmag+t.@VCmag)/3)
+		  ELSE IF (abs(e.Raa-0)<0.000001 and abs(e.Rbb-0)>0.000001 and abs(e.Rcc-0)>0.000001 ) THEN
+		  t.@VAmag=0,
+		  t.@Vunbalance+=abs(t.@VBmag-(t.@VBmag+t.@VCmag)/2),
+		  t.@Vunbalance+=abs(t.@VCmag-(t.@VBmag+t.@VCmag)/2)
+		  ELSE IF (abs(e.Raa-0)>0.000001 and abs(e.Rbb-0)<0.000001 and abs(e.Rcc-0)>0.000001 ) THEN
+		  t.@VBmag=0,
+		  t.@Vunbalance+=abs(t.@VAmag-(t.@VAmag+t.@VCmag)/2),
+		  t.@Vunbalance+=abs(t.@VCmag-(t.@VAmag+t.@VCmag)/2)
+		  ELSE IF (abs(e.Raa-0)>0.000001 and abs(e.Rbb-0)>0.000001 and abs(e.Rcc-0)<0.000001 ) THEN
+		  t.@VCmag=0,
+		  t.@Vunbalance+=abs(t.@VAmag-(t.@VAmag+t.@VBmag)/2),
+		  t.@Vunbalance+=abs(t.@VBmag-(t.@VAmag+t.@VBmag)/2)
+		  ELSE IF (abs(e.Raa-0)<0.000001 and abs(e.Rbb-0)<0.000001 and abs(e.Rcc-0)<0.000001 ) THEN
+		  t.@Vunbalance+=abs(t.@VAmag-(t.@VAmag+t.@VBmag+t.@VCmag)/3),
+		  t.@Vunbalance+=abs(t.@VBmag-(t.@VAmag+t.@VBmag+t.@VCmag)/3),
+		  t.@Vunbalance+=abs(t.@VCmag-(t.@VAmag+t.@VBmag+t.@VCmag)/3)
+		  ELSE 
+		  t.@V_unbal=0
+	      END
+		  
+		 POST-ACCUM
+		  t.VAmag_cal=t.@VAmag,
+		  t.VBmag_cal=t.@VBmag,
+		  t.VCmag_cal=t.@VCmag,
+		  t.VAang_cal=t.@VAdeg/180*@@PI,
+		  t.VBang_cal=t.@VBdeg/180*@@PI,
+		  t.VCang_cal=t.@VCdeg/180*@@PI,
+		  CASE WHEN (t.@VAmag!=0 and t.@VBmag!=0 and t.@VCmag!=0) THEN
+		  t.@V_unbal=max(t.@Vunbalance)/((t.@VAmag+t.@VBmag+t.@VCmag)/3)
+          END,
+          CASE WHEN (t.@VAmag==0 and t.@VBmag!=0 and t.@VCmag!=0) THEN
+		  t.@V_unbal=max(t.@Vunbalance)/((t.@VBmag+t.@VCmag)/2)
+          END,
+          CASE WHEN (t.@VAmag!=0 and t.@VBmag==0 and t.@VCmag!=0) THEN
+		  t.@V_unbal=max(t.@Vunbalance)/((t.@VAmag+t.@VCmag)/2)
+          END,
+          CASE WHEN (t.@VAmag!=0 and t.@VBmag!=0 and t.@VCmag==0) THEN
+		  t.@V_unbal=max(t.@Vunbalance)/((t.@VAmag+t.@VBmag)/2)
+          END,		  
+
+		  CASE WHEN (s.exId==s.startnode) THEN
+		  s.VAmag_cal=s.@VAmag,
+		  s.VBmag_cal=s.@VBmag,
+		  s.VCmag_cal=s.@VCmag,
+		  s.VAang_cal=s.@VAdeg/180*@@PI,
+		  s.VBang_cal=s.@VBdeg/180*@@PI,
+		  s.VCang_cal=s.@VCdeg/180*@@PI,
+		  s.@Vunbalance+=abs(s.@VAmag-(s.@VAmag+s.@VBmag+s.@VCmag)/3),
+		  s.@Vunbalance+=abs(s.@VBmag-(s.@VAmag+s.@VBmag+s.@VCmag)/3),
+		  s.@Vunbalance+=abs(s.@VCmag-(s.@VAmag+s.@VBmag+s.@VCmag)/3),
+		  s.@V_unbal=max(s.@Vunbalance)/((s.@VAmag+s.@VBmag+s.@VCmag)/3)	
+		  END;
+	END;
+		   
+	Accuracy=@@maxChange/VNbase/3;
+	
+	T0 = {bus_D.*};
+	
+	T1 = SELECT s
+	      FROM T0:s
+		  POST-ACCUM 
+          s.V_unbalance=s.@V_unbal;
+		  
+    T2 = SELECT s1
+	      FROM T0:s1-(foree_D:e1)-:t1
+		  ACCUM
+		  e1.edge_name = s1.exId + "-" + t1.exId;
+		  
+    T3 = SELECT s2
+	      FROM T0:s2-(backe_D:e2)-:t2
+		  ACCUM
+		  e2.edge_name = t2.exId + "-" + s2.exId;	  
+	//T1 = SELECT a
+	//FROM T0:a;   		
+	//PRINT T1.exId;  //Visulization
+	//PRINT @@edgeList;  //Visulization 
+	PRINT @@numBackCompute;
+	PRINT Accuracy; 
+	PRINT VNbase;
+  //  PRINT T1.exId, T1.Vbase, T1.@VAmag, T1.@VAdeg, T1.@VBmag, T1.@VBdeg, T1.@VCmag, T1.@VCdeg, T1.V_unbalance,T1.@Areal,T1.@Breal,T1.@areal, T1.@breal,T1.@creal > outputFile;   
+}
+
+//INSTALL QUERY -ui BFS_D

@@ -1,0 +1,50 @@
+<!-- <div #container class="graphchart">
+</div> -->
+<div style="max-width: 2000px; margin: 0 auto; overflow: hidden;">
+    <div class = "ui-g">
+        <div class = "ui-g-4">
+            <div class="ui-g-12" style="font-size: 1.1em">
+                <h3 class = "first">Substation_ID</h3>
+                <input size = "30" pInputText [(ngModel)]="substationID">
+                <button pButton type="button" (click)="plot()" label="Plot"></button>
+            </div>
+            <div class = "ui-g-12">
+                <div #container class="topology">
+                </div>
+            </div>
+        </div>         
+        <div class = "ui-g-8">
+            <div class = "ui-g-12">
+                <p-dataTable [value]="list1" scrollable="true" scrollHeight="200px">                                
+                    <p-header>刀闸</p-header>
+                    <!-- <p-column field="discid" header="discid"></p-column>                     -->
+                    <p-column *ngFor="let col of cols1" [field]="col.field" [header]="col.header"></p-column>
+                </p-dataTable>
+            </div>
+            <div class = "ui-g-12">
+                <p-dataTable [value]="list2" scrollable="true" scrollHeight="200px">
+                    <p-header>断路器</p-header>
+                    <p-column *ngFor="let col of cols2" [field]="col.field" [header]="col.header"></p-column>
+                </p-dataTable>
+            </div>
+            <div class = "ui-g-12">
+                 <p-dataTable [value]="list3" scrollable="true" scrollHeight="200px">
+                    <p-header>母线</p-header>
+                    <p-column *ngFor="let col of cols3" [field]="col.field" [header]="col.header"></p-column>
+                 </p-dataTable>
+            </div>
+            <div class = "ui-g-12">
+                <p-dataTable [value]="list4" scrollable="true" scrollHeight="200px">
+                    <p-header>负荷</p-header>
+                    <p-column *ngFor="let col of cols4" [field]="col.field" [header]="col.header"></p-column>
+                </p-dataTable>
+            </div>
+            <div class = "ui-g-12">
+                <p-dataTable [value]="list5" scrollable="true"  scrollHeight="200px">
+                    <p-header>发电机</p-header>
+                    <p-column *ngFor="let col of cols5" [field]="col.field" [header]="col.header"></p-column>
+                </p-dataTable>
+            </div>          
+       </div>
+    </div>
+</div>

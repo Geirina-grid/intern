@@ -1,0 +1,45 @@
+// Developed for SCADA measurement page in state estimation front-end web
+// Developed by: Chen Yuan, chen.yuan@geirina.net
+// History:
+// 05/30/2018 [Chen Yuan] This query is created and developed for SCADA measurement visualization for bus info in EMS state estimation front-end web
+
+
+drop query SCADA_bus
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query SCADA_bus ()
+for graph gsql_EMS {
+	
+	SumAccum<string> @devicetype;
+	//ListAccum<node> @@NodeList;
+	
+	T0 = {TopoND.*};
+	
+	// bus voltage and line list
+    T1 = SELECT s   
+	     FROM T0:s
+		  //where e.reverse == 0
+		 //where s.island == 1
+		 POST-ACCUM
+			CASE WHEN (s.GenP > 0 or s.LdP < 0) THEN
+				CASE WHEN (s.GenP < 0 or s.LdP > 0) THEN
+					s.@devicetype = "发电机, 负荷"
+				ELSE
+					s.@devicetype = "发电机"
+				END
+			ELSE
+				s.@devicetype = "负荷"
+			END;
+
+	
+	//end;
+	print T1;
+
+
+	
+		 
+}
+
+//install query SCADA_bus

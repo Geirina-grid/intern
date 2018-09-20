@@ -1,0 +1,80 @@
+drop query getLineData_OR
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query getLineData_OR()
+for graph gsql_EMS {
+	
+//	TYPEDEF TUPLE < string edge_name, int edge_type, int s_exId, int t_exId, int s_type, int t_type, string tap_bus_name, string z_bus_name, double R, double X, double B, double Line1_MVA, double Line2_MVA, double Line3_MVA> row;
+	
+	TYPEDEF TUPLE < string edge_name, int edge_type, int s_exId, int t_exId, double Line1_MVA, double kcount, double Line1_original> row;
+		
+	SumAccum<int> @@id = 0;
+//	ListAccum<row> @@edgeList; 
+	HeapAccum<row>(1000000, edge_name asc) @@edgeList;
+	double Line1_MVA;
+	double Line2_MVA;
+	double Line3_MVA;
+	double Line1_original;
+	
+    //print "line_id", "tap_bus", "z_bus", "R", "X", "B", "P", "Q", "I", "Line1_MVA", "Line2_MVA", "Line3_MVA";	
+	T0 = {TopoND.*};
+		 
+	T0 = SELECT v   
+	     FROM T0:v-(topo_connect:e)->TopoND:t
+	     where 
+		  (v.exId == 12  and t.exId == 11)   or (v.exId == 11   and t.exId == 12)  or
+		  (v.exId == 1   and t.exId == 2)    or (v.exId == 2    and t.exId == 1)   or
+		  (v.exId == 224 and t.exId == 342)  or (v.exId == 342  and t.exId == 224) or
+		  (v.exId == 8   and t.exId == 376)  or (v.exId == 376  and t.exId == 8)   or
+		  (v.exId == 2   and t.exId == 6)    or (v.exId == 6    and t.exId == 2)   or
+		  (v.exId == 446 and t.exId == 376)  or (v.exId == 376  and t.exId == 446) or
+		  (v.exId == 11  and t.exId == 2242) or (v.exId == 2242 and t.exId == 11)  or
+		  (v.exId == 9   and t.exId == 653)  or (v.exId == 653  and t.exId == 9)   or
+		  (v.exId == 10  and t.exId == 656)  or (v.exId == 656  and t.exId == 10)  or
+		  (v.exId == 618 and t.exId == 2488) or (v.exId == 2488 and t.exId == 618)
+		 //where e.reverse == 1 and s.island == 1 and t.island == 1//and s.island == 1 and t.island == 1
+		 ACCUM
+			e.edge_name = v.bus_name + "->" + t.bus_name;
+	
+    T1 = SELECT v
+	      FROM T0:v-(topo_connect:e)->TopoND:t
+	      where 
+		  (v.exId == 12  and t.exId == 11)   or (v.exId == 11   and t.exId == 12)  or
+		  (v.exId == 1   and t.exId == 2)    or (v.exId == 2    and t.exId == 1)   or
+		  (v.exId == 224 and t.exId == 342)  or (v.exId == 342  and t.exId == 224) or
+		  (v.exId == 8   and t.exId == 376)  or (v.exId == 376  and t.exId == 8)   or
+		  (v.exId == 2   and t.exId == 6)    or (v.exId == 6    and t.exId == 2)   or
+		  (v.exId == 446 and t.exId == 376)  or (v.exId == 376  and t.exId == 446) or
+		  (v.exId == 11  and t.exId == 2242) or (v.exId == 2242 and t.exId == 11)  or
+		  (v.exId == 9   and t.exId == 653)  or (v.exId == 653  and t.exId == 9)   or
+		  (v.exId == 10  and t.exId == 656)  or (v.exId == 656  and t.exId == 10)  or
+		  (v.exId == 618 and t.exId == 2488) or (v.exId == 2488 and t.exId == 618)
+		  //where e.flag == 0 and e.reverse == 1 and s.island == 1 and t.island == 1
+		  ACCUM 
+			log(true, v.exId, t.exId),
+            int minValue = e.kcount - 1,
+            IF (minValue < 0) THEN
+                minValue = 0
+            END,
+	    FOREACH i in range[0, minValue] DO
+ 		//@@edgeList+= row(e.edge_name, e.flag, s.exId, t.exId, s.busType, t.busType, s.bus_name, t.bus_name, e.R.get(i), e.X.get(i), e.hB.get(i), e.Line_Q1.get(i), e.Line_Q2.get(i), e.Line_Q3.get(i))
+		 //@@edgeList+= row(e.edge_name, e.flag, s.exId, t.exId, s.busType, t.busType, s.bus_name, t.bus_name, e.R, e.X, e.hB, e.Line_Q1, e.Line_Q2, e.Line_Q3)
+		 @@edgeList+= row(e.edge_name, e.flag, v.exId, t.exId, e.line_Q1, e.kcount, e.line_Q1_original)
+	    END;
+			
+	    //log(true,@@edgeList);
+	
+	foreach x in @@edgeList do
+		@@id += 1;
+		Line1_MVA = x.Line1_MVA * 1;
+		Line1_original = x.Line1_original;
+		print x.edge_name, x.edge_type, x.s_exId, x.t_exId, Line1_MVA, x.kcount, Line1_original ;
+	
+	end;
+			  
+		 
+}
+
+install query getLineData_OR

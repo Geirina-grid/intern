@@ -1,0 +1,47 @@
+drop query regulator_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query regulator_D()
+for graph powerflow_graph {
+	
+	TYPEDEF TUPLE <string regulator_name, string tap_bus, string phase, double voltage_level, double R, double X,  int Tap_max, int Tap_min, double Tap_range, double PT, double CT_rating, double bandwidth,  string control_phase_reg, string startnode> reg;
+	// SumAccum<int> @@id = 0;
+	ListAccum<reg> @@regulatorList; 
+	
+	T0 = {bus_D.*};
+    T1 = SELECT s
+	      FROM T0:s-(foree_D:e)-bus_D:t
+		  where (e.flag==2)
+		  ACCUM 
+		  int Tap_max=16,
+		  int Tap_min=-16,
+		  double Tap_range=0.75,
+	      string phase="ABC",
+		  
+		  case when (e.Raa>0.001) then
+		  phase= "A",
+		  @@regulatorList+=reg(t.exId, s.exId, phase, t.vol_reg_A, e.Raa, e.Xaa,  Tap_max, Tap_min, Tap_range, t.PT_reg,  t.CT_reg, t.BW_reg, t.control_phase_reg, s.startnode )
+		  end, 
+		  case when (e.Rbb>0.001) then
+		  phase= "B",
+          @@regulatorList+=reg(t.exId, s.exId, phase, t.vol_reg_B, e.Rbb, e.Xbb, Tap_max, Tap_min, Tap_range, t.PT_reg,  t.CT_reg, t.BW_reg, t.control_phase_reg, s.startnode )		  
+		  end, 
+		  case when (e.Rcc>0.001) then
+		  phase= "C",
+          @@regulatorList+=reg(t.exId, s.exId, phase, t.vol_reg_C, e.Rcc, e.Xcc, Tap_max, Tap_min, Tap_range, t.PT_reg,  t.CT_reg, t.BW_reg, t.control_phase_reg, s.startnode )		  
+		  end; 
+	
+	
+	
+	foreach x in @@regulatorList do
+	
+			print x.regulator_name, x.tap_bus, x.phase, x.voltage_level, x.R, x.X, x.Tap_max, x.Tap_min, x.Tap_range, x.PT, x.CT_rating, x.bandwidth,  x.control_phase_reg, x.startnode;
+	
+	end;
+	
+	// print @@edgeList;		 
+}
+
+//install query regulator_D

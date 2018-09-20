@@ -1,0 +1,31 @@
+// Install query about Fast Decoupled Power Flow
+gsql schema_EMS_sc_v1_qxs.ddl
+gsql -g gsql_EMS loadflow_EMS_v1.gsql
+gsql -g gsql_EMS power_flow_SCADA.gsql
+gsql -g gsql_EMS state_estimation_gain.gsql
+gsql -g gsql_EMS state_estimation_solve.gsql
+gsql -g gsql_EMS power_flow.gsql
+
+gsql -g gsql_EMS 'run query -dm FDPF_SCADA()'
+gsql -g gsql_EMS 'run query -dm state_estimation_weight_gain()'
+gsql -g gsql_EMS 'run query -dm state_estimation_weight_solve()'
+gsql -g gsql_EMS 'run query -dm FDPF_EMS()'
+
+gsql -g gsql_EMS vertexResult_Jin.gsql
+gsql -g gsql_EMS lineResult_Jin_new.gsql
+gsql -g gsql_EMS loadResult_new.gsql
+gsql -g gsql_EMS genResult_new.gsql
+gsql -g gsql_EMS transResult_new.gsql
+
+gsql -g gsql_EMS 'run query -dm vertexResult()'
+gsql -g gsql_EMS 'run query -dm lineResult()'
+gsql -g gsql_EMS 'run query -dm loadResult()'
+gsql -g gsql_EMS 'run query -dm genResult()'
+gsql -g gsql_EMS 'run query -dm transResult()'
+
+// Install query about Newton Rhaphson Power Flow
+gsql flowSchema_graphsql44_qxs.ddl
+gsql -g company_graph loadFlow_sc_20171207_mod.gsql
+gsql -g company_graph nrpf_nicslu_bmk_v6_mod.gsql
+
+gsql -g company_graph 'run query -dm nrpf_graphlu_bmk_v6(0.005, 20, 0, 1.0, 1.0, _, 1)'

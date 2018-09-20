@@ -1,0 +1,32 @@
+<div>
+  <h2>Power Flow Calculation Parameter</h2>
+  
+  <div style="font-size: 1.5em">
+    Maximum Iteration Number:
+    <input type="text" [(ngModel)]="iteration">   
+  </div>
+  <div style="font-size: 1.5em">
+    Convergence Criteria:
+    <input type="text" [(ngModel)]="maxchange" pInputText placeholder="0.001">  
+    p.u. 
+  </div>
+  
+  <hr/>
+  <h2>Run Power Flow</h2>
+  <p-confirmDialog header="Confirmation" icon="fa fa-question-circle" width="425"></p-confirmDialog>
+  <div>
+    <button pButton type="button" style="font-size: 2em; margin: 10px" label="Run" (click)="Confirm()"></button>
+  </div>
+  <hr/>
+  <h2>Power Flow Status</h2>
+  
+  <div style="font-size: 1.5em">
+  Number of Iterations:
+    <input type="text" [(ngModel)]="ItNo" pInputText placeholder="">   
+  </div>
+  <div style="font-size: 1.5em">
+    Computational Accuracy:
+    <input type="text" [(ngModel)]="Accuracy" pInputText placeholder="">  
+    p.u. 
+  </div>
+</div>

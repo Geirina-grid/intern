@@ -1,0 +1,184 @@
+<p-growl [(value)]="messages"></p-growl>
+
+<p-dialog header="Saved Trained Model Details" [(visible)]="detailsDisplay" width=650 height=500>
+    <p-dataTable [value]="savedModelInfo" scrollable="true" scrollHeight="350px">
+        <p-header>
+            <div class="ui-helper-clearfix" style="position:relative">
+                <div style="text-align:left">
+                    {{selectedSavedModel}}
+                </div>
+                <div style="position:absolute;top:0;right:0">
+                    <button pButton type="button" label="Detailed Analysis" (click)="onTrainAnalysisClick()" style="height:25px"></button>
+                </div>
+            </div>
+        </p-header>
+        <p-column field="type" header="" [style]="{'width':'100px'}"></p-column>
+        <p-column field="value" header="Details"></p-column>
+    </p-dataTable>
+</p-dialog>
+
+<div>
+    <div class="ui-g-8 ui-g-nopad main-container">
+        <div class="predictResultChart">
+            <div id="container1" [style.height.px]="chartH">
+            </div>
+            <button pButton type="button" label="添加天气数据" (click)="onCompareWeatherClick()" style="top:5px;right:20px;position:absolute;"></button>
+        </div>
+        <div style="padding-left:30px;padding-right:10px">
+            <p-dataTable [value]="stats" [metaKeySelection]="false" [paginator]="false" sortMode="multiple" [style]="{'text-align':'center'}">
+                <p-header>预测误差结果统计</p-header>
+                <p-column field="type" header=""></p-column>
+                <p-column field="mean" header="误差平均值"></p-column>
+                <p-column field="median" header="误差中位数"></p-column>
+                <p-column field="max" header="最大误差"></p-column>
+                <p-column field="min" header="最小误差"></p-column>
+                <p-column field="std" header="标准差"></p-column>
+            </p-dataTable>
+        </div>
+        <div class="model-analysis-box confirm">
+            <button pButton type="button" label="显示该模型的训练结果分析" (click)="showTrainAnalysis()"></button>
+            <button pButton type="button" label="训练新模型" (click)="trainNewModel()"></button>
+        </div>
+    </div>
+    <div class="ui-g-4 ui-g-nopad main-container">
+        <div class="selections-container">
+            <div class="selection-container">
+                预测日期:
+                <p-calendar [(ngModel)]="date" [inputStyle]="{'width':'200px'}" [showIcon]="true" [defaultDate]="defaultDate" yearNavigator="true"
+                    monthNavigator="true" [yearRange]="yearRange" [minDate]="minDate" [maxDate]="maxDate"></p-calendar>
+            </div>
+            <div class="selection-container">
+                选用模型:
+                <p-dropdown [options]="modelList" [(ngModel)]="selectedSavedModel" [style]="{'width':'250px'}" editable="editable" placeholder="所选仪表没有预训练模型"
+                    (onChange)="onModelSelect()"></p-dropdown>
+            </div>
+            <div class="selection-container confirm">
+                <div>
+                    <button pButton type="button" label="预测" (click)="confirm()"></button>
+                    <button pButton type="button" label="查看模型参数细节" (click)="onDetialsButtonClick()"></button>
+                </div>
+            </div>
+        </div>
+        <div class="selection-container">
+            <p-dataTable [value]="predictResults" [metaKeySelection]="false" [paginator]="false" sortMode="multiple" [style]="{'text-align':'center'}"
+                dataKey="time" scrollable="true" [scrollHeight]="errorTableH" selectionMode="single" [(selection)]="selectedErrPoints"
+                (onRowSelect)="onErrTableRowSelect($event)" (onRowUnselect)="onErrTableRowUnselect($event)">
+                <p-header>各小时负荷预测误差统计</p-header>
+                <p-column field="time" header="" [style]="{'overflow':'hidden','width':'30px'}">
+                    <ng-template let-ri="rowIndex" pTemplate="body">
+                        {{ri+1}}
+                    </ng-template>
+                </p-column>
+                <p-column field="time" header="时间" [style]="{'overflow':'hidden'}"></p-column>
+                <p-column field="predict" header="预测结果(MW)" [style]="{'overflow':'hidden'}"></p-column>
+                <p-column field="real" header="真值(MW)" [style]="{'overflow':'hidden'}"></p-column>
+                <p-column field="ape" header="平均百分比误差(APE)(%)" [sortable]="true" [style]="{'overflow':'hidden'}"></p-column>
+            </p-dataTable>
+        </div>
+    </div>
+</div>
+
+<p-dialog header="训练数据预处理与训练结果" [(visible)]="logDisplay" width=500>
+    <app-preprocess-train-log></app-preprocess-train-log>
+</p-dialog>
+
+
+<!-- <div class="ui-g">
+    <div class="left">
+        <div class="ui-g">
+            <div class="predictResultChart">
+                <div id="container1" [style.height.px]="chartH">
+                </div>
+                <button pButton type="button" label="Add Weather" (click)="onCompareWeatherClick()" style="top:5px;right:20px;position:absolute;"></button>
+            </div>
+            <div class="errortable">
+                <p-dataTable [value]="predictResults" [metaKeySelection]="false" [paginator]="false" sortMode="multiple" [style]="{'text-align':'center'}"
+                    dataKey="time" scrollable="true" [scrollHeight]="errorTableH" selectionMode="single" [(selection)]="selectedErrPoints"
+                    (onRowSelect)="onErrTableRowSelect($event)" (onRowUnselect)="onErrTableRowUnselect($event)">
+                    <p-header>Prediction Results</p-header>
+                    <p-column field="time" header="" [style]="{'overflow':'hidden','width':'30px'}">
+                        <ng-template let-ri="rowIndex" pTemplate="body">
+                            {{ri+1}}
+                        </ng-template>
+                    </p-column>
+                    <p-column field="time" header="time" [style]="{'overflow':'hidden'}"></p-column>
+                    <p-column field="predict" header="Predict" [style]="{'overflow':'hidden'}"></p-column>
+                    <p-column field="real" header="Real" [style]="{'overflow':'hidden'}"></p-column>
+                    <p-column field="ape" header="APE" [sortable]="true" [style]="{'overflow':'hidden'}"></p-column>
+                </p-dataTable>
+            </div>
+        </div>
+        <div style="padding-left:30px;padding-right:10px">
+            <p-dataTable [value]="stats" [metaKeySelection]="false" [paginator]="false" sortMode="multiple" [style]="{'text-align':'center'}">
+                <p-header>Prediction Error</p-header>
+                <p-column field="type" header=""></p-column>
+                <p-column field="mean" header="mean"></p-column>
+                <p-column field="median" header="median"></p-column>
+                <p-column field="max" header="max"></p-column>
+                <p-column field="min" header="min"></p-column>
+                <p-column field="std" header="std"></p-column>
+            </p-dataTable>
+        </div>
+    </div>
+    <div class="right">
+        <div class="selection">
+            <div>
+                Date:
+                <p-calendar [(ngModel)]="date" [inputStyle]="{'width':'200px'}" [showIcon]="true" [defaultDate]="defaultDate" yearNavigator="true"
+                    monthNavigator="true" [yearRange]="yearRange" [minDate]="minDate" [maxDate]="maxDate"></p-calendar>
+            </div>
+            <div>
+                Model:
+                <p-dropdown [options]="modelList" [(ngModel)]="selectedSavedModel" [style]="{'width':'250px'}" editable="editable" placeholder="Select Saved Trained Model"
+                    (onChange)="onModelSelect()"></p-dropdown>
+            </div>
+            <div>
+                <div *ngIf="selectedSavedModel == null; then savenonexist; else saveexist" style="font-size:1.15em">
+                </div>
+                <ng-template #savenonexist>
+                    <ul style="margin-top:0.25em;margin-bottom:0">
+                        <li>
+                            No trained model existed for selected meter.
+                            <br>Train the model first.
+                        </li>
+                        <li>
+                            <button type="button" (click)="onDetialsButtonClick()" class="inlistbutton">train new model</button>
+                        </li>
+                    </ul>
+                </ng-template>
+                <ng-template #saveexist>
+                    <ul style="margin-top:0.25em;margin-bottom:0">
+                        <li *ngFor="let item of savedModelInfo.slice(2,4)">
+                            {{item.type}}: {{item.value}}
+                        </li>
+                        <li>
+                            <button type="button" (click)="onDetialsButtonClick()" class="inlistbutton">more details</button>
+                        </li>
+                    </ul>
+                </ng-template>
+            </div>
+        </div>
+        <div class="confirm">
+            <div>
+                <button pButton type="button" label="Predict" (click)="confirm()"></button>
+                <button pButton type="button" label="List Previous" (click)="listPrevPredict()"></button>
+            </div>
+        </div>
+        <div class="prevPredictTable" [style.height.px]="prevTableH">
+            <p-dataTable [value]="prevResults" [metaKeySelection]="false" [paginator]="false" sortMode="multiple" [style]="{'text-align':'center'}" dataKey="time" #dt>
+                <p-header>Previous Prediction Comparison</p-header>
+                <p-column field="time" header="Predict Date" [sortable]="true" [style]="{'width':'110px'}" [filter]="true" filterMatchMode="in">
+                    <ng-template pTemplate="filter" let-col>
+                        <p-multiSelect [options]="prevPredictDates" defaultLabel="All Dates" (onChange)="dt.filter($event.value,col.field,col.filterMatchMode)" styleClass="ui-column-filter"></p-multiSelect>
+                    </ng-template>
+                </p-column>
+                <p-column field="mape" header="MAPE" [sortable]="true" [style]="{'overflow':'hidden','width':'60px'}"></p-column>
+                <p-column field="model" header="Model" [filter]="true" filterMatchMode="in">
+                    <ng-template pTemplate="filter" let-col>
+                        <p-multiSelect [options]="prevPredictModels" defaultLabel="All Models" (onChange)="dt.filter($event.value,col.field,col.filterMatchMode)" styleClass="ui-column-filter"></p-multiSelect>
+                    </ng-template>
+                </p-column>
+            </p-dataTable>
+        </div>
+    </div>
+</div> -->

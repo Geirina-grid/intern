@@ -1,0 +1,50 @@
+<p-dialog header="信息" [(visible)]="display1" width=450 height=100 [closable]="false">
+  <p>系统正在运行数据补全算法，大概需要几分钟，请您耐心等待...</p>
+</p-dialog>
+<p-growl [value]="msgs"></p-growl>
+<p-confirmDialog></p-confirmDialog>
+<div class="ui-g">
+  <div class="ui-g-4">
+    选择算法:
+    <p-dropdown [options]="algos" [(ngModel)]="chosenalgo" [style]="{'width':'15em'}" placeholder="Select Algo"></p-dropdown>
+  </div>
+  <div class="ui-g-4">
+    进程数:
+    <p-dropdown [options]="processcount" [(ngModel)]="chosenprocess" [style]="{'width':'150px'}" placeholder="Select Process"></p-dropdown>
+  </div>
+  <div class="ui-g-4">
+    <button pButton type="button" label="重新运行算法" style="font-size:1.2em" (click)="runalgo()"></button>
+  </div>
+  <div class="ui-g-3">
+    起始日期:<br />
+    <p-calendar [(ngModel)]="sdate" [showIcon]="true" [defaultDate]="defaultDates"></p-calendar>
+  </div>
+  <div class="ui-g-3">
+    终止日期:<br />
+    <p-calendar [(ngModel)]="edate" [showIcon]="true" [defaultDate]="defaultDatee"></p-calendar>
+  </div>
+  <div class="ui-g-2">
+    用户ID:<br />
+    <p-dropdown [options]="meters" [(ngModel)]="selectedmeter" [style]="{'width':'100px'}" editable="editable" placeholder="Select ID" (onChange)="onChangeID($event)"></p-dropdown>
+  </div>
+  <div class="ui-g-2">
+    选择相:<br />
+    <p-dropdown [options]="phases" [(ngModel)]="chosenphase" [style]="{'width':'100px'}" placeholder="Select Phase"></p-dropdown>
+  </div>
+  <div class="ui-g-2">
+      <br />
+    <button pButton type="button" label="展示" (click)="showres()" style="font-size: 1.1em"></button>
+  </div>
+  <div class="ui-g-12">
+    <p-dataTable [value]="stats" [metaKeySelection]="false" [paginator]="false">
+      <!-- <p-column field="numm" header="Number of Missing Entries"></p-column> -->
+      <p-column field="mean1" header="Mean Value"></p-column>
+      <p-column field="corr" header="Correlation Coefficient"></p-column>
+      <p-column field="diff" header="Mean Absolute Error"></p-column>
+    </p-dataTable>
+  </div>
+  <div class="ui-g-12">
+    <chart type="StockChart" [options]="options">
+    </chart>
+  </div>
+</div>

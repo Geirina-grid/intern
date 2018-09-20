@@ -1,0 +1,2629 @@
+MessageQueue|ZMQ|Context_New
+GPE Server: Version
+enduser    x    x    2018-08-14 10:16:53 -0700
+gsdk xxxx master 2017-08-31 17:52:17 -0700
+
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0814 13:32:27.557572 41097 completion_queue_manager.cpp:17] This constructor should only be use in client end.
+D0814 13:32:27.557662405   41097 env_linux.c:77]             Warning: insecure environment read function 'getenv' used
+
+13:32:27.557438 gconfig.cpp:28] Engine_GConfig|ProcMaxGB set to 0
+13:32:27.557494 gconfig.cpp:28] Engine_GConfig|ProcAlertGB set to 0
+13:32:27.557498 gconfig.cpp:28] Engine_GConfig|SysMinFreePct set to 10
+13:32:27.557502 gconfig.cpp:28] Engine_GConfig|SysAlertFreePct set to 30StatusHubAgentServer is listening at ipc:///tmp/gsql_41097.
+I0814 13:32:27.557909 41097 gdict.cpp:292] Dictionary initialize start
+I0814 13:32:27.557920 41105 completion_queue_manager.cpp:84] Client CompletionQueue (0x3048170) begin processing.
+2018-08-14 13:32:27,557:41097(0x7f0b7bb08840):ZOO_INFO@log_env@712: Client environment:zookeeper.version=zookeeper C client 3.4.6
+2018-08-14 13:32:27,557:41097(0x7f0b7bb08840):ZOO_INFO@log_env@716: Client environment:host.name=had00p02.test.sgri.com
+2018-08-14 13:32:27,557:41097(0x7f0b7bb08840):ZOO_INFO@log_env@723: Client environment:os.name=Linux
+2018-08-14 13:32:27,557:41097(0x7f0b7bb08840):ZOO_INFO@log_env@724: Client environment:os.arch=2.6.32-642.13.1.el6.x86_64
+2018-08-14 13:32:27,557:41097(0x7f0b7bb08840):ZOO_INFO@log_env@725: Client environment:os.version=#1 SMP Wed Jan 11 20:56:24 UTC 2017
+2018-08-14 13:32:27,558:41097(0x7f0b7bb08840):ZOO_INFO@log_env@733: Client environment:user.name=graphsql
+2018-08-14 13:32:27,558:41097(0x7f0b7bb08840):ZOO_INFO@log_env@741: Client environment:user.home=/home/graphsql
+2018-08-14 13:32:27,558:41097(0x7f0b7bb08840):ZOO_INFO@log_env@753: Client environment:user.dir=/home/graphsql/graphsql/logs
+2018-08-14 13:32:27,558:41097(0x7f0b7bb08840):ZOO_INFO@zookeeper_init@786: Initiating client connection, host=127.0.0.1:19999 sessionTimeout=30000 watcher=0x815800 sessionId=0 sessionPasswd=<null> context=0x30ea140 flags=0
+W0814 13:32:27.558462 41097 zookeeper_context.cpp:973] Connection initiated to ZooKeeper
+2018-08-14 13:32:27,558:41097(0x7f0b7143f700):ZOO_INFO@check_events@1705: initiated connection to server [127.0.0.1:19999]
+2018-08-14 13:32:27,559:41097(0x7f0b7143f700):ZOO_INFO@check_events@1752: session establishment complete on server [127.0.0.1:19999], sessionId=0x164f692d10cf2a4, negotiated timeout=30000
+I0814 13:32:27.560019 41107 zookeeper_context.cpp:230] Root Watcher SESSION_EVENT state = CONNECTED_STATE for path: NA
+I0814 13:32:27.560037 41107 zookeeper_context.cpp:81] ZooKeeper Connection is setup. Session id: 164f692d10cf2a4, previous client id:0
+I0814 13:32:27.560048 41107 zookeeper_watcher.cpp:311] Zk Session connected, notifying watchers
+I0814 13:32:27.560056 41107 zookeeper_watcher.cpp:318]   --> Number of watchers: 0
+I0814 13:32:27.560063 41107 zookeeper_watcher.cpp:319]   --> Callback time used(us): 6
+I0814 13:32:27.608913 41097 heartbeat_client.cpp:411] CLIENT: resolved server address: 127.0.0.1:17797
+I0814 13:32:27.608938 41097 channel_pool.cpp:36] Can not find channel, adding for destination: 127.0.0.1:17797
+I0814 13:32:27.609457 41097 async_client.cpp:46] Connected to 127.0.0.1:17797. ChannelState:2
+W0814 13:32:27.609555 41097 heartbeat_client.cpp:438] CLIENT: Detect server update, old server: , new server: 127.0.0.1:17797. Tried to start client session, session: 0x10675c8 rc: kOk
+I0814 13:32:27.609706 41105 heartbeat_client.cpp:319] ClientSession is issued. Session 0x10675c8 Server:127.0.0.1:17797
+I0814 13:32:27.609797 41109 single_thread_worker.cpp:73] SingleThreadWorker start: HeartbeatClient
+I0814 13:32:27.609836 41109 client_watcher_manager.cpp:31] Reconnect session, re-watch all paths. size:0
+I0814 13:32:27.619664 41097 gdict.cpp:339] Dictionary initialize succeed, took 62 milliseconds
+
+13:32:27.754700 gpeconfig.cpp:50] System_Config|hostname: GPE_1_1
+ipaddress: 127.0.0.1
+port: 
+log directory: /home/graphsql/graphsql/logs
+partitionpath: /home/graphsql/graphsql/gstore/0/part/
+maxjobs: 1
+num_rebuild_threads: 3
+zk_connection: 127.0.0.1:19999
+Log folder at /home/graphsql/graphsql/logs/GPE_1_1
+------------------------------------------------
+MALLOC:        8019056 (    7.6 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +       524456 (    0.5 MiB) Bytes in central cache freelist
+MALLOC: +        64512 (    0.1 MiB) Bytes in transfer cache freelist
+MALLOC: +       321256 (    0.3 MiB) Bytes in thread cache freelists
+MALLOC: +      1142944 (    1.1 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     10072224 (    9.6 MiB) Actual memory used (physical + swap)
+MALLOC: +       507904 (    0.5 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     10580128 (   10.1 MiB) Virtual address space used
+MALLOC:
+MALLOC:            534              Spans in use
+MALLOC:             10              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+2018-08-14 13:32:27,858:41097(0x7f0b7bb08840):ZOO_INFO@log_env@712: Client environment:zookeeper.version=zookeeper C client 3.4.6
+2018-08-14 13:32:27,858:41097(0x7f0b7bb08840):ZOO_INFO@log_env@716: Client environment:host.name=had00p02.test.sgri.com
+2018-08-14 13:32:27,858:41097(0x7f0b7bb08840):ZOO_INFO@log_env@723: Client environment:os.name=Linux
+2018-08-14 13:32:27,858:41097(0x7f0b7bb08840):ZOO_INFO@log_env@724: Client environment:os.arch=2.6.32-642.13.1.el6.x86_64
+2018-08-14 13:32:27,858:41097(0x7f0b7bb08840):ZOO_INFO@log_env@725: Client environment:os.version=#1 SMP Wed Jan 11 20:56:24 UTC 2017
+2018-08-14 13:32:27,859:41097(0x7f0b7bb08840):ZOO_INFO@log_env@733: Client environment:user.name=graphsql
+2018-08-14 13:32:27,859:41097(0x7f0b7bb08840):ZOO_INFO@log_env@741: Client environment:user.home=/home/graphsql
+2018-08-14 13:32:27,859:41097(0x7f0b7bb08840):ZOO_INFO@log_env@753: Client environment:user.dir=/home/graphsql/graphsql/logs
+2018-08-14 13:32:27,859:41097(0x7f0b7bb08840):ZOO_INFO@zookeeper_init@786: Initiating client connection, host=127.0.0.1:19999 sessionTimeout=30000 watcher=0x815800 sessionId=0 sessionPasswd=<null> context=0x30ea640 flags=0
+2018-08-14 13:32:27,859:41097(0x7f0b6e23a700):ZOO_INFO@check_events@1705: initiated connection to server [127.0.0.1:19999]
+2018-08-14 13:32:27,860:41097(0x7f0b6e23a700):ZOO_INFO@check_events@1752: session establishment complete on server [127.0.0.1:19999], sessionId=0x164f692d10cf2a5, negotiated timeout=30000
+------------------------------------------------
+MALLOC:        8250832 (    7.9 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +       500792 (    0.5 MiB) Bytes in central cache freelist
+MALLOC: +        64512 (    0.1 MiB) Bytes in transfer cache freelist
+MALLOC: +       375288 (    0.4 MiB) Bytes in thread cache freelists
+MALLOC: +      1142944 (    1.1 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     10334368 (    9.9 MiB) Actual memory used (physical + swap)
+MALLOC: +       245760 (    0.2 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     10580128 (   10.1 MiB) Virtual address space used
+MALLOC:
+MALLOC:            549              Spans in use
+MALLOC:             12              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+CREATE partition path /home/graphsql/graphsql/gstore/0/part/
+E0814 13:32:28.035903 41097 zeromq.cpp:173] zmq writer size 1
+E0814 13:32:28.036022 41097 zeromq.cpp:175] zmq writertcp://*:7512
+------------------------------------------------
+MALLOC:       11419680 (   10.9 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +       588560 (    0.6 MiB) Bytes in central cache freelist
+MALLOC: +        64512 (    0.1 MiB) Bytes in transfer cache freelist
+MALLOC: +       370896 (    0.4 MiB) Bytes in thread cache freelists
+MALLOC: +      1142944 (    1.1 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     13586592 (   13.0 MiB) Actual memory used (physical + swap)
+MALLOC: +       139264 (    0.1 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     13725856 (   13.1 MiB) Virtual address space used
+MALLOC:
+MALLOC:            586              Spans in use
+MALLOC:             22              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+CompareTo GraphConfig:
+EdgeType typeid: 0, typename: connected, has subtype: 0, from vertex Gnode to vertex Gnode, isdirected: 1, attribute( type: 10, name: G, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: B, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: hB, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: K, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 9, name: Kcount, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: BIJ, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 9, name: flag, fixedsize_: 0, enumerator: 0, datetime: 0), 
+VertexType typeid: 0, typename: Gnode, has subtype: 0, stattype: 2, iconname: , attribute( type: 2, name: exId, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 2, name: flag, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: P, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: Q, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: Vm, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: Vr, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: Vs, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: qUp, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: qLower, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: P1, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: Q1, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: V1, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: G, fixedsize_: 0, enumerator: 0, datetime: 0), attribute( type: 10, name: B, fixedsize_: 0, enumerator: 0, datetime: 0), 
+------------------------------------------------
+MALLOC:       13995632 (   13.3 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +       681696 (    0.7 MiB) Bytes in central cache freelist
+MALLOC: +        64512 (    0.1 MiB) Bytes in transfer cache freelist
+MALLOC: +       470704 (    0.4 MiB) Bytes in thread cache freelists
+MALLOC: +      1142944 (    1.1 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     16355488 (   15.6 MiB) Actual memory used (physical + swap)
+MALLOC: +       516096 (    0.5 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     16871584 (   16.1 MiB) Virtual address space used
+MALLOC:
+MALLOC:            664              Spans in use
+MALLOC:             23              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+E0814 13:32:28.266675 41097 zeromq.cpp:419] zmq reader size 1
+E0814 13:32:28.266696 41097 zeromq.cpp:421] zmq readertcp://127.0.0.1:6500
+E0814 13:32:28.269467 41097 zeromq.cpp:419] zmq reader size 1
+E0814 13:32:28.269484 41097 zeromq.cpp:421] zmq readertcp://127.0.0.1:7509
+E0814 13:32:28.274312 41097 zeromq.cpp:173] zmq writer size 1
+E0814 13:32:28.274339 41097 zeromq.cpp:175] zmq writertcp://*:7515
+------------------------------------------------
+MALLOC:       17642672 (   16.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +       611144 (    0.6 MiB) Bytes in central cache freelist
+MALLOC: +        64512 (    0.1 MiB) Bytes in transfer cache freelist
+MALLOC: +       531464 (    0.5 MiB) Bytes in thread cache freelists
+MALLOC: +      1159328 (    1.1 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     20009120 (   19.1 MiB) Actual memory used (physical + swap)
+MALLOC: +      2400256 (    2.3 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     22409376 (   21.4 MiB) Virtual address space used
+MALLOC:
+MALLOC:            675              Spans in use
+MALLOC:             33              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+------------------------------------------------
+MALLOC:       17649144 (   16.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +       616912 (    0.6 MiB) Bytes in central cache freelist
+MALLOC: +        64512 (    0.1 MiB) Bytes in transfer cache freelist
+MALLOC: +       535608 (    0.5 MiB) Bytes in thread cache freelists
+MALLOC: +      1159328 (    1.1 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     20025504 (   19.1 MiB) Actual memory used (physical + swap)
+MALLOC: +      2383872 (    2.3 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     22409376 (   21.4 MiB) Virtual address space used
+MALLOC:
+MALLOC:            676              Spans in use
+MALLOC:             36              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+------------------------------------------------
+MALLOC:       17649144 (   16.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +       616912 (    0.6 MiB) Bytes in central cache freelist
+MALLOC: +        64512 (    0.1 MiB) Bytes in transfer cache freelist
+MALLOC: +       535608 (    0.5 MiB) Bytes in thread cache freelists
+MALLOC: +      1159328 (    1.1 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     20025504 (   19.1 MiB) Actual memory used (physical + swap)
+MALLOC: +      2383872 (    2.3 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     22409376 (   21.4 MiB) Virtual address space used
+MALLOC:
+MALLOC:            676              Spans in use
+MALLOC:             36              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+E0814 13:32:28.580659 41097 zeromq.cpp:173] zmq writer size 1
+E0814 13:32:28.580688 41097 zeromq.cpp:175] zmq writertcp://*:7500
+E0814 13:32:28.580796 41097 zeromq.cpp:173] zmq writer size 1
+E0814 13:32:28.580808 41097 zeromq.cpp:175] zmq writertcp://*:7503
+E0814 13:32:28.580896 41097 zeromq.cpp:173] zmq writer size 1
+E0814 13:32:28.580912 41097 zeromq.cpp:175] zmq writertcp://*:7506
+E0814 13:32:28.580986 41097 zeromq.cpp:173] zmq writer size 1
+E0814 13:32:28.580999 41097 zeromq.cpp:175] zmq writertcp://*:7509
+E0814 13:32:29.681998 41097 zeromq.cpp:419] zmq reader size 4
+E0814 13:32:29.682041 41097 zeromq.cpp:421] zmq readertcp://127.0.0.1:5503
+E0814 13:32:29.682054 41097 zeromq.cpp:421] zmq readertcp://127.0.0.1:8503
+E0814 13:32:29.682081 41097 zeromq.cpp:421] zmq readertcp://127.0.0.1:9503
+E0814 13:32:29.682094 41097 zeromq.cpp:421] zmq readertcp://127.0.0.1:7515
+E0814 13:32:29.683646 41097 brain_daemon.cpp:333] Election node:/graphsql/dict/objects/__services/GPE/_election_nodes/1/GPE_10000007008
+------------------------------------------------
+MALLOC:       18944640 (   18.1 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +       617416 (    0.6 MiB) Bytes in central cache freelist
+MALLOC: +        64512 (    0.1 MiB) Bytes in transfer cache freelist
+MALLOC: +       615864 (    0.6 MiB) Bytes in thread cache freelists
+MALLOC: +      1159328 (    1.1 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     21401760 (   20.4 MiB) Actual memory used (physical + swap)
+MALLOC: +      3104768 (    3.0 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     24506528 (   23.4 MiB) Virtual address space used
+MALLOC:
+MALLOC:            697              Spans in use
+MALLOC:             41              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+
+
+------------------------------------------------------------------------------------------- 
+Start Running GRAPHLU_NRpf_v4 C function!
+------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------- Number of rows:11103,	Number of nonzeros:38367
+	 -------------------------------------------------------------------------------------------- 
+
+
+
+================================================================================================ Time to sort HeapAccum:: 7652 us
+
+================================================================================================ 
+
+================================================================================================ Time to convert data to GRAPHLU time:: 732 us
+
+================================================================================================ 
+
+================================================================================================
+ Time for Jaccobian Initialization: 5119 us
+
+================================================================================================ 
+
+analysis time: 0.027728867
+
+====== GRAPHLU: Etree level = 3133time of creating scheduler: 0.01535714
+suggestion: sequential.
+total cores: 24, threads created: 2
+
+
+================================================================================================
+ Time for GRAPHLU analysis and scheduling 45049 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 0: 253 us
+
+================================================================================================ 
+
+Factorization time: 0.0121198
+substitution time: 0.000805352
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 1: 3328 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 1: 463 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 1: 247 us
+
+================================================================================================ 
+
+Factorization time: 0.008200107
+substitution time: 0.00072149
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 2: 3279 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 2: 437 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 2: 219 us
+
+================================================================================================ 
+
+Factorization time: 0.008870924
+substitution time: 0.000746541
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 3: 3242 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 3: 400 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 3: 221 us
+
+================================================================================================ 
+
+Factorization time: 0.007902477
+substitution time: 0.00068602
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 4: 3230 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 4: 394 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 4: 218 us
+
+================================================================================================ 
+
+Factorization time: 0.00793978
+substitution time: 0.000703153
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 5: 3234 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 5: 421 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 5: 212 us
+
+================================================================================================ 
+
+Factorization time: 0.007953209
+substitution time: 0.000692443
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 6: 3234 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 6: 397 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 6: 213 us
+
+================================================================================================ 
+
+Factorization time: 0.007848182
+substitution time: 0.00068337
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 7: 3215 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for factorization and power flow iteration: 99129 us
+
+================================================================================================ 
+
+
+
+----------------------------------------------------------------------------------------		 End of Running GRAPHLU_NRpf_v4 C function!		 ----------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------- 
+Start Running GRAPHLU_NRpf_v4 C function!
+------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------- Number of rows:11103,	Number of nonzeros:38367
+	 -------------------------------------------------------------------------------------------- 
+
+
+
+================================================================================================ Time to sort HeapAccum:: 7730 us
+
+================================================================================================ 
+
+================================================================================================ Time to convert data to GRAPHLU time:: 773 us
+
+================================================================================================ 
+
+================================================================================================
+ Time for Jaccobian Initialization: 5255 us
+
+================================================================================================ 
+
+analysis time: 0.027895685
+
+====== GRAPHLU: Etree level = 3133time of creating scheduler: 0.014797909
+suggestion: sequential.
+total cores: 24, threads created: 2
+
+
+================================================================================================
+ Time for GRAPHLU analysis and scheduling 44544 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 0: 198 us
+
+================================================================================================ 
+
+Factorization time: 0.011359734
+substitution time: 0.000748399
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 1: 3264 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 1: 430 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 1: 217 us
+
+================================================================================================ 
+
+Factorization time: 0.007874656
+substitution time: 0.000691208
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 2: 3251 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 2: 398 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 2: 214 us
+
+================================================================================================ 
+
+Factorization time: 0.007860203
+substitution time: 0.000686469
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 3: 3241 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 3: 399 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 3: 209 us
+
+================================================================================================ 
+
+Factorization time: 0.007848841
+substitution time: 0.00068062
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 4: 3246 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 4: 392 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 4: 208 us
+
+================================================================================================ 
+
+Factorization time: 0.00784999
+substitution time: 0.00069038
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 5: 3248 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 5: 403 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 5: 207 us
+
+================================================================================================ 
+
+Factorization time: 0.007811897
+substitution time: 0.000681416
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 6: 3238 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 6: 394 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 6: 208 us
+
+================================================================================================ 
+
+Factorization time: 0.007841078
+substitution time: 0.000679485
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 7: 3213 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for factorization and power flow iteration: 95043 us
+
+================================================================================================ 
+
+
+
+----------------------------------------------------------------------------------------		 End of Running GRAPHLU_NRpf_v4 C function!		 ----------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------- 
+Start Running GRAPHLU_NRpf_v4 C function!
+------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------- Number of rows:11103,	Number of nonzeros:38367
+	 -------------------------------------------------------------------------------------------- 
+
+
+
+================================================================================================ Time to sort HeapAccum:: 7803 us
+
+================================================================================================ 
+
+================================================================================================ Time to convert data to GRAPHLU time:: 680 us
+
+================================================================================================ 
+
+================================================================================================
+ Time for Jaccobian Initialization: 5157 us
+
+================================================================================================ 
+
+analysis time: 0.027734931
+
+====== GRAPHLU: Etree level = 3133time of creating scheduler: 0.01388691
+suggestion: sequential.
+total cores: 24, threads created: 2
+
+
+================================================================================================
+ Time for GRAPHLU analysis and scheduling 43443 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 0: 140 us
+
+================================================================================================ 
+
+Factorization time: 0.011259026
+substitution time: 0.000754369
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 1: 3251 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 1: 407 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 1: 223 us
+
+================================================================================================ 
+
+Factorization time: 0.007867104
+substitution time: 0.000703479
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 2: 3240 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 2: 402 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 2: 210 us
+
+================================================================================================ 
+
+Factorization time: 0.007856775
+substitution time: 0.00067833
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 3: 3260 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 3: 417 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 3: 209 us
+
+================================================================================================ 
+
+Factorization time: 0.007932383
+substitution time: 0.000674305
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 4: 3258 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 4: 401 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 4: 212 us
+
+================================================================================================ 
+
+Factorization time: 0.007898635
+substitution time: 0.000677657
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 5: 3238 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 5: 395 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 5: 209 us
+
+================================================================================================ 
+
+Factorization time: 0.007863838
+substitution time: 0.000675544
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 6: 3213 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 6: 394 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 6: 208 us
+
+================================================================================================ 
+
+Factorization time: 0.007839636
+substitution time: 0.000679824
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 7: 3214 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for factorization and power flow iteration: 94998 us
+
+================================================================================================ 
+
+
+
+----------------------------------------------------------------------------------------		 End of Running GRAPHLU_NRpf_v4 C function!		 ----------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------- 
+Start Running GRAPHLU_NRpf_v4 C function!
+------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------- Number of rows:11103,	Number of nonzeros:38367
+	 -------------------------------------------------------------------------------------------- 
+
+
+
+================================================================================================ Time to sort HeapAccum:: 7674 us
+
+================================================================================================ 
+
+================================================================================================ Time to convert data to GRAPHLU time:: 612 us
+
+================================================================================================ 
+
+================================================================================================
+ Time for Jaccobian Initialization: 5093 us
+
+================================================================================================ 
+
+analysis time: 0.027799214
+
+====== GRAPHLU: Etree level = 3133time of creating scheduler: 0.013298226
+suggestion: sequential.
+total cores: 24, threads created: 2
+
+
+================================================================================================
+ Time for GRAPHLU analysis and scheduling 42938 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 0: 138 us
+
+================================================================================================ 
+
+Factorization time: 0.011283265
+substitution time: 0.000686806
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 1: 3238 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 1: 411 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 1: 215 us
+
+================================================================================================ 
+
+Factorization time: 0.007876569
+substitution time: 0.00068702
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 2: 3222 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 2: 426 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 2: 206 us
+
+================================================================================================ 
+
+Factorization time: 0.007884211
+substitution time: 0.000678279
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 3: 3224 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 3: 389 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 3: 209 us
+
+================================================================================================ 
+
+Factorization time: 0.007893283
+substitution time: 0.000678257
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 4: 3247 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 4: 399 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 4: 208 us
+
+================================================================================================ 
+
+Factorization time: 0.00793844
+substitution time: 0.000707276
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 5: 3243 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 5: 390 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 5: 209 us
+
+================================================================================================ 
+
+Factorization time: 0.007924073
+substitution time: 0.000684718
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 6: 3221 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 6: 423 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 6: 214 us
+
+================================================================================================ 
+
+Factorization time: 0.007851398
+substitution time: 0.000691998
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 7: 3204 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for factorization and power flow iteration: 94990 us
+
+================================================================================================ 
+
+
+
+----------------------------------------------------------------------------------------		 End of Running GRAPHLU_NRpf_v4 C function!		 ----------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------- 
+Start Running GRAPHLU_NRpf_v4 C function!
+------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------- Number of rows:11103,	Number of nonzeros:38367
+	 -------------------------------------------------------------------------------------------- 
+
+
+
+================================================================================================ Time to sort HeapAccum:: 7650 us
+
+================================================================================================ 
+
+================================================================================================ Time to convert data to GRAPHLU time:: 599 us
+
+================================================================================================ 
+
+================================================================================================
+ Time for Jaccobian Initialization: 5268 us
+
+================================================================================================ 
+
+analysis time: 0.027883805
+
+====== GRAPHLU: Etree level = 3133time of creating scheduler: 0.01391381
+suggestion: sequential.
+total cores: 24, threads created: 2
+
+
+================================================================================================
+ Time for GRAPHLU analysis and scheduling 43653 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 0: 135 us
+
+================================================================================================ 
+
+Factorization time: 0.011387341
+substitution time: 0.000684135
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 1: 3241 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 1: 412 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 1: 220 us
+
+================================================================================================ 
+
+Factorization time: 0.00793905
+substitution time: 0.000684422
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 2: 3232 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 2: 407 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 2: 215 us
+
+================================================================================================ 
+
+Factorization time: 0.007824302
+substitution time: 0.00067662
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 3: 3267 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 3: 412 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 3: 206 us
+
+================================================================================================ 
+
+Factorization time: 0.00785275
+substitution time: 0.000689345
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 4: 3239 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 4: 397 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 4: 209 us
+
+================================================================================================ 
+
+Factorization time: 0.007875718
+substitution time: 0.000686993
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 5: 3230 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 5: 395 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 5: 210 us
+
+================================================================================================ 
+
+Factorization time: 0.007956881
+substitution time: 0.000680267
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 6: 3243 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 6: 397 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 6: 233 us
+
+================================================================================================ 
+
+Factorization time: 0.007891606
+substitution time: 0.000674137
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 7: 3217 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for factorization and power flow iteration: 95065 us
+
+================================================================================================ 
+
+
+
+----------------------------------------------------------------------------------------		 End of Running GRAPHLU_NRpf_v4 C function!		 ----------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------- 
+Start Running GRAPHLU_NRpf_v4 C function!
+------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------- Number of rows:11103,	Number of nonzeros:38367
+	 -------------------------------------------------------------------------------------------- 
+
+
+
+================================================================================================ Time to sort HeapAccum:: 7680 us
+
+================================================================================================ 
+
+================================================================================================ Time to convert data to GRAPHLU time:: 605 us
+
+================================================================================================ 
+
+================================================================================================
+ Time for Jaccobian Initialization: 5322 us
+
+================================================================================================ 
+
+analysis time: 0.028044199
+
+====== GRAPHLU: Etree level = 3133time of creating scheduler: 0.012821679
+suggestion: sequential.
+total cores: 24, threads created: 2
+
+
+================================================================================================
+ Time for GRAPHLU analysis and scheduling 42802 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 0: 149 us
+
+================================================================================================ 
+
+Factorization time: 0.01163302
+substitution time: 0.000699971
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 1: 3244 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 1: 403 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 1: 219 us
+
+================================================================================================ 
+
+Factorization time: 0.007911292
+substitution time: 0.000688452
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 2: 3256 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 2: 435 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 2: 208 us
+
+================================================================================================ 
+
+Factorization time: 0.007927598
+substitution time: 0.000688723
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 3: 3232 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 3: 418 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 3: 218 us
+
+================================================================================================ 
+
+Factorization time: 0.007881489
+substitution time: 0.000680252
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 4: 3272 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 4: 391 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 4: 206 us
+
+================================================================================================ 
+
+Factorization time: 0.007885253
+substitution time: 0.000682077
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 5: 3235 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 5: 397 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 5: 206 us
+
+================================================================================================ 
+
+Factorization time: 0.008248066
+substitution time: 0.000792726
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 6: 3313 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 6: 477 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 6: 243 us
+
+================================================================================================ 
+
+Factorization time: 0.007950851
+substitution time: 0.000692351
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 7: 3227 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for factorization and power flow iteration: 96243 us
+
+================================================================================================ 
+
+
+
+----------------------------------------------------------------------------------------		 End of Running GRAPHLU_NRpf_v4 C function!		 ----------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------- 
+Start Running GRAPHLU_NRpf_v4 C function!
+------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------- Number of rows:11103,	Number of nonzeros:38367
+	 -------------------------------------------------------------------------------------------- 
+
+
+
+================================================================================================ Time to sort HeapAccum:: 7716 us
+
+================================================================================================ 
+
+================================================================================================ Time to convert data to GRAPHLU time:: 562 us
+
+================================================================================================ 
+
+================================================================================================
+ Time for Jaccobian Initialization: 5273 us
+
+================================================================================================ 
+
+analysis time: 0.027843224
+
+====== GRAPHLU: Etree level = 3133time of creating scheduler: 0.012453511
+suggestion: sequential.
+total cores: 24, threads created: 2
+
+
+================================================================================================
+ Time for GRAPHLU analysis and scheduling 42211 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 0: 138 us
+
+================================================================================================ 
+
+Factorization time: 0.011665136
+substitution time: 0.000708618
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 1: 3242 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 1: 407 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 1: 212 us
+
+================================================================================================ 
+
+Factorization time: 0.007886495
+substitution time: 0.000690661
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 2: 3234 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 2: 410 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 2: 208 us
+
+================================================================================================ 
+
+Factorization time: 0.007836145
+substitution time: 0.000683006
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 3: 3243 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 3: 397 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 3: 223 us
+
+================================================================================================ 
+
+Factorization time: 0.007809211
+substitution time: 0.000683518
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 4: 3241 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 4: 392 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 4: 217 us
+
+================================================================================================ 
+
+Factorization time: 0.007827699
+substitution time: 0.000682809
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 5: 3219 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 5: 402 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 5: 207 us
+
+================================================================================================ 
+
+Factorization time: 0.007815023
+substitution time: 0.000697039
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 6: 3219 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 6: 403 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 6: 207 us
+
+================================================================================================ 
+
+Factorization time: 0.007804844
+substitution time: 0.000689208
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 7: 3209 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for factorization and power flow iteration: 95049 us
+
+================================================================================================ 
+
+
+
+----------------------------------------------------------------------------------------		 End of Running GRAPHLU_NRpf_v4 C function!		 ----------------------------------------------------------------------------------------
+
+13:32:58.985071: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       24585592 (   23.4 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2429944 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8796544 (    8.4 MiB) Bytes in transfer cache freelist
+MALLOC: +      7433488 (    7.1 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     44454048 (   42.4 MiB) Actual memory used (physical + swap)
+MALLOC: +     23912448 (   22.8 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     68366496 (   65.2 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1518              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+
+
+------------------------------------------------------------------------------------------- 
+Start Running GRAPHLU_NRpf_v4 C function!
+------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------- Number of rows:11103,	Number of nonzeros:38367
+	 -------------------------------------------------------------------------------------------- 
+
+
+
+================================================================================================ Time to sort HeapAccum:: 7613 us
+
+================================================================================================ 
+
+================================================================================================ Time to convert data to GRAPHLU time:: 443 us
+
+================================================================================================ 
+
+================================================================================================
+ Time for Jaccobian Initialization: 5209 us
+
+================================================================================================ 
+
+analysis time: 0.028109282
+
+====== GRAPHLU: Etree level = 3133time of creating scheduler: 0.012473283
+suggestion: sequential.
+total cores: 24, threads created: 2
+
+
+================================================================================================
+ Time for GRAPHLU analysis and scheduling 42504 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 0: 138 us
+
+================================================================================================ 
+
+Factorization time: 0.011243068
+substitution time: 0.00069994
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 1: 3239 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 1: 410 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 1: 213 us
+
+================================================================================================ 
+
+Factorization time: 0.007856559
+substitution time: 0.000690513
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 2: 3235 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 2: 398 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 2: 208 us
+
+================================================================================================ 
+
+Factorization time: 0.007864182
+substitution time: 0.000696452
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 3: 3231 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 3: 411 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 3: 208 us
+
+================================================================================================ 
+
+Factorization time: 0.007846619
+substitution time: 0.000698559
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 4: 3303 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 4: 400 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 4: 215 us
+
+================================================================================================ 
+
+Factorization time: 0.00853031
+substitution time: 0.000696157
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 5: 3223 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 5: 409 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 5: 208 us
+
+================================================================================================ 
+
+Factorization time: 0.007854269
+substitution time: 0.00068039
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 6: 3228 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 6: 415 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 6: 216 us
+
+================================================================================================ 
+
+Factorization time: 0.007883835
+substitution time: 0.000679803
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 7: 3237 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for factorization and power flow iteration: 95631 us
+
+================================================================================================ 
+
+
+
+----------------------------------------------------------------------------------------		 End of Running GRAPHLU_NRpf_v4 C function!		 ----------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------- 
+Start Running GRAPHLU_NRpf_v4 C function!
+------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------- Number of rows:11103,	Number of nonzeros:38367
+	 -------------------------------------------------------------------------------------------- 
+
+
+
+================================================================================================ Time to sort HeapAccum:: 7650 us
+
+================================================================================================ 
+
+================================================================================================ Time to convert data to GRAPHLU time:: 569 us
+
+================================================================================================ 
+
+================================================================================================
+ Time for Jaccobian Initialization: 5230 us
+
+================================================================================================ 
+
+analysis time: 0.028036841
+
+====== GRAPHLU: Etree level = 3133time of creating scheduler: 0.012175116
+suggestion: sequential.
+total cores: 24, threads created: 2
+
+
+================================================================================================
+ Time for GRAPHLU analysis and scheduling 42174 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 0: 156 us
+
+================================================================================================ 
+
+Factorization time: 0.011569729
+substitution time: 0.00069541
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 1: 3261 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 1: 403 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 1: 211 us
+
+================================================================================================ 
+
+Factorization time: 0.007953023
+substitution time: 0.000690983
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 2: 3260 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 2: 403 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 2: 211 us
+
+================================================================================================ 
+
+Factorization time: 0.00788542
+substitution time: 0.000689226
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 3: 3246 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 3: 414 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 3: 207 us
+
+================================================================================================ 
+
+Factorization time: 0.007879116
+substitution time: 0.000694673
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 4: 3249 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 4: 395 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 4: 222 us
+
+================================================================================================ 
+
+Factorization time: 0.007889786
+substitution time: 0.000693719
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 5: 3235 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 5: 402 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 5: 213 us
+
+================================================================================================ 
+
+Factorization time: 0.008538404
+substitution time: 0.000690837
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 6: 3223 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 6: 395 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 6: 215 us
+
+================================================================================================ 
+
+Factorization time: 0.007824423
+substitution time: 0.000685866
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 7: 3236 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for factorization and power flow iteration: 96006 us
+
+================================================================================================ 
+
+
+
+----------------------------------------------------------------------------------------		 End of Running GRAPHLU_NRpf_v4 C function!		 ----------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------- 
+Start Running GRAPHLU_NRpf_v4 C function!
+------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------- Number of rows:11103,	Number of nonzeros:38367
+	 -------------------------------------------------------------------------------------------- 
+
+
+
+================================================================================================ Time to sort HeapAccum:: 7748 us
+
+================================================================================================ 
+
+================================================================================================ Time to convert data to GRAPHLU time:: 479 us
+
+================================================================================================ 
+
+================================================================================================
+ Time for Jaccobian Initialization: 5311 us
+
+================================================================================================ 
+
+analysis time: 0.028166381
+
+====== GRAPHLU: Etree level = 3133time of creating scheduler: 0.012171934
+suggestion: sequential.
+total cores: 24, threads created: 2
+
+
+================================================================================================
+ Time for GRAPHLU analysis and scheduling 42233 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 0: 140 us
+
+================================================================================================ 
+
+Factorization time: 0.011672494
+substitution time: 0.000676149
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 1: 3286 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 1: 435 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 1: 212 us
+
+================================================================================================ 
+
+Factorization time: 0.007977453
+substitution time: 0.000684044
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 2: 3253 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 2: 389 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 2: 211 us
+
+================================================================================================ 
+
+Factorization time: 0.007908047
+substitution time: 0.000678024
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 3: 3235 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 3: 389 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 3: 212 us
+
+================================================================================================ 
+
+Factorization time: 0.007902128
+substitution time: 0.000684747
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 4: 3243 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 4: 410 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 4: 219 us
+
+================================================================================================ 
+
+Factorization time: 0.007899597
+substitution time: 0.000685018
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 5: 3227 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 5: 394 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 5: 211 us
+
+================================================================================================ 
+
+Factorization time: 0.007902058
+substitution time: 0.000670751
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 6: 3282 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for getting H,N,J,L matrices (iteration): 6: 561 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for updating the values in Jaccobian (iteration): 6: 307 us
+
+================================================================================================ 
+
+Factorization time: 0.008138404
+substitution time: 0.000702357
+
+
+================================================================================================
+ Time for Pcal and Qcal, max mismatch loop (iteration): 7: 3226 us
+
+================================================================================================ 
+
+
+
+================================================================================================
+ Time for factorization and power flow iteration: 96262 us
+
+================================================================================================ 
+
+
+
+----------------------------------------------------------------------------------------		 End of Running GRAPHLU_NRpf_v4 C function!		 ----------------------------------------------------------------------------------------
+
+13:33:28.988414: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27003592 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2425024 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8339648 (    8.0 MiB) Bytes in transfer cache freelist
+MALLOC: +     10310584 (    9.8 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49287328 (   47.0 MiB) Actual memory used (physical + swap)
+MALLOC: +     22339584 (   21.3 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:33:58.991652: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27014856 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2486216 (    2.4 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10343600 (    9.9 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49328288 (   47.0 MiB) Actual memory used (physical + swap)
+MALLOC: +     22298624 (   21.3 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:34:28.994925: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27014856 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2449544 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10380272 (    9.9 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49328288 (   47.0 MiB) Actual memory used (physical + swap)
+MALLOC: +     22298624 (   21.3 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:34:59.002178: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27034312 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2465568 (    2.4 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10393944 (    9.9 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49377440 (   47.1 MiB) Actual memory used (physical + swap)
+MALLOC: +     22249472 (   21.2 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:35:29.005345: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27034312 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2518160 (    2.4 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10357736 (    9.9 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49393824 (   47.1 MiB) Actual memory used (physical + swap)
+MALLOC: +     22233088 (   21.2 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:35:59.008427: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27058888 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2463816 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10461232 (   10.0 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49467552 (   47.2 MiB) Actual memory used (physical + swap)
+MALLOC: +     22159360 (   21.1 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:36:29.011713: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27058888 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2445432 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10528768 (   10.0 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49516704 (   47.2 MiB) Actual memory used (physical + swap)
+MALLOC: +     22110208 (   21.1 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:36:59.014680: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27058888 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2439560 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10518256 (   10.0 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49500320 (   47.2 MiB) Actual memory used (physical + swap)
+MALLOC: +     22126592 (   21.1 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:37:29.017747: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27083464 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2405376 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10593400 (   10.1 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49565856 (   47.3 MiB) Actual memory used (physical + swap)
+MALLOC: +     22061056 (   21.0 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:37:59.020610: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27083752 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2456240 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10542248 (   10.1 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49565856 (   47.3 MiB) Actual memory used (physical + swap)
+MALLOC: +     22061056 (   21.0 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:38:29.023888: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27083752 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2429536 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10601720 (   10.1 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49598624 (   47.3 MiB) Actual memory used (physical + swap)
+MALLOC: +     22028288 (   21.0 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:38:59.027076: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27083752 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2424840 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10622800 (   10.1 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49615008 (   47.3 MiB) Actual memory used (physical + swap)
+MALLOC: +     22011904 (   21.0 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:39:29.030183: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27083752 (   25.8 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2482840 (    2.4 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10564800 (   10.1 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49615008 (   47.3 MiB) Actual memory used (physical + swap)
+MALLOC: +     22011904 (   21.0 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1587              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:39:59.033397: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27132904 (   25.9 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2539480 (    2.4 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10663808 (   10.2 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49819808 (   47.5 MiB) Actual memory used (physical + swap)
+MALLOC: +     21807104 (   20.8 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1588              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:40:29.036596: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27132904 (   25.9 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2417840 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10785448 (   10.3 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49819808 (   47.5 MiB) Actual memory used (physical + swap)
+MALLOC: +     21807104 (   20.8 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1588              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:40:59.039623: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27132904 (   25.9 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2432928 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10770360 (   10.3 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49819808 (   47.5 MiB) Actual memory used (physical + swap)
+MALLOC: +     21807104 (   20.8 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1588              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:41:29.042720: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27132904 (   25.9 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2393136 (    2.3 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10810152 (   10.3 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49819808 (   47.5 MiB) Actual memory used (physical + swap)
+MALLOC: +     21807104 (   20.8 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1588              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+13:41:59.045883: Rebuild RunnerStatus IdConverter Caching 0 query entry. PostListener deltaqueue_pos_ 27. total_delta_objectcount 0, running requests 0, waiting requests 0, currentGB 0
+------------------------------------------------
+MALLOC:       27132904 (   25.9 MiB) Bytes in use by application
+MALLOC: +            0 (    0.0 MiB) Bytes in page heap freelist
+MALLOC: +      2510512 (    2.4 MiB) Bytes in central cache freelist
+MALLOC: +      8275136 (    7.9 MiB) Bytes in transfer cache freelist
+MALLOC: +     10733736 (   10.2 MiB) Bytes in thread cache freelists
+MALLOC: +      1208480 (    1.2 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =     49860768 (   47.6 MiB) Actual memory used (physical + swap)
+MALLOC: +     21766144 (   20.8 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =     71626912 (   68.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:           1588              Spans in use
+MALLOC:             48              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.

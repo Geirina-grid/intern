@@ -1,0 +1,51 @@
+drop query vertexResult
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query vertexResult()
+for graph gsql_EMS {
+	
+	TYPEDEF TUPLE < int bus_id, int bus_type, string tap_bus_name, double base_kV, int flag, double Vm, double Va, string volt_violation> row;
+	SumAccum<int> @@id = 0;
+	ListAccum<row> @@vertexList; 
+	string G_volt_violation;
+	
+	T0 = {TopoND.*};
+	 T1 = SELECT s
+		  FROM T0:s
+		  POST-ACCUM
+			case when (s.PF_Vm >= s.up_V) then
+				s.OV = 1
+			else s.OV = 0
+			end,
+			case when (s.PF_Vm <= s.lo_V) then
+				s.UV = 1
+			else s.UV = 0
+			end;
+		 
+		 
+        T1 = SELECT s
+	      FROM T0:s
+		  where s.island == 1
+		  ACCUM 
+         case when (s.OV == 1) then
+			@@vertexList+= row(s.exId, s.busType, s.bus_name, s.base_kV, s.busType, s.PF_Vm, s.PF_Va, "高电压越限")
+		     when (s.UV == 1) then
+			@@vertexList+= row(s.exId, s.busType, s.bus_name, s.base_kV, s.busType, s.PF_Vm, s.PF_Va, "低电压越限")
+		 else
+			@@vertexList+= row(s.exId, s.busType, s.bus_name, s.base_kV, s.busType, s.PF_Vm, s.PF_Va, "正常")
+                end;
+	        
+			
+//	    log(true,@@vertexList);
+	
+	foreach x in @@vertexList do
+			@@id += 1;
+			print x.bus_id, x.bus_type, x.tap_bus_name, x.base_kV, x.flag, x.Vm, x.Va, x.volt_violation;			
+	end;
+	print T1.exId, T1.bus_name, T1.PF_Vm, T1.PF_Va TO_CSV "/home/tigergraph/SC_EMS/output/Vertex_output.csv";		  
+		 
+}
+
+install query vertexResult

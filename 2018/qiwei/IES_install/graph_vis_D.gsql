@@ -1,0 +1,37 @@
+drop query graph_vis_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+//create query graph_vis_D () for graph powerflow_graph 
+create query graph_vis_D() for graph powerflow_graph 
+{
+
+	string startnode;
+	ListAccum<edge> @@edgeList; 
+	
+	T0 = {bus_D.*};
+	
+	startNodeSet = SELECT n
+	      FROM T0:n
+	      where n.outdegree("backe_D") == 0 // till here, the startNodeSet is the substation node
+	      POST-ACCUM
+	      startnode=n.exId;
+		  
+	T1 = SELECT s
+	      FROM T0:s
+		  POST-ACCUM 
+		  s.startnode=startnode;
+		  
+    T1 = SELECT s
+	      FROM T0:s-(foree_D:e)-:t
+		  ACCUM 
+ 	      @@edgeList+= e;
+	
+	print @@edgeList;
+    print T0;
+  
+		 
+}
+
+//install query graph_vis_D

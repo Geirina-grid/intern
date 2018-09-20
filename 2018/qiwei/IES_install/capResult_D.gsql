@@ -1,0 +1,55 @@
+drop query capResult_D
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query capResult_D ()
+for graph powerflow_graph {
+
+   // TYPEDEF TUPLE <string bus_name, double QCapA_cal, double QCapB_cal, double QCapC_cal > cap_result;
+   TYPEDEF TUPLE <string CapID, string bus_name, double QCap_cal, string Phase, string startnode> cap_result;
+	
+	ListAccum<cap_result> @@Capacitor_List;
+	SumAccum<int> @@id = 0;
+	
+
+
+	
+	T0 = {bus_D.*};
+    T1 = SELECT s
+	      FROM T0:s
+          where (abs(s.CapA)+abs(s.CapB)+abs(s.CapC)>0.0001)		 
+		  POST-ACCUM 
+		  CASE WHEN (abs(s.CapA)>0.0001) THEN	 
+		  @@id += 1,
+		  string Phase="A",
+		  string CapID=s.exId +"_"+ Phase,
+		  double QCap_cal=s.CapA_cal,
+		  @@Capacitor_List += cap_result(CapID, s.exId, QCap_cal, Phase, s.startnode)
+		  END,
+		  CASE WHEN (abs(s.CapB)>0.0001) THEN	 
+		  @@id += 1,
+		  string Phase="B",
+		  string CapID=s.exId +"_"+ Phase,
+		  double QCap_cal=s.CapB_cal,
+		  @@Capacitor_List += cap_result(CapID, s.exId, QCap_cal, Phase, s.startnode)
+		  END,
+		  CASE WHEN (abs(s.CapC)>0.0001) THEN	 
+		  @@id += 1,
+		  string Phase="C",
+		  string CapID=s.exId +"_"+ Phase,
+		  double QCap_cal=s.CapC_cal,
+		  @@Capacitor_List += cap_result(CapID, s.exId, QCap_cal, Phase, s.startnode)
+		  END
+		  ;
+ 		  
+ 	foreach x in @@Capacitor_List do
+	@@id += 1;
+	print x.CapID, x.bus_name, x.QCap_cal, x.Phase, x.startnode; // > outputfile;	
+	end;
+     
+	
+	// print @@Capacitor_List;
+		 
+}
+
+//install query -ui capResult_D

@@ -1,0 +1,64 @@
+drop query tap
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query tap()
+for graph gsql_EMS {
+	
+//	TYPEDEF TUPLE < string edge_name, string tap_type_id, int edge_type, int s_exId, int t_exId, int s_type, int t_type, double min_tap, double max_tap, double step_size, double min_volt, double max_volt> row;
+	
+    TYPEDEF TUPLE < string tap_type_id, double min_tap, double max_tap, double step_size> row;
+	SumAccum<int> @@id = 0;
+	SetAccum<row> @@edgeListFix;
+	SetAccum<row> @@edgeListLTC1;
+	SetAccum<row> @@edgeListLTC2;
+	SetAccum<row> @@edgeListLTC3;
+	SetAccum<row> @@edgeListLTC4;
+	SetAccum<row> @@edgeListLTC5;
+	SetAccum<row> @@edgeListLTC6; 
+	
+    //print "line_id", "tap_bus", "z_bus", "R", "X", "B", "P", "Q", "I", "Line1_MVA", "Line2_MVA", "Line3_MVA";	
+	T0 = {TopoND.*};
+    T1 = SELECT s
+	      FROM T0:s-(topo_connect:e)->TopoND:t
+//		  where e.flag != 0 and e.flag != 1 and e.reverse == 0
+		  where e.flag != 0 and e.reverse == 1 and s.island == 1 and t.island == 1
+		  ACCUM 
+			log(true, s.exId, t.exId),
+            int minValue = e.kcount - 1,
+            IF (minValue < 0) THEN
+                minValue = 0
+            END,
+	    FOREACH i in range[0, minValue] DO
+		  CASE WHEN (e.tap_type_id == "FIX") THEN
+                  	@@edgeListFix += row(e.tap_type_id, e.min_tap, e.max_tap, e.step_size)
+                  WHEN (e.tap_type_id == "LTC_1") THEN
+			@@edgeListLTC1 += row(e.tap_type_id, e.min_tap, e.max_tap, e.step_size)
+		  WHEN (e.tap_type_id == "LTC_2") THEN 
+			@@edgeListLTC2 += row(e.tap_type_id, e.min_tap, e.max_tap, e.step_size)
+		  WHEN (e.tap_type_id == "LTC_3") THEN
+                        @@edgeListLTC3 += row(e.tap_type_id, e.min_tap, e.max_tap, e.step_size)
+		  WHEN (e.tap_type_id == "LTC_4") THEN
+                        @@edgeListLTC4 += row(e.tap_type_id, e.min_tap, e.max_tap, e.step_size)
+		  WHEN (e.tap_type_id == "LTC_5") THEN
+                        @@edgeListLTC5 += row(e.tap_type_id, e.min_tap, e.max_tap, e.step_size)
+		  WHEN (e.tap_type_id == "LTC_6") THEN
+                        @@edgeListLTC6 += row(e.tap_type_id, e.min_tap, e.max_tap, e.step_size) 
+                  END
+
+	    END;
+			
+	    // log(true,@@edgeList);
+	
+//	    foreach x in @@edgeList do
+//		@@id += 1;
+//		print x.edge_name, x.tap_type_id, x.edge_type, x.s_exId, x.t_exId, x.s_type, x.t_type, x.min_tap, x.max_tap, x.step_size;	
+
+		print @@edgeListFix, @@edgeListLTC1, @@edgeListLTC2, @@edgeListLTC3, @@edgeListLTC4,  @@edgeListLTC5, @@edgeListLTC6;
+//	end;
+			  
+		 
+}
+
+//install query tap

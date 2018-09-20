@@ -1,0 +1,79 @@
+drop query summary_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query summary_D ()
+for graph powerflow_graph {
+
+	SetAccum<Vertex<bus_D>> @@summary_List;
+	SumAccum<int> @@BSid = 0;
+	SumAccum<int> @@LNid = 0;
+	SumAccum<int> @@XFid = 0;
+	SumAccum<int> @@UNid = 0;
+	SumAccum<int> @@LDid = 0;
+	SumAccum<int> @@Capid = 0;
+	SumAccum<int> @@SWid = 0;
+	SumAccum<double> @@DegUnbal= 0;
+	SumAccum<double> @@TotalLoad= 0;
+	SumAccum<double> @@TotalLoss= 0;
+	SumAccum<string>@@SYSid;
+	SumAccum<string>@@Status;
+	SumAccum<int> @mark = 0;
+	MaxAccum<int> @@ID = 1;	
+	// print "id", "bus_name", "bus_id", "generation_p", "generation_Q", "base_kV", "desired_volts", "MAX_Q", "Min_Q", "control_bus_number", "pos_x", "pos_y" > outputfile;	
+	
+	 T0 = {bus_D.*};
+	startNodeSet = SELECT n
+	FROM T0:n
+	where n.outdegree("backe_D") == 0;
+	parent = startNodeSet;
+	WHILE parent.size() > 0 DO
+	       parent =  SELECT t
+		   FROM parent:s-(foree_D:e)-bus_D:t   	  
+	  ACCUM 	      
+		 case when (e.linelength>1) then
+			   @@LNid +=1
+	     end,
+		 case when (e.Config=="switch") then
+			   @@SWid +=1
+	     end
+
+		 
+	  POST-ACCUM
+		 case when (t.flag!=2) then
+		       @@BSid +=1	
+		 end,
+		 case when ((t.flag==4)) then
+		       @@UNid +=1	
+         end,			   
+		 case when (abs(t.PdA)+abs(t.PdB)+abs(t.PdC)>0.0001) then
+		       @@LDid +=1				   
+		 end,
+		 case when (abs(t.CapA)>0.0001) then
+		       @@Capid +=1				   
+		 end,
+		 case when (abs(t.CapB)>0.0001) then
+		       @@Capid +=1				   
+		 end,
+		 case when (abs(t.CapC)>0.0001) then
+		       @@Capid +=1				   
+		 end,
+		 case when (t.flag==2) then
+		       @@XFid +=1
+	     end; 
+	END; 
+		 
+	
+		
+	     @@SYSid="IEEE 123 Node Test Feeder";
+
+		
+	//	 @@DegUnbal;
+		 
+	
+	// print T1;
+	print @@SYSid, @@BSid, @@LNid, @@XFid, @@UNid, @@LDid, @@Capid, @@SWid, @@DegUnbal, @@TotalLoad, @@TotalLoss; // > outputfile;		 
+}
+
+//install query summary_D

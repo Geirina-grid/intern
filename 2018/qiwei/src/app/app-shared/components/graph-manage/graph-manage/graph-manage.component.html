@@ -1,0 +1,186 @@
+<mat-sidenav-container class="manage-container">
+  <mat-sidenav #sidenav class="manage-sidenav" mode="side">
+    <div *ngIf="selectedNode">
+      <table class="table table-inverse mytable">
+        <thead>
+          <tr>
+            <th>Attribute</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Node Type</td>
+            <td>{{selectedNode.exType}}</td>
+          </tr>
+          <tr *ngFor="let attr of nodeAttrs">
+            <td>{{attr}}</td>
+            <td>{{selectedNode.attrs[attr]}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="selectedLink">
+      <table class="table table-inverse mytable">
+        <thead>
+          <tr>
+            <th>Attribute</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Edge Type</td>
+            <td>{{selectedLink.exType}}</td>
+          </tr>
+          <tr>
+            <td>Source Id</td>
+            <td>{{selectedLink.source.exID}}</td>
+          </tr>
+          <tr>
+            <td>Target Id</td>
+            <td>{{selectedLink.target.exID}}</td>
+          </tr>
+          <tr *ngFor="let attr of linkAttrs">
+            <td>{{attr}}</td>
+            <td>{{selectedLink.attrs[attr]}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- <pre>{{selectedLink| json}}</pre> -->
+    </div>
+  </mat-sidenav>
+
+  <div class="manage-sidenav-content">
+    <div #container class="graphchart">
+    </div>
+    <div class="btn-group-vertical float-button-group" role="group" aria-label="...">
+      <button type="button" class="btn btn-primary" style="font-size: 25px" pTooltip="Add Node" tooltipPosition="right" (click)="showAddNode()">
+        <span class="fa fa-plus" aria-hidden="true"></span>
+      </button>
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-primary dropdown-toggle" style="font-size: 25px" pTooltip="Edit Label" tooltipPosition="right"
+          data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="fa fa-list-alt" aria-hidden="true"></span>   
+        </button>
+        <div class="dropdown-menu" style="text-align:center; min-width: 10vh; background-color: #c0c0c0" aria-labelledby="dropdownMenu2">
+          <button class="btn btn-primary dropdown-item " type="button" pTooltip="Node Label" tooltipPosition="bottom" (click)="showNodeLabelSelector()"><span class="fa fa-circle" aria-hidden="true"></span></button>
+          <button class="btn btn-primary dropdown-item " type="button" pTooltip="Edge Label" tooltipPosition="bottom" (click)="showLinkLabelSelector()"><span class="fa fa-arrows-h" aria-hidden="true"></span></button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary" style="font-size: 25px" pTooltip="Details" tooltipPosition="right" (click)="toggle()">
+        <span class="fa fa-info" aria-hidden="true"></span>
+      </button>
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-primary dropdown-toggle" style="font-size: 25px" pTooltip="Search" tooltipPosition="right"
+          data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="fa fa-search" aria-hidden="true"></span>
+        </button>
+        <div class="dropdown-menu" style="text-align:center; min-width: 10vh; background-color: #c0c0c0" aria-labelledby="dropdownMenu2">
+          <button class="btn btn-primary dropdown-item " type="button" pTooltip="Search Node" tooltipPosition="bottom" (click)="showSearchNode()"><span class="fa fa-circle" aria-hidden="true"></span></button>
+          <button class="btn btn-primary dropdown-item " type="button" pTooltip="Search Edge" tooltipPosition="bottom" (click)="showSearchLink()"><span class="fa fa-arrows-h" aria-hidden="true"></span></button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary" style="font-size: 25px" pTooltip="Save Layout" tooltipPosition="right" (click)="saveConfirm()">
+        <span class="fa fa-floppy-o" aria-hidden="true"></span>
+      </button>
+      <button type="button" class="btn btn-primary" style="font-size: 25px" pTooltip="Discard Layout Changes" tooltipPosition="right"
+        (click)="discardConfirm()">
+        <span class="fa fa-trash" aria-hidden="true"></span>
+      </button>
+      <button type="button" class="btn btn-primary" style="font-size: 25px" pTooltip="Download graph" tooltipPosition="right"
+      (click)="downloadGraph()">
+        <span class="fa fa-download" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+</mat-sidenav-container>
+<p-confirmDialog header="Confirmation" icon="fa fa-question-circle" width="425"></p-confirmDialog>
+<p-dialog [contentStyle]="{'overflow':'visible'}" modal="modal" width="450" [responsive]="true" [(visible)]="addNodeDisplay">
+  <p-header>Node Editor</p-header>
+  <app-graph-manage-form [type]="nodeMark" #nodeDiag></app-graph-manage-form>
+  <p-footer>
+    <div style="margin-bottom: 1em">
+      <button type="submit" (click)="addNode()" class="btn btn-success">Save</button> &nbsp;
+      <button type="reset" (click)="revert()" class="btn btn-warning">Revert</button> &nbsp;
+      <button type="reset" (click)="cancel()" class="btn btn-danger">Cancel</button>
+    </div>
+  </p-footer>
+</p-dialog>
+<p-dialog [contentStyle]="{'overflow':'visible'}" modal="modal" width="450" [responsive]="true" [(visible)]="addLinkDisplay">
+  <p-header>Link Editor</p-header>
+  <app-graph-manage-form [type]="linkMark" #linkDiag></app-graph-manage-form>
+  <p-footer>
+    <div style="margin-bottom: 1em">
+      <button type="submit" (click)="addLink()" class="btn btn-success">Save</button> &nbsp;
+      <button type="reset" (click)="revert()" class="btn btn-warning">Revert</button> &nbsp;
+      <button type="reset" (click)="cancel()" class="btn btn-danger">Cancel</button>
+    </div>
+  </p-footer>
+</p-dialog>
+<p-dialog [contentStyle]="{'overflow':'visible'}" modal="modal" width="450" [responsive]="true" [(visible)]="nodeLabelSelector">
+  <p-header>Node Label</p-header>
+  <div class="pre-scrollable">
+    <div *ngFor="let data of nodeLabels">
+      <input type="checkbox" [(ngModel)]="data.checked"> {{data.label}}<br>
+    </div>
+  </div>
+  <p-footer>
+    <div style="margin-bottom: 1em">
+      <button type="submit" (click)="showLabels()" class="btn btn-success">Save</button> &nbsp;
+      <button type="reset" (click)="resetNodeLabels()" class="btn btn-warning">Reset</button> &nbsp;
+      <button type="reset" (click)="cancel()" class="btn btn-danger">Cancel</button>
+    </div>
+  </p-footer>
+</p-dialog>
+<p-dialog [contentStyle]="{'overflow':'visible'}" modal="modal" width="450" [responsive]="true" [(visible)]="linkLabelSelector">
+  <p-header>Link Label</p-header>
+  <div class="pre-scrollable">
+    <div *ngFor="let data of linkLabels">
+      <input type="checkbox" [(ngModel)]="data.checked"> {{data.label}}<br>
+    </div>
+  </div>
+  <p-footer>
+    <div style="margin-bottom: 1em">
+      <button type="submit" (click)="showLabels()" class="btn btn-success">Save</button> &nbsp;
+      <button type="reset" (click)="resetLinkLabels()" class="btn btn-warning">Reset</button> &nbsp;
+      <button type="reset" (click)="cancel()" class="btn btn-danger">Cancel</button>
+    </div>
+  </p-footer>
+</p-dialog>
+<p-dialog [contentStyle]="{'overflow':'visible'}" modal="modal" width="450" [responsive]="true" [(visible)]="searchNodeDisplay">
+  <p-header>Search Node</p-header>
+  <h3>Node Id</h3>
+  <div class="input-group">
+    <input type="text" class="form-control" placeholder="ID" aria-describedby="basic-addon1" [(ngModel)]="searchingNode.exId">
+  </div>
+  <!-- <pre>{{searchingNode|json}}</pre> -->
+  <p-footer>
+    <div style="margin-bottom: 1em">
+      <button type="submit" (click)="nodeSearch()" class="btn btn-success">Search</button> &nbsp;
+      <button type="reset" (click)="cancel()" class="btn btn-danger">Cancel</button>
+    </div>
+  </p-footer>
+</p-dialog>
+<p-dialog [contentStyle]="{'overflow':'visible'}" modal="modal" width="450" [responsive]="true" [(visible)]="searchLinkDisplay">
+  <p-header>Search Link</p-header>
+  <h3>Edge Name</h3>
+  <div class="input-group">
+    <input type="text" class="form-control" placeholder="Edge Name" aria-describedby="basic-addon1" [(ngModel)]="searchingLink.edge_name">
+  </div>
+  <h3>Source Id</h3>
+  <div class="input-group">
+    <input type="text" class="form-control" placeholder="Source ID" aria-describedby="basic-addon1" [(ngModel)]="searchingLink.sourceId">
+  </div>
+  <h3>Target Id</h3>
+  <div class="input-group">
+    <input type="text" class="form-control" placeholder="Target ID" aria-describedby="basic-addon1" [(ngModel)]="searchingLink.targetId">
+  </div>
+  <!-- <pre>{{searchingLink|json}}</pre> -->
+  <p-footer>
+    <div style="margin-bottom: 1em">
+      <button type="submit" (click)="linkSearch()" class="btn btn-success">Search</button> &nbsp;
+      <button type="reset" (click)="cancel()" class="btn btn-danger">Cancel</button>
+    </div>
+  </p-footer>
+</p-dialog>

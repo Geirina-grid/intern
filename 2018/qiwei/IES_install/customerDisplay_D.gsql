@@ -1,0 +1,47 @@
+drop query customerDisplay_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query customerDisplay_D(string loadpoint)
+for graph powerflow_graph {
+	
+    TYPEDEF TUPLE <string exId, string load_point, string phase_cust, double PcA, double QcA, double PcB,  double QcB, double PcC, double QcC> row;
+	SetAccum<row> @@CustomerDisplay_List;
+	
+	T2 = {customer_D.*};
+	T3 = SELECT s
+	    FROM T2:s
+		POST-ACCUM
+		CASE WHEN (s.loadpoint == loadpoint) THEN
+		  CASE WHEN (s.PA>0.001 and s.PB>0.001 and s.PC>0.001) THEN
+		  @@CustomerDisplay_List+= row(s.exId, s.loadpoint, "ABC", s.PA, s.QA, s.PB, s.QB,s.PC, s.QC)
+		  END,
+		  CASE WHEN (s.PA<0.001 and s.PB>0.001 and s.PC>0.001) THEN
+		  @@CustomerDisplay_List+= row(s.exId, s.loadpoint, "BC", s.PA, s.QA, s.PB, s.QB,s.PC, s.QC)
+		  END,
+		  CASE WHEN (s.PA>0.001 and s.PB<0.001 and s.PC>0.001) THEN
+		  @@CustomerDisplay_List+= row(s.exId, s.loadpoint, "AC", s.PA, s.QA, s.PB, s.QB,s.PC, s.QC)
+		  END,
+		  CASE WHEN (s.PA>0.001 and s.PB>0.001 and s.PC<0.001) THEN
+		  @@CustomerDisplay_List+= row(s.exId, s.loadpoint, "AB", s.PA, s.QA, s.PB, s.QB,s.PC, s.QC)
+		  END,
+		  CASE WHEN (s.PA<0.001 and s.PB<0.001 and s.PC>0.001) THEN
+		  @@CustomerDisplay_List+= row(s.exId, s.loadpoint, "C", s.PA, s.QA, s.PB, s.QB,s.PC, s.QC)
+		  END,
+		  CASE WHEN (s.PA<0.001 and s.PB>0.001 and s.PC<0.001) THEN
+		  @@CustomerDisplay_List+= row(s.exId, s.loadpoint, "B", s.PA, s.QA, s.PB, s.QB,s.PC, s.QC)
+		  END,
+		  CASE WHEN (s.PA>0.001 and s.PB<0.001 and s.PC<0.001) THEN
+		  @@CustomerDisplay_List+= row(s.exId, s.loadpoint, "A", s.PA, s.QA, s.PB, s.QB,s.PC, s.QC)
+		  END	  
+		END;
+		 
+ 		  
+	foreach x in @@CustomerDisplay_List do
+	print  x.exId, x.load_point, x.phase_cust, x.PcA, x.QcA, x.PcB, x.QcB, x.PcC, x.QcC; // > outputfile;	
+	end;
+    		 
+}
+
+//install query customerDisplay_D

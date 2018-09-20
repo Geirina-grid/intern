@@ -1,0 +1,41 @@
+
+<div class='texts0'>
+    <h1>
+      多网互联分析
+    </h1>
+</div>
+<div class=ui-g>
+    <li class='ui-g-6 texts1' [routerLinkActive]="['active']">
+        <a [routerLink]="['/d-analysis/enet']">电能网络分析</a></li>
+
+    <li class='ui-g-6 texts2' [routerLinkActive]="['active']">
+        <a [routerLink]="['/d-analysis/hnet']">热能网络分析</a></li>
+</div>
+
+<div class=ui-g>
+    <li class='ui-g-6 texts3' [routerLinkActive]="['active']">
+        <a [routerLink]="['/d-analysis/tnet']">交通网络分析</a></li>
+ 
+    <li class='ui-g-6 texts4' [routerLinkActive]="['active']">
+        <a [routerLink]="['/d-analysis/multi-net']">网络耦合分析</a></li>
+
+</div>
+<!-- 
+<div *ngIf="selectN">
+  <h2>{{ selectN.name}} Network Details</h2>
+  <div><label>id: </label>{{selectN.id}}</div>
+  <div>
+    <label>name:
+    </label>
+    {{selectN.name}}
+  </div>
+
+</div> -->
+
+
+<!-- <div class="btn-group">
+
+    <button type="button" class="btn btn-default active" onclick="btnClick(this)"  ng-click="load(1)">电网</button>
+    <button type="button" class="btn btn-default" onclick="btnClick(this)"  ng-click="load(2)">热网</button>
+    <button type="button" class="btn btn-default" onclick="btnClick(this)" ng-click="load(3)">交通网</button>
+</div> -->

@@ -1,0 +1,29 @@
+<div style="width: 1400px; margin: 0 auto; overflow: hidden;">
+  <div class="ui-g">
+    <div class="ui-g-12 ui-g-nopad">
+      <div class="ui-g-6" style="font-size: 1.1em">
+        Start Date:
+        <p-calendar [(ngModel)]="sdate" [showIcon]="true" [defaultDate]="defaultDates"></p-calendar>
+      </div>
+      <div class="ui-g-6" style="font-size: 1.1em">
+        End Date:
+        <p-calendar [(ngModel)]="edate" [showIcon]="true" [defaultDate]="defaultDatee"></p-calendar>
+      </div>
+      <div class="ui-g-4" style="font-size: 1.1em">
+        Node ID:
+        <p-dropdown [options]="meters" [(ngModel)]="selectedmeter" [style]="{'width':'150px'}" editable="editable" placeholder="Select ID"></p-dropdown>
+      </div>
+      <div class="ui-g-4" style="font-size: 1.1em">
+        Select Phase:
+        <p-dropdown [options]="phases" [(ngModel)]="selectedphase" [style]="{'width':'150px'}" editable="editable" placeholder="Select ID"></p-dropdown>
+      </div>
+      <div class="ui-g-4" style="font-size: 1.1em">
+        <button pButton type="button" style="font-size: 1.1em" label="Plot Data" (click)="plote()"></button>
+      </div>
+      <div class="ui-g-12">
+        <chart [options]="options3">
+        </chart>
+      </div>
+    </div>
+  </div>
+</div>

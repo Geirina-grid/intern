@@ -1,0 +1,52 @@
+<div style="max-width: 2000px; margin: 0 auto; overflow: hidden;">
+    <p-dialog header="提示" [(visible)]="display2" width=470 height=100 [closable]="true"
+    [(positionTop)]="top_position" [(positionLeft)]="left_position">
+        <p>数据补全需要运行多个算法，大概需要3分钟。</p>
+    </p-dialog>
+    <p-dialog header="提示" [(visible)]="display1" width=470 height=100 [closable]="true"
+    [(positionTop)]="top_position" [(positionLeft)]="left_position">
+        <p>可移动负荷需要运行多个算法，大概需要4分钟。</p>
+    </p-dialog>
+
+
+    <p-dialog header="计算流程" [(visible)]="display0" width=930 height=140 [closable]="false">
+        <div class="ui-g">
+        <div class="ui-g-12">
+        <button pButton type="button" style="font-size: 1.5em;background-color: #239B56" label="负荷聚类" [disabled]="disable1" (click)="run_cluster()"></button>
+        &emsp;&rarr;&emsp;
+        <button pButton type="button" style="font-size: 1.5em;background-color: #B7950B" label="数据补全" [disabled]="disable2" (click)="run_dataquality()"></button>
+        &emsp;&rarr;&emsp;
+        <button pButton type="button" style="font-size: 1.5em;background-color: #B03A2E" label="可移动负荷" [disabled]="disable3" (click)="run_movableload()"></button>
+        &emsp;&rarr;&emsp;
+        <button pButton type="button" style="font-size: 1.5em;background-color: #2874A6" label="精准营销" [disabled]="disable4" (click)="run_elasticity()"></button>
+        &emsp;&rarr;&emsp;
+        <button pButton type="button" style="font-size: 1.5em;background-color: #6C3483" label="算法结束" [disabled]="disable5" (click)="end()"></button>
+        </div>
+        <div class="ui-g-12">
+        <p-progressBar *ngIf="loading" mode="indeterminate" [style]="{'height': '4px'}"></p-progressBar>
+        </div>
+        </div>
+    </p-dialog>
+    <div class="ui-g">
+        <div class="ui-g-6">
+            <h2>数据计算参数设置</h2>
+            <div class="ui-g-12" style="font-size: 1.5em">
+                &emsp;&emsp;&emsp;进程数：
+                <p-dropdown [options]="processcount" [(ngModel)]="chosenprocess" [style]="{'width':'250px'}"></p-dropdown>
+            </div>
+            <div class="ui-g-12" style="font-size: 1.5em">
+                &emsp;&emsp;&emsp;数据集：
+                <p-dropdown [options]="years" [(ngModel)]="selectedYear" [style]="{'width':'250px'}"></p-dropdown>
+            </div>
+            <div class="ui-g-12" style="font-size: 1.5em">
+                &emsp;&emsp;&emsp;聚类数：
+                <input type="text" pInputText placeholder="" [(ngModel)]="nclus">
+            </div>
+            
+            <div class="ui-g-12" stype="font-size: 1.5em">
+                &emsp;&emsp;&emsp;&emsp;&emsp;
+                <button pButton type="button" style="font-size: 1.5em" label="算法开始运行" [disabled]="disable0" (click)="runalgo()"></button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,41 @@
+.mytable {
+    color: #FFFFFF
+  }
+  .manage-container {
+      width: 100%;
+      height: 94.8vh;
+    }
+    
+    .manage-sidenav-content {
+      display: flex;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      background-color: #999999;    
+    }
+    
+    .manage-sidenav {
+      width: 25%;
+      padding: 20px;
+      background-color: #282828;        
+    }
+    
+    .graphchart {
+      width: 95%;
+      height: 95%;
+    }
+    
+    
+    .float-button-group {
+      position: fixed;
+      bottom: 10vh;
+      right: 5vw;
+      /* width: 5vw; */
+    }
+    
+    .hidden-btn-group {
+      position: fixed;
+      top: 10vh;
+      left: 10vw;
+    }
+    

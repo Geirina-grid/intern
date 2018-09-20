@@ -1,0 +1,17 @@
+drop query load_hdata_day
+
+CREATE query load_hdata_day (vertex<bus_D> nid, STRING read_type, vertex<DayIndex> day)
+for graph powerflow_graph {
+        ListAccum<DATASERIES> @@node_data;
+	T1 = {DayIndex.*};
+        T0 = SELECT nn
+                FROM T1:temp -(ofDay:e)- :nn WHERE nn==nid and temp==day
+                ACCUM CASE read_type
+                        when "load_a" then @@node_data+=e.load_a
+                        when "load_b" then @@node_data+=e.load_b
+                        when "load_c" then @@node_data+=e.load_c
+                END;
+        print @@node_data;
+}
+
+//install query -ui load_hdata_day

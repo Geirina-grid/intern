@@ -1,0 +1,19 @@
+drop job load_his_dat1
+
+SET sys.data_root = "./input/"
+CREATE LOADING JOB load_his_dat1 FOR GRAPH powerflow_graph{
+        LOAD "/home/tigergraph/JunTan/front_end/IES_install/input/reac_dat.csv" TO EDGE reactive VALUES($4, $0, DATASERIES($5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28),DATASERIES($29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51,$52),DATASERIES($53,$54,$55,$56,$57,$58,$59,$60,$61,$62,$63,$64,$65,$66,$67,$68,$69,$70,$71,$72,$73,$74,$75,$76)) using Separator=",", quote="double", Header="true";
+
+        LOAD "/home/tigergraph/JunTan/front_end/IES_install/input/pf_dat.csv" TO EDGE powerfactor VALUES($4, $0, DATASERIES($5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28),DATASERIES($29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51,$52),DATASERIES($53,$54,$55,$56,$57,$58,$59,$60,$61,$62,$63,$64,$65,$66,$67,$68,$69,$70,$71,$72,$73,$74,$75,$76)) using Separator=",", quote="double", Header="true";
+
+        LOAD "/home/tigergraph/JunTan/front_end/IES_install/input/cur_dat.csv" TO EDGE curr VALUES($4, $0, DATASERIES($5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28),DATASERIES($29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51,$52),DATASERIES($53,$54,$55,$56,$57,$58,$59,$60,$61,$62,$63,$64,$65,$66,$67,$68,$69,$70,$71,$72,$73,$74,$75,$76)) using Separator=",", quote="double", Header="true";
+
+        LOAD "/home/tigergraph/JunTan/front_end/IES_install/input/volt_dat.csv" TO EDGE voltage VALUES($4, $0, DATASERIES($5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28),DATASERIES($29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51,$52),DATASERIES($53,$54,$55,$56,$57,$58,$59,$60,$61,$62,$63,$64,$65,$66,$67,$68,$69,$70,$71,$72,$73,$74,$75,$76)) using Separator=",", quote="double", Header="true";
+
+        LOAD "/home/tigergraph/JunTan/front_end/IES_install/input/read_dat.csv" TO EDGE energy VALUES($4, $0, DATASERIES($5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)) using Separator=",", quote="double", Header="true";
+}
+
+
+//Clear graph store -HARD
+RUN JOB load_his_dat1
+

@@ -1,0 +1,39 @@
+drop query loadDisplay
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query loadDisplay ()
+for graph gsql_EMS {
+	
+    TYPEDEF TUPLE <int exId, string bus_name, double LdP,  double LdQ,  double LdP_Real, double LdQ_Real> row;
+
+	SetAccum<row> @@LoadDisplay_List;
+	SumAccum<int> @@id = 0;
+	SumAccum<double> @LdP_Real=0;
+	SumAccum<double> @LdQ_Real=0;
+		
+	T0 = {TopoND.*};
+    T1 = SELECT s
+	      FROM T0:s
+		  where (s.busType==0 or s.busType==1) and s.island == 1
+		  POST-ACCUM 
+		  s.@LdP_Real=s.LdP*100,
+		  s.@LdQ_Real=s.LdQ*100,
+		  @@LoadDisplay_List+= row(s.exId, s.bus_name, s.LdP, s.LdQ, s.@LdP_Real, s.@LdQ_Real)
+		  //log(true, s.busType, s.island)
+		  ;
+		 
+ 		  
+	foreach x in @@LoadDisplay_List do
+	//print '/\n';
+	@@id += 1;
+	print @@id, x.bus_name, x.exId, x.LdP, x.LdQ, x.LdP_Real, x.LdQ_Real; // > outputfile;	
+
+	end;
+    
+	// print T1;
+		 
+}
+
+//install query loadDisplay

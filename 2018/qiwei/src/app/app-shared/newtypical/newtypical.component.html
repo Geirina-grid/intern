@@ -1,0 +1,25 @@
+<!-- copied from all-tl HTML -->
+
+<!-- <div style="font-size: 2em ; text-align: center">
+典型负荷曲线
+</div> -->
+
+<div style="max-width: 2000px; margin: 0 auto; overflow: hidden;">
+  <div class="ui-g">
+    <div class="ui-g-12 ui-g-nopad">
+
+      <p-dialog header="典型负荷曲线" [(visible)]="display" width=700 height=700>
+        <app-newpopup [options1]="options1" [options2]="options2" [clusterinfo]="clusterinfo" [userinfo]="userinfo"></app-newpopup>
+        <!-- <app-popup [options1]="options1" [options2]="options2" [clusterinfo]="clusterinfo" [userinfo]="userinfo"></app-popup> -->
+
+      </p-dialog>
+      <div *ngFor="let x of grid" [class]="x.size" style="text-align:center">
+        <chart [options]="x.options">
+          <series (click)="onSeriesSelect($event)">
+          </series>
+        </chart>
+      </div>
+    </div>
+  </div>
+</div>
+

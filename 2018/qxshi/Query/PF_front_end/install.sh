@@ -1,0 +1,1 @@
+gsql "install query -ui *"

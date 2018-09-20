@@ -1,0 +1,510 @@
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, OnChanges, SimpleChanges, Input } from '@angular/core';
+import { PreprocessService } from '../../services/preprocess.service';
+import { ActivatedRoute, Params } from '@angular/router';
+import { Location } from '@angular/common';
+import { SelectItem } from 'primeng/components/common/api';
+import { Message } from 'primeng/components/common/api';
+import { MessageService } from 'primeng/components/common/messageservice';
+import { ReferenceService } from '../../services/reference.service';
+import { CalStatsService } from '../../services/cal-stats.service';
+import { CommonService } from '../../services/common.service';
+import { Subscription } from 'rxjs/Subscription';
+
+import 'rxjs/add/operator/switchMap';
+import 'rxjs/add/operator/toPromise';
+import { start } from 'repl';
+
+
+@Component({
+  selector: 'app-iesloaddata',
+  templateUrl: './iesloaddata.component.html',
+  styleUrls: ['./iesloaddata.component.css'],
+  providers: [MessageService, ReferenceService, CalStatsService]
+})
+export class IesloaddataComponent implements OnInit, AfterViewInit, OnDestroy  {
+  private dicts = {};
+  iH = window.innerHeight - 140;
+  iW = Math.min(window.innerWidth, 2000);
+  scatter1H = this.iH * 0.5;
+  scatter2H = this.iH * 0.41;
+  public chart: any;
+  private line;
+  messages: Message[] = [];
+  meters: any[];
+  result;
+  selectedMeter: any;
+  startDate: any;
+  endDate: any;
+  stats: any = null;
+  options: any;
+  options2: any;
+  options3: any;
+  options4: any;
+  public chart2: any;
+  public chart3: any;
+  public chart4: any;
+  public chart5: any;
+  seriesNames: any[] = [];
+  seriesNames1: any[] = [{ value: "剩余负荷(MW)", label: "剩余负荷(MW)" }];
+  scatter1x: String;
+  scatter1y: String;
+  scatter2x: String = 'Substracted_Load(MW)';
+  scatter2y: String;
+  public addedTypicalLoad: boolean = true;
+  public corr1: any;
+  public corr2: any;
+  requestParaSubscription: Subscription;
+  rawOriginalData: any;
+
+  constructor(
+    private route: ActivatedRoute,
+    private location: Location,
+    private preprocessService: PreprocessService,
+    private messageService: MessageService,
+    private referenceService: ReferenceService,
+    private calStatsService: CalStatsService,
+    private commonService: CommonService
+  ) {
+    this.dicts = commonService.dict;
+    this.requestParaSubscription = commonService.loaddataParameterAnnounced$.subscribe(parameter => {
+      this.selectedMeter = parameter['selectedMeter'];
+      this.startDate = parameter['startDate'];
+      this.endDate = parameter['endDate'];
+      this.plotRawData(parameter['selectedMeter'], parameter['startDate'], parameter['endDate']);
+    })
+    this.options = { chart: {
+      zoomType: 'x',
+      height: this.iH * 0.575,
+      width: this.iW * 0.47,
+      panning: true,
+      panKey: 'shift'
+    }}; 
+    this.options2 = {
+      title: { text: null },
+      // subtitle : {text:"scatter plot shows relationship between load and selected weather parameters",style:{fontSize:"9px"}},
+      chart: {
+        zoomType: 'x',
+        height: this.iH * 0.41 - 55,
+        width: this.iW * 0.23,
+        panning: true,
+        panKey: 'shift',
+        spacing: [20, this.iW * 0.02, 10, this.iW * 0.02]
+      },
+      yAxis: {
+        name: "",
+        title: { text: "" },
+        opposite: false
+      },
+      xAxis: {
+        title: { text: "" },
+        tickLength: 5,
+        tickmarkPlacement: "on"
+      },
+      legend: {
+        enabled: false
+      },
+      plotOptions: {
+        series: {
+          showInLegend: true,
+          allowPointSelect: true,
+          visible: true
+        },
+        scatter: {
+          marker: {
+            enabled: true,
+            radius: 2,
+            //         states: {hover: {enabled: true,lineColor: 'rgb(100,100,100)'}}
+          },
+          // states: {hover: {marker: {enabled: true}}
+          //         },
+          tooltip: {
+            headerFormat: '',
+            pointFormat: '{series.xAxis.axisTitle.textStr}: {point.x}, {series.yAxis.axisTitle.textStr}:{point.y}<br>{point.name}'
+          },
+          turboThreshold: 100000
+        }
+      }
+    };   
+    this.options3 = {
+      title: { text: null },
+      // subtitle : {text:"scatter plot shows relationship between load and selected weather parameters",style:{fontSize:"9px"}},
+      chart: {
+        zoomType: 'x',
+        height: this.iH * 0.41 - 55,
+        width: this.iW * 0.23,
+        panning: true,
+        panKey: 'shift',
+        spacing: [20, this.iW * 0.02, 10, this.iW * 0.02]
+      },
+      yAxis: {
+        name: "",
+        title: { text: "" },
+        opposite: false
+      },
+      xAxis: {
+        title: { text: "" },
+        tickLength: 5,
+        tickmarkPlacement: "on"
+      },
+      legend: {
+        enabled: false
+      },
+      plotOptions: {
+        series: {
+          showInLegend: true,
+          allowPointSelect: true,
+          visible: true
+        },
+        scatter: {
+          marker: {
+            enabled: true,
+            radius: 2,
+            //         states: {hover: {enabled: true,lineColor: 'rgb(100,100,100)'}}
+          },
+          // states: {hover: {marker: {enabled: true}}
+          //         },
+          tooltip: {
+            headerFormat: '<span style="color:{series.color}">{series.name}<br></span>',
+            pointFormat: '{series.xAxis.axisTitle.textStr}:{point.x} {scatter}, {series.yAxis.axisTitle.textStr}:{point.y}<br>{point.name}'
+          },
+          turboThreshold: 100000
+        }
+      },
+      series: [{ data: [] }]
+    };
+    this.options4 = {
+      title: { text: "剩余负荷及天气数据一览(扣除基准负荷)" },
+      chart: {
+        zoomType: 'x',
+        height: this.iH * 0.41,
+        width: this.iW * 0.47,
+        panning: true,
+        panKey: 'shift'
+      },
+      rangeSelector: {
+        selected: 6,
+        buttons: [{ type: 'day', count: 1, text: '1d' },
+        { type: 'week', count: 1, text: '1w' },
+        { type: 'month', count: 1, text: '1m' },
+        { type: 'month', count: 6, text: '6m' },
+        { type: 'year', count: 1, text: '1y' },
+        { type: 'all', text: 'All' }],
+      },
+      navigator: { margin: 5 },
+      yAxis: [{
+        linewidth: 1,
+        name: "剩余负荷(MW)",
+        title: { text: "剩余负荷(MW)" },
+        opposite: false
+      },
+      {
+        linewidth: 1,
+        plotLines: [{ value: 0, width: 2, color: 'silver' }],
+        name: "",
+        title: { text: "" },
+        opposite: true
+      }
+      ],
+      xAxis: {
+        tickInterval: 16
+      },
+      legend: {
+        enabled: false
+      },
+
+      plotOptions: {
+        series: {
+          showInLegend: true,
+          allowPointSelect: true,
+          visible: true
+        },
+      },
+      tooltip: {
+        pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}',
+        valueDecimals: 2,
+        split: true
+      },
+      series: [{ data: [0] }]
+    };
+  }
+
+  ngOnInit(): void {
+  }
+  ngAfterViewInit(): void {
+    this.commonService.announceLoaddataReinit();
+  }
+
+  ngOnDestroy() {
+    this.requestParaSubscription.unsubscribe();
+  }
+
+  initChart() {
+
+  }
+   transDate(date: Date): string {
+    const mon = date.getMonth() + 1; // getMonth() is zero-based
+    const dd = date.getDate();
+    const yyyy = date.getFullYear();
+    const hh = date.getHours();
+    const min = date.getMinutes();
+    const sec = date.getSeconds();
+    return [yyyy,
+      (mon > 9 ? '-' : '-0') + mon,
+      (dd > 9 ? '-' : '-0') + dd,
+      (hh > 9 ? ' ' : ' 0') + hh,
+      (min > 9 ? ':' : ':0') + min,
+      (sec > 9 ? ':' : ':0') + sec
+    ].join('');
+  }
+
+  plotRawData(selectedMeter, startDate, endDate) {
+    // plot data should be notified by parent component after parameter has been changed
+    this.chart5.showLoading();
+    this.chart2.showLoading();
+    this.chart4.showLoading();
+    this.chart3.showLoading();
+    this.seriesNames = [];
+    this.rawOriginalData = {};
+    return this.referenceService.getRawDataReferenceHighcharts(selectedMeter, this.transDate(startDate), this.transDate(endDate)).then(res => {
+      res.result.chart.height = this.iH * 0.575;
+      res.result.chart.width = this.iW * 0.47;
+      res.result.title = {"text": this.dicts[res.result.title["text"]]};
+      res.result.series.forEach(element => {
+        element["id"] = this.dicts[element["id"]];
+        element["name"] = this.dicts[element["name"]];
+      });
+      res.result.yAxis.forEach(element => {
+        element["name"] = this.dicts[element["name"]];
+        element["title"]["text"] = this.dicts[element["title"]["text"]];
+      });
+      res.result["interaction"] = {
+        "resizing":  {
+          "enabled": true
+        }
+      }
+      this.options = res.result;
+      res.result.series.forEach(series => {
+        this.rawOriginalData[series["id"]] = series;
+        this.seriesNames.push({value:series.name, label:series.name});
+      });
+      // init scatter options
+      this.scatter1x = this.options.series[0].name;
+      this.scatter1y = this.options.series[1].name;
+      this.plotScatterFromSeriesNames(this.chart3, this.chart2, this.rawOriginalData, this.scatter1x, this.scatter1y, 1);
+      if (this.addedTypicalLoad) {
+        this.addTypicalLoad();
+      }
+      this.chart2.hideLoading();
+    });
+  }
+
+  onSeriesShow(e) {
+    if (e.context.name == this.dicts["Load(MW)"] || e.context.name == this.dicts["Typical_Load(MW)"]) {
+      console.log('click Load or Typical_Load, not scatter plot')
+    } else {
+      if (!e.context.options.visible) {
+        this.replot(e.context.name);
+      } else {
+        this.replot("温度(F)")
+      }
+    }
+  }
+
+  replot(scatterY) {
+    this.scatter1y = scatterY;
+    this.scatter1x = this.dicts["Load(MW)"];
+    this.plotScatterFromSeriesNames(this.chart3, this.chart2, this.rawOriginalData, this.scatter1x, this.scatter1y, 1)
+    if (this.addedTypicalLoad) {
+      this.chart5.showLoading();
+      this.scatter2y = scatterY;
+      this.scatter2x = this.dicts["Substracted_Load(MW)"];
+      Promise.resolve(this.addLine(this.chart5, this.chart2, this.scatter2y))
+        .then(res => this.chart5.redraw())
+        .then(res => {
+          this.chart5.hideLoading();
+          this.plotScatterFromSeriesNames(this.chart4, this.chart5, this.rawOriginalData, this.scatter2x, this.scatter2y, 2);
+        })
+    }
+  }
+ 
+  convertToScatter(series1, series2) {
+    let scatterSeries = [];
+    for (let i = 0, j = 0; i < series1.length && j < series2.length;) {
+      if (series1[i][0] == series2[j][0]) {
+        scatterSeries.push({ x: series1[i][1], y: series2[j][1], name: this.transDate(new Date(series1[i][0])) });
+        i += 1;
+        j += 1;
+      }
+      else if (series1[i][0] > series2[j][0]) {
+        j += 1;
+      } else {
+        i += 1;
+      }
+    };
+    return scatterSeries;
+  }
+
+  plotScatterFromSeriesNames(plotChart, sourceChart, sourceData, seriesName1, seriesName2, corrIndex) {
+    plotChart.showLoading();
+
+    let series = this.convertToScatter(sourceData[seriesName1].data, sourceData[seriesName2].data);
+    while (plotChart.series.length > 0) {
+      plotChart.series[0].remove(false)
+    }
+    plotChart.addSeries({
+      data:series,
+      id:this.options.series[1].name,
+      name:this.options.series[1].name,
+      type:"scatter",
+      color: sourceChart.get(seriesName2) == null ? "#434348" : sourceChart.get(seriesName2).color
+    },false);
+    this.options2.series = series;
+    plotChart.yAxis[0].update({title:{text:seriesName2}},false);
+    plotChart.xAxis[0].update({title:{text:seriesName1}},false);
+    plotChart.redraw();
+    Promise.resolve(this.calStatsService.calCorr(plotChart.series[0].options.data).then(corr => {
+      if (corrIndex == 1) {
+        this.corr1 = corr;
+      } else if (corrIndex == 2) {
+        this.corr2 = corr;
+      }
+    }));
+    plotChart.hideLoading();
+  }
+  
+  getSubtractedLoad(chart, seriesid1, seriesid2) {
+    let subtractedSeries = [],
+      series1y: any[] = chart.get(seriesid1).yData,
+      series2y: any[] = chart.get(seriesid2).yData,
+      series1x: any[] = chart.get(seriesid1).xData,
+      series2x: any[] = chart.get(seriesid2).xData;
+    // return true
+    for (let i = 0, j = 0; i < series1y.length && j < series2y.length;) {
+      if (series1x[i] == series2x[j]) {
+        subtractedSeries.push([series1x[i], series1y[i] - series2y[j]]);
+        i += 1;
+        j += 1;
+      }
+      else if (series1x[i] > series2x[j]) {
+        j += 1;
+      } else {
+        i += 1;
+      }
+    };
+    return subtractedSeries;
+  }
+
+
+  addColumnLine(plotChart, sourceChart, xid, yid, newid, lineid) {
+    while (plotChart.series.length > 0) {
+      plotChart.series[0].remove(false)
+    }
+    return Promise.resolve(this.getSubtractedLoad(sourceChart, xid, yid))
+      .then(res => {
+        this.rawOriginalData["剩余负荷(MW)"] = {
+          id: "剩余负荷(MW)",
+          name: "剩余负荷(MW)",
+          showInLegend: true,
+          type: "column",
+          visible: "true",
+          yAxis: 0,
+          data:res
+        };
+        plotChart.addSeries({ data: res, id: newid, name: newid, type: "column", showInNavigator: true, color: sourceChart.get(xid).color }, true);
+      })
+      .then(res => {
+        plotChart.addSeries(sourceChart.get(lineid).options, false);
+        plotChart.yAxis[1].update({ title: { text: lineid } }, false);
+        plotChart.series[1].update({ color: sourceChart.get(lineid).color, visible: true, yAxis: 1 }, false)
+      })
+      .catch(this.handleError);
+
+  }
+
+  addLine(plotChart, sourceChart, id) {
+    if (plotChart.series[1] != null) {
+      plotChart.series[1].remove(false)
+    }
+    plotChart.addSeries(sourceChart.get(id).options, false);
+    plotChart.series[1].update({ color: sourceChart.get(id).color, visible: true, yAxis: 1 }, false);
+    plotChart.yAxis[1].update({ title: { text: id } }, false);
+  }
+
+  onDropdownSelect() {
+    if (this.scatter1x != null && this.scatter1y != null) {
+      this.plotScatterFromSeriesNames(this.chart3, this.chart2, this.rawOriginalData, this.scatter1x, this.scatter1y, 1);
+    }
+  }
+
+  onDropdownSelect2() {
+    if (this.scatter2x != null && this.scatter2y != null) {
+      this.plotScatterFromSeriesNames(this.chart4, this.chart5, this.rawOriginalData, this.scatter2x, this.scatter2y, 2);
+    }
+  }
+
+  saveInstance(chartInstance) {
+    this.chart2 = chartInstance;
+  }
+
+  saveInstance2(chartInstance) {
+    this.chart3 = chartInstance;
+  }
+
+  saveInstance3(chartInstance) {
+    this.chart4 = chartInstance;
+  }
+
+  saveInstance4(chartInstance) {
+    this.chart5 = chartInstance;
+  }
+
+  addTypicalLoad() {
+    while (this.chart5.series.length > 0) {
+      this.chart5.series[0].remove(false)
+    }
+    this.chart5.showLoading();
+    this.chart2.showLoading();
+    this.chart4.showLoading();
+    this.referenceService.getTypicalLoad(this.selectedMeter, this.transDate(this.startDate), this.transDate(this.endDate))
+    .then(res => {
+        res.result["id"] = this.dicts[res.result["id"]];
+        res.result["name"] = this.dicts[res.result["name"]];
+        this.chart2.addSeries(res.result);
+      })
+    .then(res => {this.chart2.hideLoading();
+                  this.addColumnLine(this.chart5,this.chart2,"负荷(MW)","基准负荷(MW)","剩余负荷(MW)","温度(F)")})
+    .then(res => {
+      this.chart5.redraw();
+      this.scatter2x="剩余负荷(MW)";
+      this.scatter2y="温度(F)"
+      this.chart5.hideLoading();
+      this.plotScatterFromSeriesNames(this.chart4, this.chart5, this.rawOriginalData, this.scatter2x, this.scatter2y, 2);
+    });
+  }
+
+  reinit() {
+    this.commonService.announceLoaddataReinit();
+  }
+
+  compareTypicalLoad() {
+    if (!this.addedTypicalLoad) {
+      this.addTypicalLoad();
+    }
+  }
+
+  showMsg(error: boolean, sum: string, msg: string) {
+    this.messages = [];
+    let sev;
+    if (error) {
+      sev = 'error';
+    } else {
+      sev = 'success'
+    }
+    this.messages.push({ severity: sev, summary: sum, detail: msg });
+  }
+
+  handleError = (error: any) => {
+    this.showMsg(true, 'Error', JSON.parse(error._body).message || error);
+  }
+
+} 

@@ -1,0 +1,26 @@
+.graphchart {
+    width:100%;
+    height:100%;
+    vertical-align:center;
+    align-items:center;
+    /*background-color: red;*/
+}
+
+.loadforecastTab {
+    width:100%;
+}
+
+.dateButton {
+    float:right;
+}
+
+.tabview .ui-tabview-nav {
+    border-top:0px;
+    border-left:0px;
+    border-right:0px;
+    border-bottom:0px;
+}
+
+div .load-forecast-selections {
+    float:right;padding:0.5em 0.5em 0 0.5em; font-size:1.15em; 
+}

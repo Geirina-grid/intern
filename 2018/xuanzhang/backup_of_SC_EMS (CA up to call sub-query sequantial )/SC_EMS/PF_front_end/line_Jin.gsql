@@ -1,0 +1,55 @@
+drop query line
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query line()
+for graph gsql_EMS {
+	
+	TYPEDEF TUPLE < string edge_name, int edge_type, int s_exId, int t_exId, int s_type, int t_type, string tap_bus_name, string z_bus_name, double R, double X, double B, double Line1_MVA, double Line2_MVA, double Line3_MVA> row;
+	SumAccum<int> @@id = 0;
+//	ListAccum<row> @@edgeList; 
+	HeapAccum<row>(1000000, edge_name asc) @@edgeList;
+	double Line1_MVA;
+	double Line2_MVA;
+	double Line3_MVA;
+	
+    //print "line_id", "tap_bus", "z_bus", "R", "X", "B", "P", "Q", "I", "Line1_MVA", "Line2_MVA", "Line3_MVA";	
+	T0 = {TopoND.*};
+		 
+	T0 = SELECT s   
+	     FROM T0:s-(topo_connect:e)->TopoND:t
+		 where e.reverse == 1 and s.island == 1 and t.island == 1//and s.island == 1 and t.island == 1
+		 ACCUM
+			e.edge_name = s.bus_name + "->" + t.bus_name;
+	
+    T1 = SELECT s
+	      FROM T0:s-(topo_connect:e)->TopoND:t
+		  where e.flag == 0 and e.reverse == 1 and s.island == 1 and t.island == 1
+		  ACCUM 
+			log(true, s.exId, t.exId),
+            int minValue = e.kcount - 1,
+            IF (minValue < 0) THEN
+                minValue = 0
+            END,
+	    FOREACH i in range[0, minValue] DO
+ 		//@@edgeList+= row(e.edge_name, e.flag, s.exId, t.exId, s.busType, t.busType, s.bus_name, t.bus_name, e.R.get(i), e.X.get(i), e.hB.get(i), e.Line_Q1.get(i), e.Line_Q2.get(i), e.Line_Q3.get(i))
+		 //@@edgeList+= row(e.edge_name, e.flag, s.exId, t.exId, s.busType, t.busType, s.bus_name, t.bus_name, e.R, e.X, e.hB, e.Line_Q1, e.Line_Q2, e.Line_Q3)
+		 @@edgeList+= row(e.edge_name, e.flag, s.exId, t.exId, s.busType, t.busType, s.bus_name, t.bus_name, e.R, e.X, e.hB, e.line_Q1, e.line_Q2, e.line_Q3)
+	    END;
+			
+	    log(true,@@edgeList);
+	
+	foreach x in @@edgeList do
+		@@id += 1;
+		Line1_MVA = x.Line1_MVA * 100;
+		Line2_MVA = x.Line2_MVA * 100;
+		Line3_MVA = x.Line3_MVA * 100;
+		print x.edge_name, x.edge_type, x.s_exId, x.t_exId, x.s_type, x.t_type, x.tap_bus_name, x.z_bus_name, x.R, x.X, x.B, Line1_MVA, Line2_MVA, Line3_MVA;
+	
+	end;
+			  
+		 
+}
+
+//install query line

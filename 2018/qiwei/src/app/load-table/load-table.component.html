@@ -1,0 +1,50 @@
+<!-- copied from loadDisplay.component.html -->
+
+
+
+<div style="text-align:right">
+    <p-dataTable #dt [value]="loadDisplays" exportFilename="Load Parameters" selectionMode="multiple" [metaKeySelection]="false" scrollable="true" [scrollHeight]="h1"
+     [(selection)]="selectedLoadDiss" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)" [rows]="20" [paginator]="true" [pageLinks]="3" [rowsPerPageOptions]="[20,25,30]" dataKey="Bus_name" sortMode="multiple">
+      <p-header>
+          <div class="ui-helper-clearfix">
+              <button type="button" pButton icon="fa-file-o" iconPos="left" label="Download All Data" (click)="dt.exportCSV()" style="float:left"></button>
+              负荷参数展示               
+              <button type="button" pButton icon="fa-file" iconPos="left" label="Download Selection Only" (click)="dt.exportCSV({selectionOnly:true})" style="float:right"></button>
+          </div>
+      </p-header> 
+      <p-column field="id" header="负荷编号" [sortable]="true"></p-column>       
+      <p-column field="Bus_name" header="节点名" [sortable]="true"></p-column>
+      <p-column field="PdA" header="A相有功功率(kW)" [sortable]="true"></p-column>
+      <p-column field="QdA" header="A相无功功率(kVar)" [sortable]="true"></p-column>
+      <p-column field="PdB" header="B相有功功率(kW)" [sortable]="true"></p-column>
+      <p-column field="QdB" header="B相无功功率(kVar)" [sortable]="true"></p-column>
+      <p-column field="PdC" header="C相有功功率(kW)" [sortable]="true"></p-column>
+      <p-column field="QdC" header="C相无功功率(kVar)" [sortable]="true"></p-column>
+      <p-column field="Load_Model" header="负荷连接/类型" [sortable]="true"></p-column>
+
+    </p-dataTable>
+    <!-- <p-dataTable #dt1 [value]="customerDisplays" exportFilename="Customer Load" selectionMode="multiple" [metaKeySelection]="false" scrollable="true" [scrollHeight]="h2"
+    [(selection)]="selectedCustomerDiss" (onRowSelect)="onRowSelect_c($event)" (onRowUnselect)="onRowUnselect_c($event)"  dataKey="customer" sortMode="multiple">
+
+
+          <p-header>
+              <div class="ui-helper-clearfix">
+                  <button type="button" pButton icon="fa-file-o" iconPos="left" label="All Data" (click)="dt1.exportCSV()" style="float:left"></button>
+                  用户负荷               
+                  <button type="button" pButton icon="fa-file" iconPos="left" label="Selection Only" (click)="dt1.exportCSV({selectionOnly:true})" style="float:right"></button>
+              </div>
+          </p-header>
+          
+          <p-column field="customer" header="用户名" [sortable]="true"></p-column>
+          <p-column field="load_point" header="节点名" [sortable]="true"></p-column>
+          <p-column field="phase_cust" header="负载相位" [sortable]="true"></p-column>            
+          <p-column field="PcA" header="A相有功功率(kW)" [sortable]="true"></p-column>
+          <p-column field="QcA" header="A相无功功率(kVar)" [sortable]="true"></p-column>
+          <p-column field="PcB" header="B相有功功率(kW)" [sortable]="true"></p-column>
+          <p-column field="QcB" header="B相无功功率(kVar)" [sortable]="true"></p-column>
+          <p-column field="PcC" header="C相有功功率(kW)" [sortable]="true"></p-column>
+          <p-column field="QcC" header="C相无功功率(kVar)" [sortable]="true"></p-column>
+  
+        </p-dataTable> -->
+</div>
+

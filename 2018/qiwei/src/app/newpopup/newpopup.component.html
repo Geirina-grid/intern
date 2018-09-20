@@ -1,0 +1,24 @@
+<div class="ui-g-12">
+  <chart [options]="options1"></chart>
+</div>
+<div class="ui-g-6">
+  <chart [options]="options2">
+      <series>
+          <point (select)="onpieselect($event)"></point>
+      </series>
+  </chart>
+</div>
+<div class="ui-g-3">
+  <p-dataTable [value]="userinfo" selectionMode="single" [metaKeySelection]="false" scrollable="true" scrollHeight="200px"
+  sortMode="multiple" (onRowSelect)="onRowSelect($event)">
+      <p-header>聚类用户</p-header>
+      <p-column *ngFor="let col1 of cols1" [field]="col1.field" [header]="col1.header"></p-column>
+  </p-dataTable>
+</div>
+<div class="ui-g-3">
+  <p-dataTable [value]="clusterinfo" selectionMode="single" [metaKeySelection]="false" scrollable="true" scrollHeight="200px"
+  sortMode="multiple">
+      <p-header>聚类信息</p-header>
+      <p-column *ngFor="let col1 of cols2" [field]="col1.field" [header]="col1.header"></p-column>
+  </p-dataTable>
+</div>

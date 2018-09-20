@@ -1,0 +1,105 @@
+<div #mainScreen class="text-center" [ngStyle]="style_main">
+  <div class="rectangle" id="left" [ngStyle]="style_left" mwlResizable [resizeEdges]="{bottom: false, right: true, top: false, left: false}"
+    [enableGhostResize]="true" (resizeEnd)="onResizeEnd_left($event)" [validateResize]="validate_left">
+    <div class="pad">
+      <div class="sidebar title1">
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;搜索过滤</p>
+      </div>
+      <!-- <div class="sidebar title1">
+                &nbsp;&nbsp;&nbsp;&nbsp;用户ID:
+                <p-dropdown [options]="meters" [(ngModel)]="selectedmeter" [style]="{'width':'100px'}" editable="editable" placeholder="Select ID"
+                (onChange)="changeid()"></p-dropdown>
+            </div> -->
+
+
+      <app-checklist (itemClickedEvent3)="Clicked()" (itemClickedEvent2)="itemClicked2($event)" [show]="showValue" title="分行业用户筛选"
+        [listArray]="businessList"></app-checklist>
+    </div>
+    <div class="sidebar buttons">
+      <button mat-button id="resetbtn" (click)="reset()">重置</button>
+      <button mat-button id="applybtn" (click)="loadData()">应用</button>
+    </div>
+  </div>
+
+
+
+
+  <div class="rectangle" id="right" [ngStyle]="style_right" mwlResizable [resizeEdges]="{bottom: false, right: false, top: false, left: false}"
+    [enableGhostResize]="true" #rightScreen>
+
+
+
+    <div class="content">
+
+      <div class="rectangle" id="top" [ngStyle]="style_top" mwlResizable [resizeEdges]="{bottom: true, right: false, top: false, left: false}"
+        [enableGhostResize]="true" (resizeEnd)="onResizeEnd_top($event)">
+
+        <div class="title">
+          <h1>行业用电分析</h1>
+        </div>
+
+
+
+        <div class="ui-g" #chartView>
+
+          <div class="rectangle" id="uig_left" [ngStyle]="style_uig_left" mwlResizable [resizeEdges]="{bottom: false, right: true, top: false, left: false}"
+            [enableGhostResize]="true" (resizeEnd)="onResizeEnd_uig_left($event)">
+            
+
+
+            <div class="ui-g-8">
+              <app-draw-line></app-draw-line>
+            </div>
+
+          </div>
+
+          <!-- <div class="dijitSplitter dijitSplitterV dijitAlignLeft" data-dojo-attach-event="onkeydown:_onKeyDown,press:_startDrag,onmouseenter:_onMouse,onmouseleave:_onMouse" tabindex="0" role="separator" id="leftDiv_splitter" widgetid="leftDiv_splitter" style="left: 642px; top: 98px; position: absolute; height: 623px; width: 4px;"><div class="dijitSplitterThumb"></div></div> -->
+
+          <div class="rectangle" id="uig_right" [ngStyle]="style_uig_right" mwlResizable [resizeEdges]="{bottom: false, right: false, top: false, left: false}"
+            [enableGhostResize]="true">
+
+            <div class="ui-g-4">
+              <div class="row" style="width: 100%">
+                <chart [options]="options1">
+                  <series>
+                    <point (select)="onPointSelect($event)"></point>
+                  </series>
+                </chart>
+              </div>
+              <div class="row" style="width: 100%">
+                <chart [options]="options6">
+                </chart>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="rectangle" id="bottom" [ngStyle]="style_bottom" mwlResizable [resizeEdges]="{bottom: false, right: false, top: false, left: false}"
+        [enableGhostResize]="true">
+
+
+
+        <div class="ui-g">
+        <div style="text-align:center;font-size:11px;z-index: 15;">
+          <p-dataTable [value]="loadrank" selectionMode="single" [metaKeySelection]="false" scrollable="true" [scrollHeight]="tab_sh"
+            (onRowSelect)="onRowSelect($event)" dataKey="user" sortMode="multiple">
+            <p-header>用户年用电量（兆瓦）及负荷波形占比（%）</p-header>
+            <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header" [sortable]="true"></p-column>
+          </p-dataTable>
+        </div>
+        </div>
+
+
+      </div>
+
+    </div>
+
+    <p-dialog header="用户负荷曲线" [(visible)]="display" width=700 height=700>
+      <chart type="StockChart" [options]="options5"></chart>
+    </p-dialog>
+
+  </div>
+</div>
+

@@ -1,0 +1,2 @@
+from,to,XF_name,phase,fromNode,toNode,config,XFC_name,connect_type,install_type,power_rating,powerA_rating,powerB_rating,powerC_rating,primary_voltage,secondary_voltage,resistance,reactance
+64,house1,XF_1,CS,node_64,house1,XF1_config,XF1_config,SINGLE_PHASE_CENTER_TAPPED,POLETOP,,,,500,4160.03963,240,0.0127,0.0272

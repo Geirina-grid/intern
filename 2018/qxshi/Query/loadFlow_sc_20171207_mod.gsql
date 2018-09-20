@@ -1,0 +1,22 @@
+set sys.data_root="/home/tigergraph/SC_EMS/input/"
+
+drop job load_state_grid_flow
+
+create loading job load_state_grid_flow for graph company_graph
+{  
+  load "$sys.data_root/sc_20171207_NR_11100nodeinfo.csv"
+  // load "$sys.data_root/118Bus_nodeinfo_ca.csv"
+    // to vertex Gnode values($"bus_id",$0, $4, $9, $10, $12, $5, $5, $13, $14, $7, $8, $6, $15, $16, _, _) // #12 was #5
+	to vertex Gnode values($"bus_id",$0, $4, $"generation_p", $"generation_Q", $12, $5, $5, $13, $14, $"load_P", $"load_Q", $6, $15, $16, _, _) // #12 was #5
+  using Separator=",", Header="true";
+
+  load "$sys.data_root/sc_20171207_NR_11100edgeinfo.csv"
+  // load "$sys.data_root/118Bus_edgeinfo_ca.csv"
+    to edge connected values($0, $1,reduce(add(_getG($"R", $"X"))),reduce(add(_getB($"R", $"X"))), reduce(add($8)), reduce(add($14)), reduce(add(1)), reduce(add(divide($"X"))),$"type"),
+    to edge connected values($1, $0,reduce(add(_getG($"R", $"X"))),reduce(add(_getB($"R", $"X"))), reduce(add($8)), reduce(add(_minus($14))), reduce(add(1)), reduce(add(divide($"X"))),$"type")
+  using  Separator=",", Header="true";
+}
+
+clear graph store -HARD
+
+run job load_state_grid_flow

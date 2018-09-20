@@ -1,0 +1,125 @@
+// **********************************************************************************************************************************
+// 07/12/2017 [Jingjin]
+//	      Added tuple bridge_id_vertex and STATIC HeapAccum y_bridge_vertex to store the bridges information for visualization
+// **********************************************************************************************************************************
+
+// Drop previous queries
+drop query critiEdge
+create query critiEdge ( )
+for graph gsql_EMS {
+  
+// ------------------------------------------------------------------------------------------------
+// 				Define variables and arrays
+// ------------------------------------------------------------------------------------------------
+
+ // define the tuples for the HeapAccums
+ // sort_id_vertex:   for the vertex HeapAccum - contains information on the nodes and also for the pointer arrays 
+ // sort_id_edge_all: for the edge_all HeapAccum - contains Ybus matrix G & B, B' matrix and B" matrix B values and index array
+ typedef tuple<int exId, int ep> sort_id_vertex;
+ typedef tuple<int exId, int ei, double P_TLPF, double Q_TLPF> sort_id_edge_all;
+
+
+ // bridge_id_vertex:    for y_bridge_vertex HeapAccum (key based on exId) - contains bridge information of YBus based on each vertex: bridge
+ typedef tuple<int key, int from_bus, int to_bus> bridge_id_vertex;
+// typedef tuple<int key, int from_bus, int to_bus, double P_TLPF, double Q_TLPF> bridge_id_vertex;
+
+//crit_edge:  for @@edgeList ListAcuum - contains power flow results of critical edges
+typedef tuple <string edge_name, int from_bus, int to_bus, string from_bus_name, string to_bus_name, double P, double Q> crit_edge;
+
+ ListAccum<crit_edge> @@edgeList;
+
+HeapAccum<bridge_id_vertex>(10000000, key asc) @@y_bridge_vertex;
+ MaxAccum<double> @@PI = 3.1415926535898;
+
+ string edge_name;
+ string bus_name1;
+ string bus_name2;
+ double P_TLPF;
+ double Q_TLPF;
+
+ SumAccum<int>    @alldgr = 0;   // the degree (number of edges connecting all buses) of a bus
+ 
+ SumAccum<int> @@id = 0;
+ 
+ // define the HeapAccums, sorted based on ascending order of external bus ID
+ HeapAccum<sort_id_vertex>(10000000, exId asc) @@vertex; 
+ HeapAccum<sort_id_edge_all>(10000000, exId asc) @@edge_all; 
+ 
+ string basecase_result;
+ 
+ T0= {TopoND.*};   //start from all grid vertices in the graph
+
+
+// ------------------------------------------------------------------------------------------------
+// 			Construct Ybus 
+// ------------------------------------------------------------------------------------------------ 
+//initialize each vertex's initial sum_G/B
+
+
+	T0 = SELECT s   
+	     FROM T0:s-(topo_connect:e)->TopoND:t
+		 where e.reverse == 1 //and s.island == 1 and t.island == 1
+		 ACCUM
+			e.edge_name = s.bus_name + "->" + t.bus_name;
+			
+			
+	T1 = SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t 
+	  accum
+	  double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+	  double tap_ratio_square = abs((e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount)),
+			case when (e.transformer_final_turns_ratio == 0) then
+				e.P_TLPF = s.PF_Vm * t.PF_Vm * sin((s.PF_Va - t.PF_Va)*@@PI/180)* e.B + (s.PF_Vm*s.PF_Vm - s.PF_Vm*t.PF_Vm*cos((s.PF_Va - t.PF_Va)*@@PI/180)) * e.G,
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) - s.PF_Vm * t.PF_Vm * (e.G*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			when (e.transformer_final_turns_ratio > 0) then
+				e.P_TLPF = s.PF_Vm * s.PF_Vm * (e.G/tap_ratio_square) - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) / tap_ratio_square - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			else
+				e.P_TLPF = s.PF_Vm * s.PF_Vm * e.G - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			end;
+
+
+
+T0 = select v
+     from  T0:v-(topo_connect:e)->TopoND:t
+	 where v.island == 1 and t.island == 1 and e.reverse == 1
+     accum      
+        @@edge_all += sort_id_edge_all(v.exId*100000 + t.exId, t.exId - 1,  e.P_TLPF, e.Q_TLPF),
+        v.@alldgr += 1 // total number of connected branches
+     post-accum
+	@@edge_all += sort_id_edge_all(v.exId*100000 + v.exId, v.exId - 1, 0, 0),  
+	@@vertex += sort_id_vertex(v.exId, v.@alldgr+1);
+ 
+// print @@vertex.size(), @@edge_all.size();
+
+// perform fast-decoupled power flow for base case solution
+ basecase_result = bridge_UI(@@vertex, @@edge_all, @@y_bridge_vertex);
+// print basecase_result;
+//  print @@y_bridge_vertex.size();
+
+ B1 = select v
+      from T0:v - (topo_connect:e)->TopoND:t
+	  where v.island == 1 and t.island == 1 and e.reverse == 1
+      accum
+	foreach x in @@y_bridge_vertex do	
+	    if (x.from_bus != x.to_bus and v.exId == x.from_bus and t.exId == x.to_bus) then 
+		@@edgeList += crit_edge(e.edge_name, v.exId, t.exId, v.bus_name, t.bus_name, e.P_TLPF, e.Q_TLPF)
+            end
+	end;
+  
+  foreach y in @@edgeList do
+	@@id += 1;
+	P_TLPF = y.P * 100;
+        Q_TLPF = y.Q * 100;
+	print @@id, y.edge_name, y.from_bus, y.to_bus, y.from_bus_name, y.to_bus_name, P_TLPF, Q_TLPF;
+  end;
+
+
+}
+
+// install query critiEdge
+//install query -ui critiEdge
+//install query -optimize
+
+

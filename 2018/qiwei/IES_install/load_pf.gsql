@@ -1,0 +1,26 @@
+drop query load_pf
+
+CREATE query load_pf (vertex<bus_D> nid, STRING read_type)
+for graph powerflow_graph {
+//      ListAccum<edge> @@Alldat;
+        ListAccum<DATASERIES> @node_data;
+        ListAccum<VERTEX>  @date_data;
+        T1 = {DayIndex.*};
+        T0 = SELECT nn
+                FROM T1:temp -(powerfactor:e)- :nn WHERE nn==nid
+//              ACCUM @@Alldat+=e;
+                ACCUM CASE read_type
+//                        when "volt_a" then nn.@node_data+=e.volt_a
+//                        when "volt_b" then nn.@node_data+=e.volt_b
+//                        when "volt_c" then nn.@node_data+=e.volt_c
+                        when "load_a" then nn.@node_data+=e.pf_a
+                        when "load_b" then nn.@node_data+=e.pf_b
+                        when "load_c" then nn.@node_data+=e.pf_c
+                END,
+                        nn.@date_data+=temp;
+//      print @@Alldat;
+        print T0;
+}
+
+//install query -ui load_pf
+

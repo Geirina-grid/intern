@@ -1,0 +1,91 @@
+I0814 16:28:31.874250 238845 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 16:28:31.874698 238845 serviceapi.cpp:561] Request|default,64:RESTPP_1_1:1534289311873:NN,2000,|Start_RunUDF
+I0814 16:28:31.874732 238845 gtimer.cpp:75] |default,64:RESTPP_1_1:1534289311873:NN,2000,|UDF::Start
+I0814 16:28:31.874805 238845 gtimer.cpp:47] (0.062 ms) |default,64:RESTPP_1_1:1534289311873:NN,2000,|UDF::Initialization
+I0814 16:28:31.875701 238845 gtimer.cpp:47] (0.902 ms) |default,64:RESTPP_1_1:1534289311873:NN,2000,|UDF::Finished iteration 1 which did 638 edge maps and 0 vertex maps (in 0.567 ms), 309 vertex reduces (in 0.319 ms), and activated 309 vertices.
+I0814 16:28:31.878924 238845 gtimer.cpp:47] (3.226 ms) |default,64:RESTPP_1_1:1534289311873:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 309 vertex maps (in 2.973 ms), 309 vertex reduces (in 0.231 ms), and activated 309 vertices.
+I0814 16:28:31.879933 238845 gtimer.cpp:47] (5.197 ms) |default,64:RESTPP_1_1:1534289311873:NN,2000,|UDF::End
+I0814 16:28:31.879947 238845 serviceapi.cpp:564] Request|default,64:RESTPP_1_1:1534289311873:NN,2000,|Stop_RunUDF|5ms
+I0814 16:28:31.880003 238845 enginejobrunner.cpp:266] Request|default,64:RESTPP_1_1:1534289311873:NN,2000,|Finished in 5.935 ms|Response 41 bytes|Id conversion 0
+I0814 16:28:32.280267 238845 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 16:28:32.280701 238845 serviceapi.cpp:561] Request|default,65600:RESTPP_1_1:1534289312279:NN,2000,|Start_RunUDF
+I0814 16:28:32.280733 238845 gtimer.cpp:75] |default,65600:RESTPP_1_1:1534289312279:NN,2000,|UDF::Start
+I0814 16:28:32.280791 238845 gtimer.cpp:47] (0.043 ms) |default,65600:RESTPP_1_1:1534289312279:NN,2000,|UDF::Initialization
+I0814 16:28:32.281522 238845 gtimer.cpp:47] (0.744 ms) |default,65600:RESTPP_1_1:1534289312279:NN,2000,|UDF::Finished iteration 1 which did 638 edge maps and 0 vertex maps (in 0.376 ms), 309 vertex reduces (in 0.353 ms), and activated 309 vertices.
+I0814 16:28:32.284638 238845 gtimer.cpp:47] (3.116 ms) |default,65600:RESTPP_1_1:1534289312279:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 309 vertex maps (in 2.908 ms), 309 vertex reduces (in 0.194 ms), and activated 309 vertices.
+I0814 16:28:32.285559 238845 gtimer.cpp:47] (4.822 ms) |default,65600:RESTPP_1_1:1534289312279:NN,2000,|UDF::End
+I0814 16:28:32.285573 238845 serviceapi.cpp:564] Request|default,65600:RESTPP_1_1:1534289312279:NN,2000,|Stop_RunUDF|4ms
+I0814 16:28:32.285612 238845 enginejobrunner.cpp:266] Request|default,65600:RESTPP_1_1:1534289312279:NN,2000,|Finished in 5.485 ms|Response 41 bytes|Id conversion 0
+I0814 16:28:32.691332 238845 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 16:28:32.691704 238845 serviceapi.cpp:561] Request|default,131136:RESTPP_1_1:1534289312690:NN,2000,|Start_RunUDF
+I0814 16:28:32.691725 238845 gtimer.cpp:75] |default,131136:RESTPP_1_1:1534289312690:NN,2000,|UDF::Start
+I0814 16:28:32.691776 238845 gtimer.cpp:47] (0.040 ms) |default,131136:RESTPP_1_1:1534289312690:NN,2000,|UDF::Initialization
+I0814 16:28:32.692448 238845 gtimer.cpp:47] (0.675 ms) |default,131136:RESTPP_1_1:1534289312690:NN,2000,|UDF::Finished iteration 1 which did 638 edge maps and 0 vertex maps (in 0.385 ms), 309 vertex reduces (in 0.276 ms), and activated 309 vertices.
+I0814 16:28:32.695211 238845 gtimer.cpp:47] (2.768 ms) |default,131136:RESTPP_1_1:1534289312690:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 309 vertex maps (in 2.577 ms), 309 vertex reduces (in 0.178 ms), and activated 309 vertices.
+I0814 16:28:32.696035 238845 gtimer.cpp:47] (4.305 ms) |default,131136:RESTPP_1_1:1534289312690:NN,2000,|UDF::End
+I0814 16:28:32.696050 238845 serviceapi.cpp:564] Request|default,131136:RESTPP_1_1:1534289312690:NN,2000,|Stop_RunUDF|4ms
+I0814 16:28:32.696089 238845 enginejobrunner.cpp:266] Request|default,131136:RESTPP_1_1:1534289312690:NN,2000,|Finished in 4.9 ms|Response 41 bytes|Id conversion 0
+I0814 16:28:33.108021 238845 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 16:28:33.108394 238845 serviceapi.cpp:561] Request|default,196672:RESTPP_1_1:1534289313107:NN,2000,|Start_RunUDF
+I0814 16:28:33.108414 238845 gtimer.cpp:75] |default,196672:RESTPP_1_1:1534289313107:NN,2000,|UDF::Start
+I0814 16:28:33.108467 238845 gtimer.cpp:47] (0.043 ms) |default,196672:RESTPP_1_1:1534289313107:NN,2000,|UDF::Initialization
+I0814 16:28:33.109154 238845 gtimer.cpp:47] (0.692 ms) |default,196672:RESTPP_1_1:1534289313107:NN,2000,|UDF::Finished iteration 1 which did 638 edge maps and 0 vertex maps (in 0.4 ms), 309 vertex reduces (in 0.272 ms), and activated 309 vertices.
+I0814 16:28:33.111981 238845 gtimer.cpp:47] (2.828 ms) |default,196672:RESTPP_1_1:1534289313107:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 309 vertex maps (in 2.598 ms), 309 vertex reduces (in 0.217 ms), and activated 309 vertices.
+I0814 16:28:33.112795 238845 gtimer.cpp:47] (4.374 ms) |default,196672:RESTPP_1_1:1534289313107:NN,2000,|UDF::End
+I0814 16:28:33.112807 238845 serviceapi.cpp:564] Request|default,196672:RESTPP_1_1:1534289313107:NN,2000,|Stop_RunUDF|4ms
+I0814 16:28:33.112850 238845 enginejobrunner.cpp:266] Request|default,196672:RESTPP_1_1:1534289313107:NN,2000,|Finished in 4.951 ms|Response 41 bytes|Id conversion 0
+I0814 16:28:33.520411 238845 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 16:28:33.520745 238845 serviceapi.cpp:561] Request|default,65:RESTPP_1_1:1534289313519:NN,1999,|Start_RunUDF
+I0814 16:28:33.520764 238845 gtimer.cpp:75] |default,65:RESTPP_1_1:1534289313519:NN,1999,|UDF::Start
+I0814 16:28:33.520809 238845 gtimer.cpp:47] (0.032 ms) |default,65:RESTPP_1_1:1534289313519:NN,1999,|UDF::Initialization
+I0814 16:28:33.521471 238845 gtimer.cpp:47] (0.669 ms) |default,65:RESTPP_1_1:1534289313519:NN,1999,|UDF::Finished iteration 1 which did 638 edge maps and 0 vertex maps (in 0.407 ms), 309 vertex reduces (in 0.243 ms), and activated 309 vertices.
+I0814 16:28:33.524037 238845 gtimer.cpp:47] (2.568 ms) |default,65:RESTPP_1_1:1534289313519:NN,1999,|UDF::Finished iteration 2 which did 0 edge maps and 309 vertex maps (in 2.394 ms), 309 vertex reduces (in 0.161 ms), and activated 309 vertices.
+I0814 16:28:33.524780 238845 gtimer.cpp:47] (4.009 ms) |default,65:RESTPP_1_1:1534289313519:NN,1999,|UDF::End
+I0814 16:28:33.524791 238845 serviceapi.cpp:564] Request|default,65:RESTPP_1_1:1534289313519:NN,1999,|Stop_RunUDF|4ms
+I0814 16:28:33.524837 238845 enginejobrunner.cpp:266] Request|default,65:RESTPP_1_1:1534289313519:NN,1999,|Finished in 4.562 ms|Response 41 bytes|Id conversion 0
+I0814 16:28:38.013991 237472 gsystem.cpp:405] System_GSystem|malloc_trim: Use_TCMalloc_. MallocExtension_ReleaseFreeMemory been called
+I0814 16:28:38.628355 238845 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 16:28:38.628648 238845 serviceapi.cpp:561] Request|default,65601:RESTPP_1_1:1534289318627:NN,1999,|Start_RunUDF
+I0814 16:28:38.628669 238845 gtimer.cpp:75] |default,65601:RESTPP_1_1:1534289318627:NN,1999,|UDF::Start
+I0814 16:28:38.628716 238845 gtimer.cpp:47] (0.035 ms) |default,65601:RESTPP_1_1:1534289318627:NN,1999,|UDF::Initialization
+I0814 16:28:38.629278 238845 gtimer.cpp:47] (0.571 ms) |default,65601:RESTPP_1_1:1534289318627:NN,1999,|UDF::Finished iteration 1 which did 638 edge maps and 0 vertex maps (in 0.363 ms), 309 vertex reduces (in 0.194 ms), and activated 309 vertices.
+I0814 16:28:38.631901 238845 gtimer.cpp:47] (2.623 ms) |default,65601:RESTPP_1_1:1534289318627:NN,1999,|UDF::Finished iteration 2 which did 0 edge maps and 309 vertex maps (in 2.414 ms), 309 vertex reduces (in 0.196 ms), and activated 309 vertices.
+I0814 16:28:38.632642 238845 gtimer.cpp:47] (3.968 ms) |default,65601:RESTPP_1_1:1534289318627:NN,1999,|UDF::End
+I0814 16:28:38.632654 238845 serviceapi.cpp:564] Request|default,65601:RESTPP_1_1:1534289318627:NN,1999,|Stop_RunUDF|3ms
+I0814 16:28:38.632690 238845 enginejobrunner.cpp:266] Request|default,65601:RESTPP_1_1:1534289318627:NN,1999,|Finished in 4.467 ms|Response 41 bytes|Id conversion 0
+I0814 16:28:39.030936 238845 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 16:28:39.031277 238845 serviceapi.cpp:561] Request|default,131137:RESTPP_1_1:1534289319030:NN,2000,|Start_RunUDF
+I0814 16:28:39.031299 238845 gtimer.cpp:75] |default,131137:RESTPP_1_1:1534289319030:NN,2000,|UDF::Start
+I0814 16:28:39.031350 238845 gtimer.cpp:47] (0.041 ms) |default,131137:RESTPP_1_1:1534289319030:NN,2000,|UDF::Initialization
+I0814 16:28:39.032034 238845 gtimer.cpp:47] (0.690 ms) |default,131137:RESTPP_1_1:1534289319030:NN,2000,|UDF::Finished iteration 1 which did 638 edge maps and 0 vertex maps (in 0.357 ms), 309 vertex reduces (in 0.319 ms), and activated 309 vertices.
+I0814 16:28:39.034765 238845 gtimer.cpp:47] (2.731 ms) |default,131137:RESTPP_1_1:1534289319030:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 309 vertex maps (in 2.502 ms), 309 vertex reduces (in 0.216 ms), and activated 309 vertices.
+I0814 16:28:39.035601 238845 gtimer.cpp:47] (4.295 ms) |default,131137:RESTPP_1_1:1534289319030:NN,2000,|UDF::End
+I0814 16:28:39.035614 238845 serviceapi.cpp:564] Request|default,131137:RESTPP_1_1:1534289319030:NN,2000,|Stop_RunUDF|4ms
+I0814 16:28:39.035812 238845 enginejobrunner.cpp:266] Request|default,131137:RESTPP_1_1:1534289319030:NN,2000,|Finished in 4.85 ms|Response 41 bytes|Id conversion 0
+I0814 16:28:39.441334 238845 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 16:28:39.441646 238845 serviceapi.cpp:561] Request|default,196673:RESTPP_1_1:1534289319440:NN,1999,|Start_RunUDF
+I0814 16:28:39.441666 238845 gtimer.cpp:75] |default,196673:RESTPP_1_1:1534289319440:NN,1999,|UDF::Start
+I0814 16:28:39.441717 238845 gtimer.cpp:47] (0.040 ms) |default,196673:RESTPP_1_1:1534289319440:NN,1999,|UDF::Initialization
+I0814 16:28:39.442294 238845 gtimer.cpp:47] (0.585 ms) |default,196673:RESTPP_1_1:1534289319440:NN,1999,|UDF::Finished iteration 1 which did 638 edge maps and 0 vertex maps (in 0.359 ms), 309 vertex reduces (in 0.212 ms), and activated 309 vertices.
+I0814 16:28:39.444955 238845 gtimer.cpp:47] (2.661 ms) |default,196673:RESTPP_1_1:1534289319440:NN,1999,|UDF::Finished iteration 2 which did 0 edge maps and 309 vertex maps (in 2.448 ms), 309 vertex reduces (in 0.2 ms), and activated 309 vertices.
+I0814 16:28:39.445688 238845 gtimer.cpp:47] (4.012 ms) |default,196673:RESTPP_1_1:1534289319440:NN,1999,|UDF::End
+I0814 16:28:39.445699 238845 serviceapi.cpp:564] Request|default,196673:RESTPP_1_1:1534289319440:NN,1999,|Stop_RunUDF|4ms
+I0814 16:28:39.445736 238845 enginejobrunner.cpp:266] Request|default,196673:RESTPP_1_1:1534289319440:NN,1999,|Finished in 4.535 ms|Response 41 bytes|Id conversion 0
+I0814 16:28:39.842541 238845 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 16:28:39.842872 238845 serviceapi.cpp:561] Request|default,66:RESTPP_1_1:1534289319842:NN,2000,|Start_RunUDF
+I0814 16:28:39.842892 238845 gtimer.cpp:75] |default,66:RESTPP_1_1:1534289319842:NN,2000,|UDF::Start
+I0814 16:28:39.842941 238845 gtimer.cpp:47] (0.037 ms) |default,66:RESTPP_1_1:1534289319842:NN,2000,|UDF::Initialization
+I0814 16:28:39.843530 238845 gtimer.cpp:47] (0.598 ms) |default,66:RESTPP_1_1:1534289319842:NN,2000,|UDF::Finished iteration 1 which did 638 edge maps and 0 vertex maps (in 0.349 ms), 309 vertex reduces (in 0.235 ms), and activated 309 vertices.
+I0814 16:28:39.846194 238845 gtimer.cpp:47] (2.663 ms) |default,66:RESTPP_1_1:1534289319842:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 309 vertex maps (in 2.491 ms), 309 vertex reduces (in 0.159 ms), and activated 309 vertices.
+I0814 16:28:39.846904 238845 gtimer.cpp:47] (4.005 ms) |default,66:RESTPP_1_1:1534289319842:NN,2000,|UDF::End
+I0814 16:28:39.846915 238845 serviceapi.cpp:564] Request|default,66:RESTPP_1_1:1534289319842:NN,2000,|Stop_RunUDF|4ms
+I0814 16:28:39.846952 238845 enginejobrunner.cpp:266] Request|default,66:RESTPP_1_1:1534289319842:NN,2000,|Finished in 4.543 ms|Response 41 bytes|Id conversion 0
+I0814 16:28:40.267926 238845 <stdin>:1769] launching query nrpf_graphlu_bmk_v6 in Container_Dense mode.
+I0814 16:28:40.268247 238845 serviceapi.cpp:561] Request|default,65602:RESTPP_1_1:1534289320267:NN,2000,|Start_RunUDF
+I0814 16:28:40.268272 238845 gtimer.cpp:75] |default,65602:RESTPP_1_1:1534289320267:NN,2000,|UDF::Start
+I0814 16:28:40.268326 238845 gtimer.cpp:47] (0.043 ms) |default,65602:RESTPP_1_1:1534289320267:NN,2000,|UDF::Initialization
+I0814 16:28:40.268949 238845 gtimer.cpp:47] (0.631 ms) |default,65602:RESTPP_1_1:1534289320267:NN,2000,|UDF::Finished iteration 1 which did 638 edge maps and 0 vertex maps (in 0.367 ms), 309 vertex reduces (in 0.25 ms), and activated 309 vertices.
+I0814 16:28:40.271602 238845 gtimer.cpp:47] (2.654 ms) |default,65602:RESTPP_1_1:1534289320267:NN,2000,|UDF::Finished iteration 2 which did 0 edge maps and 309 vertex maps (in 2.453 ms), 309 vertex reduces (in 0.188 ms), and activated 309 vertices.
+I0814 16:28:40.272368 238845 gtimer.cpp:47] (4.091 ms) |default,65602:RESTPP_1_1:1534289320267:NN,2000,|UDF::End
+I0814 16:28:40.272380 238845 serviceapi.cpp:564] Request|default,65602:RESTPP_1_1:1534289320267:NN,2000,|Stop_RunUDF|4ms
+I0814 16:28:40.272425 238845 enginejobrunner.cpp:266] Request|default,65602:RESTPP_1_1:1534289320267:NN,2000,|Finished in 4.634 ms|Response 41 bytes|Id conversion 0

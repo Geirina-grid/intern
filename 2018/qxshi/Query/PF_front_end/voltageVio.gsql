@@ -1,0 +1,55 @@
+drop query voltageVio
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query voltageVio ()
+for graph gsql_EMS {
+	
+    TYPEDEF TUPLE <int exId, string bus_name, double Vmax,  double Vmin,  double cal_Vm, double difference, double per_rating, string vio_type> row;
+
+
+	SetAccum<row> @@voltageVio_List;
+	SumAccum<int> @@id;
+	SumAccum<string> @vio_type;
+	SumAccum<double> @difference;
+	SumAccum<double> @per_rating;
+	SumAccum<double> @Vmin=0.925;
+	SumAccum<double> @Vmax=1.075;
+	
+		
+	T0 = {TopoND.*};
+    T1 = SELECT s
+	      FROM T0:s
+		  where (s.busType==0 OR s.busType==1) and s.island == 1  
+		  POST-ACCUM 
+		  
+	   case when (s.PF_Vm > s.@Vmax) then
+	             s.@vio_type="高电压越限",
+				 s.@difference=s.PF_Vm-s.@Vmax,
+	             s.@per_rating=s.@difference/s.@Vmax*100
+	        when (s.PF_Vm < s.@Vmin) then
+	             s.@vio_type="低电压越限",
+				 s.@difference=s.@Vmin-s.PF_Vm,
+	             s.@per_rating=s.@difference/s.@Vmin*100
+	   else 
+		    s.@vio_type="正常"
+	   end,
+	   case when (s.@vio_type != "正常")  then
+		      @@voltageVio_List+= row(s.exId, s.bus_name, s.@Vmax, s.@Vmin, s.PF_Vm, s.@difference, s.@per_rating, s.@vio_type)
+			end
+		  ;
+		 
+ 		  
+	foreach x in @@voltageVio_List do
+	//print '/\n';
+	@@id += 1;
+	print @@id, x.exId, x.bus_name, x.Vmax, x.Vmin, x.cal_Vm, x.difference, x.per_rating, x.vio_type; // > outputfile;	
+
+	end;
+    
+	// print T1;
+		 
+}
+
+//install query voltageVio

@@ -1,0 +1,86 @@
+<div style="max-width: 2000px; margin: 0 auto; overflow: hidden;"></div>
+<p-dialog header="信息" [(visible)]="display1" width=450 height=100 [closable]="false">
+    <p>系统正在计算可移动负荷，大概需要三分钟，请您耐心等待...</p>
+</p-dialog>
+
+<p-dialog header="请选择一个用户" [(visible)]="display2" width=600 height=500 [(positionTop)]="top_position" 
+    [(positionLeft)]="left_position">
+    <div [ngStyle]="{'overflow': 'scroll', 'height':scroll_sh}">
+        <chart [options]="options5">
+           <series>
+            <point (select)="onPointSelect($event)"></point>
+          </series>
+        </chart>
+    </div>
+</p-dialog>
+<div class="ui-g">
+    <div class="ui-g-5">
+        <div class="algoTab">
+        <p-tabView (onChange)="onTabChange($event)" styleClass="tabview">
+            <p-tabPanel header="交替最小二乘法">
+                &nbsp;
+            </p-tabPanel>
+            <p-tabPanel header="均方差检测法">
+                <p-radioButton value="2" label="2倍均方差" [(ngModel)]="selectedVal1" inputId="preopt1"
+                (onClick)="onClickRadio($event)"></p-radioButton>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <p-radioButton value="3" label="3倍均方差" [(ngModel)]="selectedVal1" inputId="preopt1"
+                (onClick)="onClickRadio($event)"></p-radioButton>
+            </p-tabPanel>
+            <p-tabPanel header="差值百分比检测法">
+                <p-radioButton value="0.3" label="30%" [(ngModel)]="selectedVal2" inputId="preopt2"
+                (onClick)="onClickRadio($event)"></p-radioButton>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <p-radioButton value="0.5" label="50%" [(ngModel)]="selectedVal2" inputId="preopt2"
+                (onClick)="onClickRadio($event)"></p-radioButton>
+            </p-tabPanel>
+        </p-tabView>
+        </div>
+    </div>
+    <div class="ui-g-7">
+        <div class="ui-g-2">
+            <p-inputSwitch onLabel="用&nbsp;户&nbsp;" offLabel="系&nbsp;统&nbsp;" [(ngModel)]="checked" (onChange)="switchChange($event)"></p-inputSwitch>   
+        </div>
+        <div class="ui-g-5">
+            起始日期:
+            <p-calendar [(ngModel)]="sdate" [showIcon]="true" [defaultDate]="defaultDates"></p-calendar>   
+        </div>
+        <div class="ui-g-5">
+            终止日期:
+            <p-calendar [(ngModel)]="edate" [showIcon]="true" [defaultDate]="defaultDatee"></p-calendar>  
+        </div>
+        <div class="ui-g-8">
+            选择用户:<p-dropdown [options]="types" [(ngModel)]="selectedType" placeholder="选择排序方式" 
+            (onChange)="onChange($event)" (onFocus)="onFocus($event)" (onBlur)="onBlur($event)"></p-dropdown>   
+            &nbsp;&nbsp;或用户ID：
+            <p-dropdown [options]="meters" [(ngModel)]="user" [style]="{'width':'100px'}" editable="editable" placeholder="Select ID" (onChange)="onChangeUser($event)" ></p-dropdown>
+        </div>
+        <div class="ui-g-4">
+            <button pButton type="button" label="展示" (click)="show()" style="font-size: 1.1em"></button> 
+        </div>
+    </div>
+    <!-- <div class="ui-g-12">
+        时间区间: &nbsp;&nbsp;&nbsp;&nbsp;{{sdateStr + ' ----- ' + edateStr}}
+        <p-slider [(ngModel)]="rangeValues" [style]="{'width':slider_sh}" [range]="true"
+        [(min)]='min' [(max)]='max' (onChange)="onChangeSlide($event)" (onSlideEnd)="onSlideEnd($event)"></p-slider>
+    </div> -->
+    <div class="ui-g-9">
+        <div class="ui-g-12">
+          <chart [options]="options1">
+          </chart>  
+        </div>
+        <div class="ui-g-12">
+          <chart [options]="options2">
+          </chart>  
+        </div>        
+    </div>
+    <div class="ui-g-3">
+        <div style="text-align:right">
+            <p-dataTable #t [value]="loadrank" selectionMode="single" [metaKeySelection]="false" [paginator]="true" [rows]="18"
+            (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
+                <p-header>日偏差排序</p-header>
+                <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header" [sortable]="true"></p-column>
+            </p-dataTable>
+        </div>
+    </div>
+</div>

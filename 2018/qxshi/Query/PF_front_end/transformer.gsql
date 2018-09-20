@@ -1,0 +1,49 @@
+drop query transformer
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query transformer()
+for graph gsql_EMS {
+	
+	TYPEDEF TUPLE <string edge_name, uint tap_bus, uint z_bus, string from_name, string to_name, double R, double X, double B, uint control_bus, int  side, string tap_type_id, double transformer_final_turns_ratio, double transformer_final_angle> trans;
+	// SumAccum<int> @@id = 0;
+	ListAccum<trans> @@edgeList; 
+	
+	T0 = {TopoND.*};
+	
+	T0 = SELECT s   
+	     FROM T0:s-(topo_connect:e)->TopoND:t
+		 where e.reverse == 1 and s.island == 1 and t.island == 1//and s.island == 1 and t.island == 1
+		 ACCUM
+			e.edge_name = s.bus_name + "->" + t.bus_name;
+	
+	
+    T1 = SELECT s
+	      FROM T0:s-(topo_connect:e)->TopoND:t
+         where ((e.flag != 0)and(e.reverse ==1)) and s.island == 1 and t.island == 1
+        // where e.Min_tap != 0
+		  ACCUM 
+			// log(true, s.exId, t.exId),
+            int minValue = e.kcount - 1,
+            IF (minValue < 0) THEN
+                minValue = 0
+            END,
+      FOREACH i in range[0, minValue] DO
+ 			   //@@edgeList+=trans(e.edge_name, s.exId, t.exId, s.bus_name, t.bus_name, e.R.get(i), e.X.get(i), e.hB.get(i),e.control_bus, e.side, e.tap_type_id, e.transformer_final_turns_ratio.get(i), e.transformer_final_angle.get(i))
+			   //@@edgeList+=trans(e.edge_name, s.exId, t.exId, s.bus_name, t.bus_name, e.R, e.X, e.hB, e.control_bus, e.side, e.tap_type_id, e.transformer_final_turns_ratio, e.transformer_final_angle)
+			   @@edgeList+=trans(e.edge_name, s.exId, t.exId, s.bus_name, t.bus_name, e.R, e.X, e.hB, e.control_bus, e.side, e.tap_type_id, e.transformer_final_turns_ratio, e.transformer_final_angle)
+			END;
+			
+			// log(true,@@edgeList);
+	
+	foreach x in @@edgeList do
+			// @@id += 1;
+			print x.edge_name, x.tap_bus, x.z_bus, x.from_name, x.to_name, x.R, x.X, x.B, x.control_bus, x.side, x.tap_type_id, x.transformer_final_turns_ratio, x.transformer_final_angle;
+	
+	end;
+	
+	// print @@edgeList;		 
+}
+
+//install query transformer

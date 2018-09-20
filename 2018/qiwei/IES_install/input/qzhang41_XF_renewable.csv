@@ -1,0 +1,10 @@
+from,to,XF_name,phase,fromNode,toNode,config,XFC_name,connect_type,install_type,power_rating,powerA_rating,powerB_rating,powerC_rating,primary_voltage,secondary_voltage,resistance,reactance
+48,1,XF_res_1,ABCN,node_48,meterwind1,XF_res1_config,XF_res1_config,DELTA_DELTA,POLETOP,500,,,,4160.03963,480,0.0127,0.0272
+80,2,XF_res_2,ABCN,node_80,meterwind2,XF_res2_config,XF_res2_config,DELTA_DELTA,POLETOP,500,,,,4160.03963,480,0.0127,0.0272
+95,3,XF_res_3,ABCN,node_95,meterwind3,XF_res3_config,XF_res3_config,DELTA_DELTA,POLETOP,500,,,,4160.03963,480,0.0127,0.0272
+7,4,XF_res_4,ABCN,node_7,meterwind4,XF_res4_config,XF_res4_config,DELTA_DELTA,POLETOP,500,,,,4160.03963,480,0.0127,0.0272
+72,5,XF_res_5,ABCN,node_72,meterwind5,XF_res5_config,XF_res5_config,DELTA_DELTA,POLETOP,500,,,,4160.03963,480,0.0127,0.0272
+60,6,XF_res_6,ABCN,node_60,meterwind6,XF_res6_config,XF_res6_config,DELTA_DELTA,POLETOP,500,,,,4160.03963,480,0.0127,0.0272
+18,7,XF_res_7,ABCN,node_18,meterwind7,XF_res7_config,XF_res7_config,DELTA_DELTA,POLETOP,500,,,,4160.03963,480,0.0127,0.0272
+25,8,XF_res_8,ABCN,node_25,meterwind8,XF_res8_config,XF_res8_config,DELTA_DELTA,POLETOP,500,,,,4160.03963,480,0.0127,0.0272
+64,9,XF_res_9,ABCN,node_64,meterwind9,XF_res9_config,XF_res9_config,DELTA_DELTA,POLETOP,500,,,,4160.03963,480,0.0127,0.0272

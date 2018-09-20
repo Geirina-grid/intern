@@ -1,0 +1,60 @@
+<div class="row">
+  <div style="text-align:center">
+    <div class="col-md-12">
+      <p-dataTable #dt [value]="modlearrys" exportFilename="System Summary">
+        <p-header>
+            <div class="ui-helper-clearfix">
+               <!--  <button type="button" pButton icon="fa-file-o" iconPos="left" label="Download Data" (click)="dt.exportCSV()" style="float:left"></button> -->
+               <li [routerLinkActive]="['active']">
+                  <a [routerLink]="['data-pf']">配电网潮流输入数据</a></li>              
+            </div>
+        </p-header>
+        <p-column field="Sys_id" header="系统名" [sortable]="true"></p-column>
+        <p-column field="NoBS" header="节点数量" [sortable]="true"></p-column>
+        <p-column field="NoLN" header="线路数量" [sortable]="true"></p-column>
+<!--         <p-column field="NoXF" header="调压器数量" [sortable]="true"></p-column> -->
+        <p-column field="NoLD" header="负荷数量" [sortable]="true"></p-column>
+<!--         <p-column field="NoGen" header="电源数量" [sortable]="true"></p-column> -->
+
+        <p-column field="NoPV" header="PV数量" [sortable]="true"></p-column>
+        <p-column field="NoWG" header="WG数量" [sortable]="true"></p-column>
+        <p-column field="NoCCHP" header="CCHP数量" [sortable]="true"></p-column>
+        <p-column field="NoSHEPS" header="SHEPS数量" [sortable]="true"></p-column>
+        <p-column field="NoES" header="ES数量" [sortable]="true"></p-column>
+        <p-column field="NoEV" header="EV数量" [sortable]="true"></p-column>
+        <!-- <p-column field="DegUnbal" header="不平衡度" [sortable]="true"></p-column>
+        <p-column field="T_Load" header="系统负荷(MW)" [sortable]="true"></p-column>
+        <p-column field="T_Loss" header="系统损耗(MW)" [sortable]="true"></p-column> -->
+      </p-dataTable>
+    </div>
+  </div>
+</div>
+
+
+<div class="row">
+  <div style="text-align:center">
+    <div class="col-md-12">
+      <p-dataTable #dt [value]="modlearrys" exportFilename="System Summary">
+        <p-header>
+            <div class="ui-helper-clearfix">
+               <!--  <button type="button" pButton icon="fa-file-o" iconPos="left" label="Download Data" (click)="dt.exportCSV()" style="float:left"></button> -->
+               <li [routerLinkActive]="['active']">
+                  <a [routerLink]="['pf-result']">配电网潮流计算结果</a></li>      
+            </div> 
+        </p-header>
+        <p-column field="StartTime" header="仿真开始时间" [sortable]="true"></p-column>
+        <p-column field="EndTIme" header="仿真结束时间" [sortable]="true"></p-column>
+        <p-column field="TimeStep" header="仿真步长" [sortable]="true"></p-column>
+        <p-column field="PFmethod" header="潮流方法" [sortable]="true"></p-column>
+        <p-column field="Convergence" header="收敛精度" [sortable]="true"></p-column>
+        <p-column field="NVoltage" header="额定电压" [sortable]="true"></p-column>
+      </p-dataTable>
+    </div>
+
+  </div>
+</div>
+
+
+
+<div #container class="graphchart">
+</div>

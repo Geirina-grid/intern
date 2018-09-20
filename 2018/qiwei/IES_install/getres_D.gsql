@@ -1,0 +1,79 @@
+drop query getres_D
+
+
+create query getres_D() for graph powerflow_graph 
+{
+
+
+		TYPEDEF TUPLE <string From_Node, string PV_flag, string battery_flag, string wind_flag,double inv_P,string wind_model,double battery_parasitic_power,string wind_name,string wind_Gen_mode,string solar_name,string solar_install_type, string solar_panel_type,string solar_gen_mode,double solar_efficiency,double solar_area,string battery_name, string battery_generator_mode,double battery_V_Max,double battery_I_Max,double battery_P_Max,double battery_E_Max,double battery_base_efficiency>resInfor;
+		ListAccum<resInfor>@@resI;
+		SumAccum<string> @from_xf = "None";
+		SumAccum<string> @PV = "None";
+		SumAccum<string> @battery = "None";
+		SumAccum<string> @wind = "None";
+		SumAccum<double> @inv_P = 0;
+		SumAccum<string> @wind_model = "None";
+		SumAccum<double> @battery_parasitic_power = 0;
+		
+		SumAccum<string> @wind_name = "None";
+		SumAccum<string> @wind_Gen_mode = "None";
+		SumAccum<string> @solar_name = "None";
+		SumAccum<string> @solar_install_type = "None";
+		SumAccum<string> @solar_panel_type = "None";
+		SumAccum<string> @solar_gen_mode = "None";
+		SumAccum<double> @solar_efficiency = 0;
+		SumAccum<double> @solar_area = 0;
+		SumAccum<string> @battery_name = "None";
+		SumAccum<string> @battery_generator_mode = "None";
+		SumAccum<double> @battery_V_Max = 0;
+		SumAccum<double> @battery_I_Max = 0;
+		SumAccum<double> @battery_P_Max = 0;
+		SumAccum<double> @battery_E_Max = 0;
+		SumAccum<double> @battery_base_efficiency = 0;
+	T0 = {bus_D.*};
+	Tres={res_D.*};
+		
+	
+	TxfresI=SELECT s 
+	FROM T0:s - (XF_res_D:e) - res_D:f
+	 ACCUM
+	f.@from_xf = e.fromNode,
+	f.@PV=f.solar_gen_status,
+	f.@battery=f.battery_generator_status,
+	f.@wind=f.wind_Gen_status,
+	f.@inv_P=f.inverter_rated_power,
+	f.@wind_model=f.wind_Turbine_Model,
+	f.@battery_parasitic_power=f.battery_parasitic_power_draw,
+	
+	f.@wind_name=f.wind_name,
+    f.@wind_Gen_mode=f.wind_Gen_mode,
+    f.@solar_name=f.solar_name,
+    f.@solar_install_type=f.solar_install_type,
+    f.@solar_panel_type=f.solar_panel_type,
+    f.@solar_gen_mode=f.solar_gen_mode,
+    f.@solar_efficiency=f.solar_efficiency,
+    f.@solar_area=f.solar_area,
+    f.@battery_name=f.battery_name,
+    f.@battery_generator_mode=f.battery_generator_mode,
+    f.@battery_V_Max=f.battery_V_Max,
+    f.@battery_I_Max=f.battery_I_Max,
+    f.@battery_P_Max=f.battery_P_Max,
+    f.@battery_E_Max=f.battery_E_Max,
+    f.@battery_base_efficiency=f.battery_base_efficiency
+	
+		POST-ACCUM
+    @@resI += resInfor(f.@from_xf,f.@PV,f.@battery,f.@wind,f.@inv_P,f.@wind_model,f.@battery_parasitic_power,
+	f.@wind_name,f.@wind_Gen_mode,f.@solar_name,f.@solar_install_type,
+	f.@solar_panel_type,f.@solar_gen_mode,f.@solar_efficiency,f.@solar_area,f.@battery_name,f.@battery_generator_mode,
+	f.@battery_V_Max,f.@battery_I_Max,f.@battery_P_Max,f.@battery_E_Max,f.@battery_base_efficiency);
+
+	
+	
+	
+	print @@resI;
+
+  
+		 
+}
+
+install query getres_D

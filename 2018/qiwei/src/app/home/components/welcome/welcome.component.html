@@ -1,0 +1,37 @@
+<!-- <div class="col-md-4">
+  <div #container class="graphchart">
+  </div>
+</div> -->
+
+<!-- <div class="col-md-4">
+  <div #container3 class="linechart">
+  </div>
+  <div #container4 class="linechart">
+  </div>
+</div>  -->
+
+<div>
+<div class="col-md-6">
+    <chart [options]="options1">
+    </chart>
+    <chart [options]="options3">
+    </chart>
+</div>  
+
+<div class="col-md-6">
+    <chart [options]="options4">
+      </chart>
+    <chart [options]="options2">
+      </chart>
+<div [style.height]="md"></div>   
+<div class="col-md-6">
+  <div #container1 [style.height]="h1" [style.width]="w1">
+  </div>
+</div>
+<div class="col-md-6">    
+  <div #container2 [style.height]="h2" [style.width]="w2">
+  </div>
+</div>
+ 
+</div> 
+</div>

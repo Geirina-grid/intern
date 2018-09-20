@@ -1,0 +1,43 @@
+<div class="ui-g">
+    <div class="ui-g-3">
+        <chart [options]="options1">
+            <series>
+                <point (select)="onPointSelect($event)"></point>
+            </series>
+        </chart>   
+    </div>
+    <div class="ui-g-3">
+        <chart [options]="options2">
+            <series>
+                <point (select)="onPointSelect($event)"></point>
+            </series>
+        </chart>        
+    </div>
+    <div class="ui-g-3">
+        <chart [options]="options3">
+            <series>
+                <point (select)="onPointSelect($event)"></point>
+            </series>
+        </chart>
+    </div>
+    <div class="ui-g-3">
+        <chart [options]="options5">
+        </chart>
+    </div>
+    <div class="ui-g-9">
+        <chart type="StockChart" [options]="options4">
+        </chart>
+    </div>
+    <div class="ui-g-3">
+        <div class="ui-g-12">
+            <div style="font-size: 9px">
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <p-calendar [(ngModel)]="date" [showIcon]="true" [defaultDate]="defaultDate" (onSelect)="onSelect($event)"></p-calendar>
+            </div>
+        </div>
+        <div class="ui-g-12">
+            <chart [options]="options6">
+            </chart>
+        </div>
+    </div>
+</div>

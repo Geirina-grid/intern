@@ -1,0 +1,513 @@
+// Drop previous queries
+drop query fdpf_ca_v7_superposition_CA_PF
+
+drop query fdpf_contingency_v2
+
+create query fdpf_contingency_v2 (int caFromBus , int caToBus)
+for graph gsql_EMS returns ( ListAccum<ca_pf_detail> ){
+ 
+// ------------------------------------------------------------------------------------------------
+// 				Define variables and arrays
+// ------------------------------------------------------------------------------------------------
+ 
+ // define the tuples for the HeapAccums
+ // sort_id_vertex:   for the vertex HeapAccum - contains information on the nodes and also for the pointer arrays 
+ // sort_id_matrix_all: for the edge_all HeapAccum - contains Ybus matrix G & B, B' matrix and B" matrix B values and index array
+ typedef tuple<int exId, int Bp_p, int Bpp_p, int ep, double Vm, double Va, double Pn, double Qn, int bustype> sort_id_vertex;
+ typedef tuple<int exId, double eG, double eB, int ei, double Bp_x, double Bpp_x> sort_id_matrix_all;
+ 
+ // define the HeapAccums, sorted based on ascending order of external bus ID
+ HeapAccum<sort_id_vertex>(100000000, exId asc) @@vertex; 
+ HeapAccum<sort_id_matrix_all>(100000000, exId asc) @@matrix_all; 
+ 
+ // store the number of non-zeros in B' and B"
+ SumAccum<int> @@Bp;
+ SumAccum<int> @@Bpp;
+
+ string result;
+
+ // define PI value
+ MaxAccum<double> @@PI = 3.1415926535898;
+
+ // Bus Types - PQ:0/1 PV:2 SLC:3 GND:4
+ SumAccum<double> @P = 0;
+ SumAccum<double> @Q = 0;
+ SumAccum<double> @Vm = 0;
+ SumAccum<double> @Vr = 0;
+ SumAccum<double> @Vs = 0;
+ SumAccum<int>    @pqvdgr = 0; 
+ SumAccum<int>    @pqdgr = 0;
+ SumAccum<int>    @alldgr = 0; 
+ SumAccum<double> @sumG  = 0; // store for each node the total G on all of its edges
+ SumAccum<double> @sumB  = 0; //similar...
+ SumAccum<double> @sumBi = 0;
+
+ // ************************************************************************************
+ // Save the result with <double 'violation line's fromBus * 1000000 + toBus, double SI>
+ // ************************************************************************************
+ ListAccum<ca_pf_detail> @@pf_result;
+ SumAccum<double> @cal_P = 0;
+ SumAccum<double> @cal_Q = 0;
+ ListAccum<double> @@em;
+ ListAccum<double> @@th;
+ ListAccum<double> @@sh;
+
+ // ************************************************************************************
+ // Obtain parameters from vertex CAParams
+ // ************************************************************************************
+ //MaxAccum<double> @@max_change_ex = 0.05;
+ double max_change_ex = 0.05;
+ //MaxAccum<int> @@ExMaxIteration = 10;
+ int ExMaxIteration = 10;
+ SumAccum<double> @@initial_Vm = 0;
+ SumAccum<double> @@initial_Va = 0;
+ SumAccum<int> @@flatstart = 0;
+ //SumAccum<int> @@factorize = 0;
+ //SumAccum<int> @@insert_LU = 0;
+ 
+ 
+ //string caoutput;
+ 
+ T0= {TopoND.*};   //start from all grid vertices in the graph
+
+
+// Begin CA implementation	 
+// build the martix for CA. Start from scratch for now.
+// [TODO] The matrixes shouldn't need to be built from scratch as there should only be slight modifications
+// from the base case matrixes. 
+T0 = select v
+      from  T0:v-(topo_connect:e)->TopoND:t
+	   where (v.exId != caFromBus or t.exId != caToBus) and (v.exId != caToBus or t.exId != caFromBus)
+     accum      
+       //compute the G and B contribution of the branches to the diagonal terms         
+       case when (e.k == 0) then  
+  		     v.@sumG += e.G, 
+           v.@sumB += -1*e.B + 0.5*e.hB,
+           v.@sumBi += -1*e.BIJ, // used to construct the B matrix for fast-decoupled method
+           // if it is NOT connecting to the slack bus
+           case when (v.busType != 3 and t.busType != 3) then
+             @@Bp += 1,   
+             v.@pqvdgr += 1, // get the total number of edges connecting PQ and PV buses to node v 
+             // if both side are PQ bus
+             case when ((v.busType == 0 or v.busType == 1) and (t.busType == 0 or t.busType == 1)) then
+               //both B' and B"
+               @@Bpp += 1,
+               @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G, e.B, t.exId - 1, e.BIJ, e.B),
+               v.@pqdgr += 1 // get the total number of edges connecting ONLY PQ buses to node v
+             else //at least one side is PV side
+               //B' only, set Bpp_x to 0
+               @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G, e.B, t.exId - 1, e.BIJ, 0.0)
+             end
+           else
+             //slack bus --> no B' or B'', set both Bp_x and Bpp_x to 0
+             @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G, e.B, t.exId - 1, 0.0, 0.0)  
+           end
+       when (e.k > 0) then
+           //@@edgeGB += (v -> (t -> GnB(e.G/e.k,e.B/e.k))),
+           double tap_ratio_square = (e.k/e.kcount)*(e.k/e.kcount),
+           double tap_ratio = e.k/e.kcount,
+           v.@sumG += 1/(tap_ratio_square)*e.G,
+           v.@sumB += 1/(tap_ratio_square)*(-1*e.B) + 0.5*e.hB, // sqrt
+           v.@sumBi += -1*e.BIJ,
+           case when (v.busType != 3 and t.busType != 3) then
+             @@Bp += 1,   
+             v.@pqvdgr += 1, // get the total number of edges connecting PQ and PV buses to node v 
+             // if both side are PQ bus
+             case when ((v.busType == 0 or v.busType == 1) and (t.busType == 0 or t.busType == 1)) then
+               //both B' and B"
+               @@Bpp += 1,
+               @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G/tap_ratio, e.B/tap_ratio, t.exId - 1, e.BIJ, e.B/tap_ratio),  
+               v.@pqdgr += 1 // get the total number of edges connecting ONLY PQ buses to node v
+             else //at least one side is PV side
+               //B' only, set Bpp_x to 0
+               @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G/tap_ratio, e.B/tap_ratio, t.exId - 1, e.BIJ, 0.0)  
+             end
+           else
+             //slack bus --> no B' or B'', set both Bp_x and Bpp_x to 0
+             @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G/tap_ratio, e.B/tap_ratio, t.exId - 1, 0.0, 0.0)  
+           end      
+       else
+           //@@edgeGB += (v -> (t -> GnB(e.G/abs(e.k), e.B/abs(e.k)))),
+           double tap_ratio = abs(e.k/e.kcount), 
+           v.@sumG += e.G, 
+           v.@sumB += -1*e.B + 0.5*e.hB,
+           v.@sumBi += -1*e.BIJ,
+           case when (v.busType != 3 and t.busType != 3) then
+             @@Bp += 1,
+             v.@pqvdgr += 1, // get the total number of edges connecting PQ and PV buses to node v 
+             // if both side are PQ bus
+             case when ((v.busType == 0 or v.busType == 1) and (t.busType == 0 or t.busType == 1)) then
+               //both B' and B"
+               @@Bpp += 1,
+               @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G/tap_ratio, e.B/tap_ratio, t.exId - 1, e.BIJ, e.B/tap_ratio), 
+               v.@pqdgr += 1 // get the total number of edges connecting ONLY PQ buses to node v
+             else //at least one side is PV side
+               //B' only, set Bpp_x to 0
+               @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G/tap_ratio, e.B/tap_ratio, t.exId - 1, e.BIJ, 0.0)  
+             end
+           else
+             //slack bus --> no B' or B'', set both Bp_x and Bpp_x to 0
+             @@matrix_all += sort_id_matrix_all(v.exId*100000 + t.exId, -e.G/tap_ratio, e.B/tap_ratio, t.exId - 1, 0.0, 0.0)  
+           end      
+       end,
+       v.@alldgr += 1 // total number of connected branches
+     post-accum
+       //initialize state variable with flat start values
+	   case when @@flatstart == 0 then  //not using flat start, set voltage manitude/angle based on input data files
+         case when v.busType == 1 or v.busType == 0 then 
+           v.@P = (v.GenP-v.LdP), v.@Q = (v.GenQ-v.LdQ), v.@Vm = v.PF_Vm, v.@Vr = v.PF_Vm, v.@Vs = v.PF_Va*@@PI/180
+         when v.busType == 2 then 
+           v.@P = (v.GenP-v.LdP),v.@Q = (v.GenQ-v.LdQ), v.@Vm = v.PF_Vm, v.@Vr = v.PF_Vm, v.@Vs = v.PF_Va*@@PI/180
+         when v.busType == 3 then 
+           v.@Vm = v.PF_Vm, v.@Vr = v.PF_Vm, v.@Vs = v.PF_Va*@@PI/180
+         when v.busType == 4 then 
+           v.@Vm = 0, v.@Vr = 0,  v.@Vs = 0, v.@P =0 , v.@Q =0
+         end
+       else                           //flat start, set voltage magnitude/angle based on user input
+         case when v.busType == 1 or v.busType == 0 then 
+           v.@P = (v.GenP-v.LdP), v.@Q = (v.GenQ-v.LdQ), v.@Vm = @@initial_Vm, v.@Vr = @@initial_Vm, v.@Vs = @@initial_Va
+         when v.busType == 2 then 
+           v.@P = (v.GenP-v.LdP),v.@Q = (v.GenQ-v.LdQ), v.@Vm = v.PF_Vm, v.@Vr = v.PF_Vm, v.@Vs = @@initial_Va
+         when v.busType == 3 then 
+           v.@Vm = v.PF_Vm, v.@Vr = v.PF_Vm, v.@Vs = 0
+         when v.busType == 4 then 
+           v.@Vm = 0, v.@Vr = 0,  v.@Vs = 0, v.@P =0 , v.@Q =0
+         end
+       end,
+             
+       // Shunt conductance and shunt susceptance at node v
+       v.@sumG += v.G,
+       v.@sumB += v.B,
+              
+       @@Bp += 1,
+       @@Bpp += 1,
+              
+       case when (v.busType != 3) then// if it is NOT the slack bus             
+         case when v.busType == 0 or v.busType == 1 then  //PQ bus
+           @@matrix_all += sort_id_matrix_all(v.exId*100000 + v.exId, v.@sumG, v.@sumB, v.exId - 1, v.@sumBi, v.@sumB),
+           @@vertex += sort_id_vertex(v.exId, v.@pqvdgr+1, v.@pqdgr+1, v.@alldgr+1, v.@Vr, v.@Vs, v.@P, v.@Q, v.busType)
+         else   //PV bus 
+           @@matrix_all += sort_id_matrix_all(v.exId*100000 + v.exId, v.@sumG, v.@sumB, v.exId - 1, v.@sumBi, 1),
+           @@vertex += sort_id_vertex(v.exId, v.@pqvdgr+1, 1, v.@alldgr+1, v.@Vr, v.@Vs, v.@P, v.@Q, v.busType)
+         end
+       else     //slack bus
+         @@matrix_all += sort_id_matrix_all(v.exId*100000 + v.exId, v.@sumG, v.@sumB, v.exId - 1, 1, 1),
+         @@vertex += sort_id_vertex(v.exId, 1, 1, v.@alldgr+1, v.@Vr, v.@Vs, v.@P, v.@Q, v.busType)
+       end
+     ;	 
+
+  //print @@edge_Bp, @@edge_Bpp;
+  //print @@edge_Bp, @@edge_Bpp;
+  //log(true, from_bus, to_bus,@@vertex.size());  
+  // perform fast-decoupled power flow for CA solution
+  //result = NICSLU_fdpf_v7 (@@Bp, @@Bpp, @@vertex, @@matrix_all, @@ExMaxIteration, @@max_change_ex);
+  result = GRAPHLU_fdpf_v7 (@@Bp, @@Bpp, @@vertex, @@matrix_all, ExMaxIteration, max_change_ex);
+  //@@result += (from_bus-> (to_bus-> result));
+
+
+  // Get the solved result and print to output file if power flow is converged
+  if (result == "OK"){
+   T0 = select  s
+     from T0:s
+     accum
+       s.@Vr = GRAPHLU_getVm(s.exId, @@vertex),
+       s.@Vs = GRAPHLU_getVa(s.exId, @@vertex);
+
+    //print T0.exId, T0.@Vr, T0.@Vs;	 
+
+   // caoutput = outputCA + "_" + to_string(from_bus) + "_" + to_string(to_bus); 
+
+  //  print T0.exId, T0.@Vr, T0.@Vs > caoutput;
+  }
+//=============================================
+//  [Xuan Zhang] for detecting power violation
+//=============================================
+  	T1 = SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t 
+	  //where e.reverse == 1
+	  accum 
+	  double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+	  double tap_ratio_square = abs((e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount)),
+			case when (e.transformer_final_turns_ratio == 0) then
+				e.P_TLPF = s.PF_Vm * t.PF_Vm * sin((s.PF_Va - t.PF_Va)*@@PI/180)* e.B + (s.PF_Vm*s.PF_Vm - s.PF_Vm*t.PF_Vm*cos((s.PF_Va - t.PF_Va)*@@PI/180)) * e.G,
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) - s.PF_Vm * t.PF_Vm * (e.G*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			when (e.transformer_final_turns_ratio > 0) then
+				e.P_TLPF = s.PF_Vm * s.PF_Vm * (e.G/tap_ratio_square) - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) / tap_ratio_square - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			else
+				e.P_TLPF = s.PF_Vm * s.PF_Vm * e.G - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180) + (-e.B/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+				e.Q_TLPF = - s.PF_Vm * s.PF_Vm * (-e.B + 0.5*e.hB) - s.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*sin((s.PF_Va - t.PF_Va)*@@PI/180) - (-e.B/tap_ratio)*cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			end;	
+  
+      T1 =SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t
+	  where e.reverse == 1
+	  accum 
+	    double tmp_SI = 0,
+	    int tmp_CI = 0,
+		double apparent_power = sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF)/(e.kcount),
+	  	case when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.line_Q1 and sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) < e.line_Q2) then
+			tmp_CI = 1,
+			tmp_SI = (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) - e.line_Q1)*(sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) - e.line_Q1)/((e.kcount)*(e.kcount))
+		when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.line_Q2 and sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) < e.line_Q3) then
+			tmp_CI = 2,
+			tmp_SI = (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) - e.line_Q1)*(sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) - e.line_Q1)/((e.kcount)*(e.kcount))
+		when (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) >= e.line_Q3) then
+			tmp_CI = 3,
+			tmp_SI = (sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) - e.line_Q1)*(sqrt(e.P_TLPF*e.P_TLPF + e.Q_TLPF*e.Q_TLPF) - e.line_Q1)/((e.kcount)*(e.kcount))
+		else 
+			tmp_CI = 0,
+			tmp_SI = 0
+		end,
+		if (tmp_CI > 0) then
+                 	@@pf_result += ca_pf_detail(caFromBus, caToBus, s.exId, t.exId, tmp_CI, s.bus_name, t.bus_name, e.line_Q1, tmp_SI)
+					//log(true, "check angle", s.exId, t.exId, s.Vm, t.Vm, s.Va, t.Va)
+        end
+		;
+		
+  
+  
+  
+  
+/*
+T3 = select t
+        from T0:s - (topo_connect:e)->TopoND:t
+        where (s.exId != caFromBus or t.exId != caToBus) and (s.exId != caToBus or t.exId != caFromBus)
+        accum
+         //       double newG = 0,
+         //       double newB = 0,
+         //       double tap_ratio = abs(e.k/e.kcount),
+		double tmp_PTLPF = 0,
+		double tmp_QTLPF = 0,
+		double tmp_SI = 0,
+		int tmp_CI = 0,
+
+
+		tmp_PTLPF = s.PF_Vm * t.PF_Vm * sin((s.PF_Va - t.PF_Va)*@@PI/180)* e.BIJ, // Transmission line active power flow
+        tmp_QTLPF = s.PF_Vm * (s.PF_Vm - t.PF_Vm) * cos((s.PF_Va - t.PF_Va)*@@PI/180) * e.BIJ, // Transmission line reactive power flow
+
+        double apparent_power = sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF),
+        case when (sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) >= e.line_Q1 and sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) < e.line_Q2) then
+			tmp_CI = 1,
+//          e.CI = 1,
+			tmp_SI = (sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) - e.line_Q1)*(sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) - e.line_Q1)
+//          e.SI = (sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) - e.line_Q1)*(sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) - e.line_Q1)
+
+            when (sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) >= e.line_Q2 and sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) < e.line_Q3) then
+				tmp_CI = 2,
+	//          e.CI = 2,
+				tmp_SI = (sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) - e.line_Q1)*(sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) - e.line_Q1)
+	//          e.SI = (sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) - e.line_Q1)*(sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) - e.line_Q1)
+                 
+		    when (sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) >= e.line_Q3) then
+				tmp_CI = 3,
+//              e.CI = 3,
+				tmp_SI = (sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) - e.line_Q1)*(sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) - e.line_Q1)
+//              e.SI = (sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) - e.line_Q1)*(sqrt(tmp_PTLPF*tmp_PTLPF + tmp_QTLPF*tmp_QTLPF) - e.line_Q1)
+        else
+//          e.CI = 0,
+//          e.SI = 0
+			tmp_CI = 0,
+			tmp_SI = 0
+                 end,
+                 if (tmp_CI > 0) then
+                 	@@pf_result += ca_pf_detail(caFromBus, caToBus, s.exId, t.exId, tmp_CI, s.bus_name, t.bus_name, e.line_Q1, apparent_power)
+                 end;
+
+*/
+//typedef tuple<int line_name, double violation_power, double normal_power, int CI, double SI> CA_detail;
+        
+
+  //log(true, @@pf_result);
+  return @@pf_result;
+
+    
+  //return @@result;
+}
+
+
+
+// **********************************************************************************************************************************
+// Developed by: Yiting Zhao, yitingzhao6777@gmail.com
+// Version 7 (testing version) *require schema version flowSchema_CA.ddl
+// History:
+// 03/28/2018 [Yiting Zhao] 
+// 1.	Implemented superposition method in GSQL
+// 2.	Directly call ExprFunction “fdpf_ca_superposition_solve7”, in the Accum-Block of main query for higher parallel efficiency. 
+// 3.	All the required input data has been saved in Status Graph of base case. It minimizes the input data convert and processing from GSQL to ExprFunction.
+// 4.	These three function are screening the CA scenarios, which meet two conditions: 1) Transmission line power flow is not zero; 2) No islanding.
+// **********************************************************************************************************************************
+
+
+// Drop previous queries
+//drop query fdpf_ca_v7_superposition
+
+// ================================================================================
+//		                          Main Function of the Code
+// ================================================================================
+create query fdpf_ca_v7_superposition_CA_PF (int max_line_number)
+for graph gsql_EMS {
+   TYPEDEF TUPLE < int s_exId, int t_exId > pfrow;
+   TYPEDEF TUPLE < int s_exId, int t_exId, double violation_perc > pfheap;
+   SetAccum<pfrow> @@pfset;
+   ListAccum<pfrow> @@pflist;
+   ListAccum<ca_pf_detail> @@Powerflow;
+// ---------------------------------------------------------------------------------
+// 				Define variables and arrays
+// ---------------------------------------------------------------------------------
+	
+//   MapAccum<string, double> @@ca_result;
+   // MapAccum<int, double> @@ca_result;
+   ListAccum<ca_linedetail> @@ca_result;
+   HeapAccum<pfheap>(10000000, violation_perc DESC) @@ca_result_heap;
+   ListAccum<bool> @@edgeDecision;
+   SumAccum<double> @@deltaP_vt;
+   MaxAccum<double> @@non_linear_S;
+   MaxAccum<double> @@PI = 3.1415926535898;
+   
+   int fromBus = 0;
+   int toBus = 0;
+   double violation_index = 0;
+//   int CANum = 50;
+//   int CAcounter = 0;
+   
+
+  //string line_name;
+  //T1 = {CAParams.*};
+  T0= {TopoND.*};   //start from all grid vertices in the graph
+
+  log(true, "============ CA-superposition_solve start here =================");	
+  T0 = select v
+     from  T0:v-(topo_connect:e)->TopoND:t
+	 // where (v.exId == from_bus and t.exId == to_bus)  // for test single CA mode
+	 where (v.exId > t.exId) and (e.Decision == true) and (v.island == 1 and t.island == 1)  // test parallel mode
+     accum 	 
+	       // e.CA = 0,
+		   double deltaP_vt = 0,
+		   double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+		   double tap_ratio_square = (e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount),
+		   double delta_eB = 0,
+		   double deltaPhi = (v.PF_Va - t.PF_Va)*@@PI/180,
+		   double BranchViolation = 0,
+		   string line_name = "",
+		   		   
+	    // Transmission line active power flow
+		case when (e.transformer_final_turns_ratio == 0) then
+			  delta_eB = e.B,
+			    deltaP_vt = v.PF_Vm * v.PF_Vm * e.G - v.PF_Vm * t.PF_Vm * (e.G*cos(v.PF_Va - t.PF_Va) + (-e.B)*sin(v.PF_Va - t.PF_Va))
+		  when (e.transformer_final_turns_ratio > 0) then
+			  delta_eB = e.B/tap_ratio,
+		        deltaP_vt = v.PF_Vm * v.PF_Vm * (e.G/tap_ratio_square) - v.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos(v.PF_Va - t.PF_Va) + (-e.B/tap_ratio)*sin(v.PF_Va - t.PF_Va))
+		  else
+			  delta_eB = e.B/tap_ratio,
+			    deltaP_vt = v.PF_Vm * v.PF_Vm * e.G - v.PF_Vm * t.PF_Vm * ((e.G/tap_ratio)*cos(v.PF_Va - t.PF_Va) + (-e.B/tap_ratio)*sin(v.PF_Va - t.PF_Va))
+		  end,
+		  // log(false, "CA: from--to", v.exId, t.exId, deltaP_vt, deltaP_tv, e.CA_bridge, e.mainland_side, delta_sumG, delta_sumB,delta_sumBi),
+//		log(true, deltaPhi),
+//		log(true, v.PF_Vm, t.PF_Vm, v.PF_Va, t.PF_Va),
+ 	
+		if (deltaP_vt != 0 and e.CA_bridge == 0) then 		  
+		    @@ca_result += fdpf_ca_superposition_solve7 (v.exId, t.exId, deltaPhi, delta_eB)
+		end
+  ;
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	//store tuples in @@ca_result to a heapaccume (@@ca_result_heap) and sort according to SI value
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	FOREACH i in range[0, @@ca_result.size()-1] do
+		fromBus = 0;
+    toBus = 0;
+    fromBus = @@ca_result.get(i).caFromBus;
+		toBus = @@ca_result.get(i).caToBus;
+    violation_index = @@ca_result.get(i).violation_perc;
+    @@ca_result_heap += pfheap(fromBus, toBus, violation_index);
+		//log(true, "maitangyuan", item);
+	END	
+	;
+
+	//log(true, @@ca_result_heap);
+	
+  UniqueHeap(@@ca_result_heap, @@pfset, max_line_number);
+
+  //log(true, "PFset_size", @@pfset.size(), @@pfset);
+  
+  FOREACH item in @@pfset Do
+		fromBus  = 0;
+		toBus = 0;
+		fromBus = item.s_exId;
+		toBus = item.t_exId;
+		@@pflist += pfrow(fromBus, toBus);
+  end;
+  
+  
+  //@@Powerflow += fdpf_contingency_v2(873, 141);
+  //log(true, @@Powerflow);
+
+  FOREACH i in range[0, @@pflist.size()-1] DO
+	@@Powerflow += fdpf_contingency_v2(@@pflist.get(i).s_exId, @@pflist.get(i).t_exId);
+  END;
+  log(true, @@Powerflow);
+		
+	
+	//log(true, "list_size", @@ca_result.size(),"heap_size", @@ca_result_heap.size(), "ca_result_lalala", @@ca_result_heap);
+	
+		
+//print @@ca_result;
+print @@Powerflow;
+}
+
+//}
+
+install query fdpf_contingency_v2
+install query -ui fdpf_ca_v7_superposition_CA_PF
+//install query -optimize
+
+
+
+
+
+
+/*	
+	////////////////////////////////////////////////
+	//use SetAccum to eliminate the duplicated lines
+	////////////////////////////////////////////////
+	FOREACH item in @@ca_result_heap DO
+		fromBus = 0;
+		toBus = 0;
+		fromBus = item.caFromBus;
+		toBus = item.caToBus;
+		@@pfUnique += pfrow(fromBus,toBus);
+	end;
+
+	
+	////////////////////////////////////////////
+	//store only the first 50 line in @@final_pf
+	////////////////////////////////////////////
+	CAcounter = 0;
+	if @@pfUnique.size() > CANum then
+		FOREACH item in @@pfUnique DO
+			if CAcounter <= CANum then
+				fromBus = 0;
+				toBus = 0;
+				fromBus = item.s_exId;
+				toBus = item.t_exId;
+				@@final_pf += pfrow(fromBus,toBus);
+				CAcounter = CAcounter + 1;
+			end;
+		END;
+	else
+		FOREACH item in @@pfUnique DO
+			if CAcounter <= @@pfUnique.size() then
+				fromBus = 0;
+				toBus = 0;
+				fromBus = item.s_exId;
+				toBus = item.t_exId;
+				@@final_pf += pfrow(fromBus,toBus);
+				CAcounter = CAcounter + 1;
+			end;
+		END;
+	end;
+	//FOREACH i in range[0, @@fd_pf.size()-1] DO
+	
+	log(true, "final_pf size", @@final_pf.size(), "final_pf", @@final_pf);
+*/		
+

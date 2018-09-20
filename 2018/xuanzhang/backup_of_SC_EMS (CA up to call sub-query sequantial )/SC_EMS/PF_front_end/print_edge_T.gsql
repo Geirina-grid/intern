@@ -1,0 +1,47 @@
+drop query print_edge_T
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query print_edge_T ( )
+for graph gsql_EMS {
+	
+
+	TYPEDEF TUPLE <int tap_bus, int z_bus, string area, uint zone, uint circuit, int flag, double R, double X, double B, double Line_Q1, double Line_Q2, double Line_Q3, int control_bus, int side, double transformer_final_turns_ratio, double transformer_final_angle, double Min_tap, double Max_tap, double step_size, double Min_volt, double Max_volt> row;
+
+	double L_Q1;
+	double L_Q2;
+	double L_Q3;
+	
+	ListAccum<row> @@edgeList; 
+//    print "tap_bus", "z_bus", "area", "zone", "circuit", "type", "R", "X", "B", "Line_Q1", "Line_Q2", "Line_Q3", "control_bus", "side", "transformer_final_turns_ratio", "transformer_final_angle", "Min_tap", "Max_tap", "step_size", "Min_volt", "Max_volt" > outputfile;	
+	T0 = {TopoND.*};
+    T1 = SELECT s
+	      FROM T0:s-(topo_connect:e)->TopoND:t
+		  where e.reverse == 1 and s.island == 1 and t.island == 1
+		  ACCUM 
+            int minValue = e.kcount - 1,
+            IF (minValue < 0) THEN
+                minValue = 0
+            END,
+		    FOREACH i in range[0, minValue] DO
+ 			   //@@edgeList+= row(s.exId, t.exId, e.area, e.zone, e.circuit, e.flag, e.R.get(i), e.X.get(i), e.hB.get(i), e.Line_Q1.get(i), e.Line_Q2.get(i), e.Line_Q3.get(i), e.control_bus, e.side, e.K, e.transformer_final_angle.get(i), e.Min_tap, e.Max_tap, e.step_size, e.Min_volt.get(i), e.Max_volt.get(i))
+			   //@@edgeList+= row(s.exId, t.exId, e.area, e.zone, e.circuit, e.flag, e.R, e.X, e.hB, e.Line_Q1, e.Line_Q2, e.Line_Q3, e.control_bus, e.side, e.transformer_final_turns_ratio, e.transformer_final_angle, e.min_tap, e.max_tap, e.step_size, e.min_volt1, e.max_volt1)
+			   @@edgeList+= row(s.exId, t.exId, e.area, e.zone, e.circuit, e.flag, e.R, e.X, e.hB, e.line_Q1, e.line_Q2, e.line_Q3, e.control_bus, e.side, e.transformer_final_turns_ratio, e.transformer_final_angle, e.min_tap, e.max_tap, e.step_size, e.min_volt, e.max_volt)
+			END;
+//			log(false,@@edgeList);
+	
+    foreach x in @@edgeList do
+	L_Q1 = x.Line_Q1 * 100;
+	L_Q2 = x.Line_Q2 * 100;
+	L_Q3 = x.Line_Q3 * 100;
+
+//			print x.tap_bus, x.z_bus, x.area, x.zone, x.circuit, x.flag, x.R, x.X, x.B, x.Line_Q1, x.Line_Q2, x.Line_Q3, x.control_bus, x.side, x.transformer_final_turns_ratio, x.transformer_final_angle, x.Min_tap, x.Max_tap, x.step_size, x.Min_volt, x.Max_volt > outputfile;
+	print x.tap_bus, x.z_bus, x.area, x.zone, x.circuit, x.flag, x.R, x.X, x.B, L_Q1, L_Q2, L_Q3, x.control_bus, x.side, x.transformer_final_turns_ratio, x.transformer_final_angle, x.Min_tap, x.Max_tap, x.step_size, x.Min_volt, x.Max_volt;	
+	
+	end;
+			  
+		 
+}
+
+//install query print_edge_T

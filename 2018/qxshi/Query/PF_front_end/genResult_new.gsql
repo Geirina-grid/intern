@@ -1,0 +1,71 @@
+drop query genResult
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query genResult ()
+for graph gsql_EMS {
+
+	TYPEDEF TUPLE <string bus_name, int exId, double cal_P, double cal_Q, double cal_Vm, double desired_voltage> gen_result;
+	
+	// SetAccum<gen_result> @@Gen_List;
+	ListAccum<gen_result> @@Gen_List;
+	SumAccum<double> @Pg = 0;
+	SumAccum<double> @Qg = 0;
+	SumAccum<double> @desired_volts = 0;
+	SumAccum<double> @cal_Vm = 0;
+	MaxAccum<double> @@PI = 3.1415926535898;	
+	SumAccum<double> @sumG  = 0; // store for each node the total G on all of its edges
+ 	SumAccum<double> @sumB  = 0;
+	SumAccum<double> @cal_P = 0;
+ 	SumAccum<double> @cal_Q = 0;
+
+	
+	T0 = {TopoND.*};
+	
+	T1 = SELECT s 
+	  from T0: s -(topo_connect:e)->TopoND:t 
+	  accum 
+        double newG = 0,
+        double newB = 0,
+		double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+		double tap_ratio_square = abs((e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount)),
+		
+		case when (e.transformer_final_turns_ratio == 0 or abs(e.transformer_final_turns_ratio) == 1) then
+			s.@cal_P += s.PF_Vm*t.PF_Vm * (-1*e.G*cos((s.PF_Va-t.PF_Va)*@@PI/180) + e.B * sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+			s.@cal_Q += s.PF_Vm*t.PF_Vm * (-1*e.G*sin((s.PF_Va-t.PF_Va)*@@PI/180) - e.B * cos((s.PF_Va - t.PF_Va)*@@PI/180))
+			//log(false, "e.B and e.G", s.exId, t.exId, e.G, e.B)
+		
+		else
+			newG = e.G/abs(tap_ratio),
+			newB = e.B/abs(tap_ratio),
+			s.@cal_P += s.PF_Vm*t.PF_Vm * (-1*newG*cos((s.PF_Va-t.PF_Va)*@@PI/180) + newB * sin((s.PF_Va - t.PF_Va)*@@PI/180)),
+			s.@cal_Q += s.PF_Vm*t.PF_Vm * (-1*newG*sin((s.PF_Va-t.PF_Va)*@@PI/180) - newB * cos((s.PF_Va - t.PF_Va)*@@PI/180))    
+        end
+ 		post-accum
+		       s.@cal_P += s.PF_Vm*s.PF_Vm*s.@sumG,
+			   s.@cal_Q += (-1) * s.PF_Vm*s.PF_Vm*s.@sumB,
+			   s.cal_P = s.@cal_P,
+			   s.cal_Q = s.@cal_Q;   	
+	
+	
+    T1 = SELECT s
+	      FROM T0:s
+		  where (s.busType==2 or s.busType==3) and s.island == 1
+		  POST-ACCUM 
+		  s.@Pg = s.cal_P*100,
+		  s.@Qg = s.cal_Q*100,
+		  s.@desired_volts = s.desired_volts,
+		  s.@cal_Vm = s.Vm,
+		  log (true, s.busType, s.island),
+		  @@Gen_List += gen_result(s.bus_name, s.exId, s.@Pg, s.@Qg, s.@cal_Vm, s.@desired_volts)
+		  ;
+ 		  
+	 foreach x in @@Gen_List do
+	 print x.bus_name, x.exId, x.cal_P, x.cal_Q, x.cal_Vm, x.desired_voltage;	
+
+	 end;
+		
+	print T1.exId, T1.bus_name, T1.cal_P, T1.cal_Q TO_CSV "/home/tigergraph/SC_EMS/output/Gen_output.csv";	
+}
+
+install query genResult

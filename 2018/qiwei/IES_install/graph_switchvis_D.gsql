@@ -1,0 +1,58 @@
+drop query graph_switchvis_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query graph_switchvis_D () for graph powerflow_graph api("v1") 
+{
+	
+
+	string startnode;
+	ListAccum<edge> @@edgeList; 
+	
+	T0 = {bus_D.*};
+	T1 = {switchnode_D.*};
+	
+	startNodeSet = SELECT n
+	      FROM T0:n
+	      where n.outdegree("backe_D") == 0 // till here, the startNodeSet is the substation node
+	      POST-ACCUM
+	      startnode=n.exId;
+	
+	T3 = SELECT d 
+	      FROM T0:d
+		  where d.flag!=3;
+		  
+    T2 = T3 union T1;
+	
+	T4 = SELECT s
+	      FROM T1:s
+		  POST-ACCUM 
+		  s.startnode=startnode;
+		  
+    T5 = SELECT s
+	      FROM T3:s-(foree_D:e)-:t
+		  ACCUM 
+		  case when (e.Config!="switch") then
+ 	      @@edgeList+= e
+		  end;
+		  
+    T6 = SELECT s
+	      FROM T0:s-(switchlinkF_D:e)-switchnode_D:t
+		  ACCUM 
+ 	      @@edgeList+= e;
+		  
+    T7 = SELECT s
+	      FROM T1:s-(switchlinkT_D:e)-bus_D:t
+		  ACCUM 
+ 	      @@edgeList+= e;
+   
+	
+	print @@edgeList;
+    print T2;
+
+  
+		 
+}
+
+//install query graph_switchvis_D

@@ -1,0 +1,30 @@
+.sidebar {
+    width: 100%;
+    color: #FFF;
+}
+  
+.subtitle {
+    color: #717b85;
+    background-color: #424a53;
+    height: 50px;
+    line-height: 50px;
+}
+
+.checkboxes {
+    height: 50px;
+    padding-left: 20px;
+    line-height: 45px;
+}
+
+.subtitleText{
+    left: 10px;
+}
+
+
+.checkboxes2 {
+    color: wheat;
+    position: relative;
+    margin-left: 0;
+    height: 50px;
+    line-height: 45px;
+}

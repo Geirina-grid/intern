@@ -1,0 +1,33 @@
+<!-- <div class="row" style="margin:0">
+  <div class="col-md-5" style="padding:0">
+    <div #container class="graphchart">
+    </div> 
+    <app-graph-chart #graphchart class="graphchart"></app-graph-chart>
+  </div> -->
+  <!-- <div class="col-md-6" style="text-align:left; padding:0"> -->
+  <div style="text-align:right">
+  <p-dataTable #dt [value]="lines">
+<!--     <p-header>
+        <div class="ui-helper-clearfix">
+            <button type="button" pButton icon="fa-file-o" iconPos="left" label="All Data" (click)="dt.exportCSV()" style="float:left"></button>
+            线路参数               
+            <button type="button" pButton icon="fa-file" iconPos="left" label="Selection Only" (click)="dt.exportCSV({selectionOnly:true})" style="float:right"></button>
+        </div>
+    </p-header> -->
+    <p-column header="线路名" field="edge_name" [style]="{'width':'15%'}" [sortable]="true"></p-column>
+    <p-column header="始端节点" field="tap_bus_id" [sortable]="true"></p-column>
+    <p-column header="末端节点" field="z_bus_id" [sortable]="true"></p-column>
+    <p-column header="长度(ft)" field="linelength" [sortable]="true"></p-column>
+    <p-column header="A相电阻（欧姆）" field="Raa" [sortable]="true"></p-column>
+    <p-column header="A相电抗（欧姆）" field="Xaa" [sortable]="true"></p-column>
+    <p-column header="B相电阻（欧姆）" field="Rbb" [sortable]="true"></p-column>
+    <p-column header="B相电抗（欧姆）" field="Xbb" [sortable]="true"></p-column>
+    <p-column header="C相电阻（欧姆）" field="Rcc" [sortable]="true"></p-column>
+    <p-column header="C相电抗（欧姆）" field="Xcc" [sortable]="true"></p-column>
+    <p-column header="AB相互感（欧姆）" field="Xab" [sortable]="true"></p-column>
+    <p-column header="AC相互感（欧姆）" field="Xac" [sortable]="true"></p-column>
+    <p-column header="BC相互感（欧姆）" field="Xbc" [sortable]="true"></p-column>
+  </p-dataTable>
+</div>
+  <!-- </div> -->
+<!-- </div> -->

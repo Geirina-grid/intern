@@ -1,0 +1,25 @@
+<!-- <div class="row" style="margin:0">
+    <div class="col-md-5" style="padding:0">
+        <div #container class="graphchart">
+        </div>
+    </div>
+    <div class="col-md-6" style="text-align:left; padding:0">
+        <router-outlet></router-outlet>
+    </div>
+</div> -->
+
+ <mat-tab-group (selectedTabChange)="tabChange($event)">
+
+    <mat-tab label="Topo" class="my-tab">
+            <div #container class="graphchart">
+            </div>
+        </mat-tab>
+    <mat-tab label="Map" class="my-tab">
+            <app-leafletmap></app-leafletmap>
+    </mat-tab>
+    
+</mat-tab-group>
+ 
+
+
+

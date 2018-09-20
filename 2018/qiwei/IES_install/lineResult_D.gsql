@@ -1,0 +1,105 @@
+drop query lineResult_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query lineResult_D()
+for graph powerflow_graph {
+	
+	TYPEDEF TUPLE < string edge_name, string s_exId, string t_exId, double PA, double PB, double PC,double QA, double QB,double QC,double IA, double IB, double IC, double IA_ang, double IB_ang, double IC_ang, double lossA, double lossB, double lossC, string startnode> row;
+	SumAccum<int> @@id = 0;
+	ListAccum<row> @@edgeList;
+	SumAccum<double> @lossA=0;
+	SumAccum<double> @lossB=0;
+	SumAccum<double> @lossC=0;
+	SumAccum<double> @DeltaVAreal=0;
+	SumAccum<double> @DeltaVAimg=0;
+	SumAccum<double> @DeltaVBreal=0;
+	SumAccum<double> @DeltaVBimg=0;
+	SumAccum<double> @DeltaVCreal=0;
+	SumAccum<double> @DeltaVCimg=0;
+	SumAccum<double> @IAreal=0;
+	SumAccum<double> @IAimg=0;
+	SumAccum<double> @IBreal=0;
+	SumAccum<double> @IBimg=0;
+	SumAccum<double> @ICreal=0;
+	SumAccum<double> @ICimg=0;
+	SumAccum<double> @PA=0;
+	SumAccum<double> @PB=0;
+	SumAccum<double> @PC=0;
+	SumAccum<double> @QA=0;
+	SumAccum<double> @QB=0;
+	SumAccum<double> @QC=0;
+	SumAccum<double> @IA=0;
+	SumAccum<double> @IB=0;
+	SumAccum<double> @IC=0;
+	SumAccum<double> @IA_ang=0;
+	SumAccum<double> @IB_ang=0;
+	SumAccum<double> @IC_ang=0;
+	SumAccum<string> @edge_name;
+	SumAccum<string> @ex_Id;
+	MaxAccum<double> @@PI = 3.14159265359;
+	
+	
+	T0 = {bus_D.*};
+    T1 = SELECT s
+	      FROM T0:s-(foree_D:e)-:t
+		  ACCUM 
+		  CASE WHEN (e.flag!=2) THEN
+		  t.@PA = s.VAmag_cal*e.IAmag_cal*cos(s.VAang_cal - e.IAang_cal),
+		  t.@PB = s.VBmag_cal*e.IBmag_cal*cos(s.VBang_cal - e.IBang_cal),
+		  t.@PC = s.VCmag_cal*e.ICmag_cal*cos(s.VCang_cal - e.ICang_cal),
+		  t.@QA = s.VAmag_cal*e.IAmag_cal*sin(s.VAang_cal - e.IAang_cal),
+		  t.@QB = s.VBmag_cal*e.IBmag_cal*sin(s.VBang_cal - e.IBang_cal),
+		  t.@QC = s.VCmag_cal*e.ICmag_cal*sin(s.VCang_cal - e.ICang_cal)
+		  END,
+		  CASE WHEN (e.flag==2) THEN
+		  t.@PA = t.VAmag_cal*e.IAmag_cal*cos(t.VAang_cal - e.IAang_cal),
+		  t.@PB = t.VBmag_cal*e.IBmag_cal*cos(t.VBang_cal - e.IBang_cal),
+		  t.@PC = t.VCmag_cal*e.ICmag_cal*cos(t.VCang_cal - e.ICang_cal),
+		  t.@QA = t.VAmag_cal*e.IAmag_cal*sin(t.VAang_cal - e.IAang_cal),
+		  t.@QB = t.VBmag_cal*e.IBmag_cal*sin(t.VBang_cal - e.IBang_cal),
+		  t.@QC = t.VCmag_cal*e.ICmag_cal*sin(t.VCang_cal - e.ICang_cal)
+		  END,
+		  CASE WHEN (t.flag!=2 and t.flag!=1) THEN
+		  t.@DeltaVAreal = s.VAmag_cal*cos(s.VAang_cal) - t.VAmag_cal*cos(t.VAang_cal),
+		  t.@DeltaVAimg = s.VAmag_cal*sin(s.VAang_cal) - t.VAmag_cal*sin(t.VAang_cal),
+		  t.@DeltaVBreal = s.VBmag_cal*cos(s.VBang_cal) - t.VBmag_cal*cos(t.VBang_cal),
+		  t.@DeltaVBimg = s.VBmag_cal*sin(s.VBang_cal) - t.VBmag_cal*sin(t.VBang_cal),
+		  t.@DeltaVCreal = s.VCmag_cal*cos(s.VCang_cal) - t.VCmag_cal*cos(t.VCang_cal),
+		  t.@DeltaVCimg = s.VCmag_cal*sin(s.VCang_cal) - t.VCmag_cal*sin(t.VCang_cal),  
+		  t.@IAreal = e.IAmag_cal*cos(e.IAang_cal),
+		  t.@IAimg = e.IAmag_cal*sin(e.IAang_cal),
+		  t.@IBreal = e.IBmag_cal*cos(e.IBang_cal),
+		  t.@IBimg = e.IBmag_cal*sin(e.IBang_cal),
+		  t.@ICreal = e.ICmag_cal*cos(e.ICang_cal),
+		  t.@ICimg = e.ICmag_cal*sin(e.ICang_cal)  
+		  END,
+		  t.@IA=e.IAmag_cal,
+		  t.@IB=e.IBmag_cal,
+		  t.@IC=e.ICmag_cal,
+		  t.@IA_ang=e.IAang_cal*180/@@PI,
+		  t.@IB_ang=e.IBang_cal*180/@@PI,
+		  t.@IC_ang=e.ICang_cal*180/@@PI,
+		  t.@edge_name=e.edge_name,
+		  t.@ex_Id=s.exId
+		  
+		  POST-ACCUM
+		  CASE WHEN (t.flag!=2 and t.flag!=1) THEN
+		  t.@lossA = (t.@DeltaVAreal*t.@IAreal + t.@DeltaVAimg*t.@IAimg),
+		  t.@lossB = (t.@DeltaVBreal*t.@IBreal + t.@DeltaVBimg*t.@IBimg),
+		  t.@lossC = (t.@DeltaVCreal*t.@ICreal + t.@DeltaVCimg*t.@ICimg)
+		  END,       			
+		  @@edgeList+= row(t.@edge_name, t.@ex_Id, t.exId, t.@PA, t.@PB, t.@PC, t.@QA, t.@QB, t.@QC, t.@IA, t.@IB, t.@IC, t.@IA_ang, t.@IB_ang, t.@IC_ang, t.@lossA, t.@lossB, t.@lossC, t.startnode);
+			
+	
+	foreach x in @@edgeList do
+
+		print x.edge_name, x.s_exId, x.t_exId, x.PA, x.PB, x.PC, x.QA, x.QB, x.QC, x.IA, x.IB, x.IC, x.IA_ang, x.IB_ang, x.IC_ang, x.lossA, x.lossB, x.lossC, x.startnode;
+	
+	end;
+
+
+}
+
+//install query lineResult_D

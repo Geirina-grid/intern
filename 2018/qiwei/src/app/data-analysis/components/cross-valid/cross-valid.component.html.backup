@@ -1,0 +1,28 @@
+<div style="max-width: 2000px; margin: 0 auto; overflow: hidden;">
+        <div class="ui-g">
+        <div class="ui-g-12 ui-g-nopad">
+            <div class="ui-g-4" style="font-size: 1.1em">
+                Start Date:
+                <p-calendar [(ngModel)]="sdate" [showIcon]="true" [defaultDate]="defaultDates"></p-calendar>
+            </div>
+            <div class="ui-g-4" style="font-size: 1.1em">
+                End Date:
+                <p-calendar [(ngModel)]="edate" [showIcon]="true" [defaultDate]="defaultDatee"></p-calendar>
+            </div>
+            <div class="ui-g-4" style="font-size: 1.1em">
+                Node ID:
+                <p-dropdown [options]="meters" [(ngModel)]="selectedmeter" [style]="{'width':'200px'}" editable="editable" placeholder="Select ID"></p-dropdown>
+            </div>
+            <div class="ui-g-12">
+                <p-tabView (onChange)="onTabChange($event)">
+                    <p-tabPanel header="Load - Energy">
+                        <app-cv-pe [selectedmeter]="selectedmeter" [sdate]="sdate" [edate]="edate"></app-cv-pe>
+                    </p-tabPanel>
+                    <p-tabPanel header="S - UI">
+                        <app-cv-pqui [selectedmeter]="selectedmeter" [sdate]="sdate" [edate]="edate"></app-cv-pqui>
+                    </p-tabPanel>
+                </p-tabView>
+            </div>
+        </div>
+    </div>
+</div>

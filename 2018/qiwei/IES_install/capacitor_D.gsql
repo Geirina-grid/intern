@@ -1,0 +1,52 @@
+drop query capacitor_D
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query capacitor_D ()
+for graph powerflow_graph {
+
+     TYPEDEF TUPLE <string CapID, string bus_name, double QCap, string control, string Phase, string startnode> cap;
+	
+	ListAccum<cap> @@Capacitor_List;
+	SumAccum<int> @@id = 0;
+	string control = "电压";
+
+
+	
+	T0 = {bus_D.*};
+    T1 = SELECT s
+	      FROM T0:s
+		 where (abs(s.CapA)+abs(s.CapB)+abs(s.CapC)>0.0001)		 
+		  POST-ACCUM 
+		  CASE WHEN (abs(s.CapA)>0.0001) THEN	 
+		  @@id += 1,
+		  string Phase="A",
+		  string CapID=s.exId +"_"+ Phase,
+		  @@Capacitor_List += cap(CapID, s.exId, s.CapA, control, Phase, s.startnode)
+		  END,
+		  CASE WHEN (abs(s.CapB)>0.0001) THEN	 
+		  @@id += 1,
+		  string Phase="B",
+		  string CapID=s.exId +"_"+ Phase,
+		  @@Capacitor_List += cap(CapID, s.exId, s.CapB, control, Phase, s.startnode)
+		  END,
+		  CASE WHEN (abs(s.CapC)>0.0001) THEN	 
+		  @@id += 1,
+		  string Phase="C",
+		  string CapID=s.exId +"_"+ Phase,
+		  @@Capacitor_List += cap(CapID, s.exId, s.CapC, control, Phase, s.startnode)
+		  END
+		  ;
+ 		  
+ 	foreach x in @@Capacitor_List do
+	//print '/\n';
+	@@id += 1;
+	print x.CapID, x.bus_name, x.QCap, x.control, x.Phase, x.startnode; // > outputfile;	
+	end;
+     
+	
+	// print @@Capacitor_List;
+		 
+}
+
+//install query capacitor_D

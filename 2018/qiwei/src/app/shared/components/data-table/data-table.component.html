@@ -1,0 +1,28 @@
+<div id="shipmentsList" class="myTable">
+        <div class="data-container mat-elevation-z8">
+          <mat-table #table [dataSource]="dataSource" matSort>
+      
+            <ng-template ngFor let-c [ngForOf]="columns" let-i="index">
+              <ng-container [matColumnDef]="c.value">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> 
+                 <div class="ab">
+                  {{c.label}}
+                  </div> 
+                </mat-header-cell>
+                <mat-cell *matCellDef="let product"> {{product[c.value]}}
+                  <ng-container *ngIf="c.value=='intransit'">
+                    -
+                  </ng-container>
+                  <ng-container *ngIf="c.value=='quantity' || c.value=='onhand' || c.value=='intransit'">
+                    <p class="unit">Units</p>
+                  </ng-container>
+                </mat-cell>
+              </ng-container>
+            </ng-template>
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;" 
+                     (click)="checkClickStatus(row) " 
+                     [style.background]="highlightedRows.indexOf(row) != -1 ? 'lightblue' : 'white'"></mat-row>
+            </mat-table>
+        </div>
+      </div>

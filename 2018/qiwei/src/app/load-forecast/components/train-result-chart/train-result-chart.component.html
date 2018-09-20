@@ -1,0 +1,13 @@
+<div id="container-train-analysis" class="resultChart" [style.height.px]="chartH">
+</div>
+<div style="padding-left:30px;padding-right:10px">
+  <p-dataTable [value]="errStats" [metaKeySelection]="false" [paginator]="false" sortMode="multiple" [style]="{'text-align':'center'}">
+      <p-header>总体训练结果统计</p-header>
+      <p-column field="type" header="" [style]="{'width':'200px'}"></p-column>
+      <p-column field="mean" header="平均值"></p-column>
+      <p-column field="median" header="中位数"></p-column>
+      <p-column field="max" header="最大误差百分比"></p-column>
+      <p-column field="min" header="最小误差百分比"></p-column>
+      <p-column field="std" header="误差标准差"></p-column>
+  </p-dataTable>
+</div>

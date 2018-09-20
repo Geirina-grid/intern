@@ -1,0 +1,43 @@
+
+  <p-dialog header="用户负荷曲线" [(visible)]="display" width=700 height=700>
+    <chart type="StockChart" [options]="options5"></chart>
+  </p-dialog>
+  <div class="ui-g">
+    <div class="ui-g-6">
+      <chart [options]="options1">
+        <series>
+          <point (select)="onPointSelect($event)"></point>
+        </series>
+      </chart>
+    </div>
+    <div class="ui-g-6">
+      <chart [options]="options3">
+      </chart>
+    </div>
+
+    <div class="ui-g-3" [ngStyle]="{'overflow': 'scroll', 'height':scroll_sh}">
+      <div *ngFor="let x of typical_lines" style="text-align:center">
+        <chart [options]="x">
+        </chart>
+      </div>
+    </div>
+    <div class="ui-g-4">
+      <div class="ui-g-12">
+        <chart [options]="options2">
+        </chart>
+      </div>
+      <div class="ui-g-12">
+        <chart [options]="options4">
+        </chart>
+      </div>
+    </div>
+    <div class="ui-g-5">
+      <div style="text-align:center;font-size:11px">
+        <p-dataTable [value]="loadrank" selectionMode="single" [metaKeySelection]="false" scrollable="true" [scrollHeight]="tab_sh"
+          (onRowSelect)="onRowSelect($event)" dataKey="user" sortMode="multiple">
+          <p-header>用户年用电量（兆瓦）及负荷波形占比（%）</p-header>
+          <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header" [sortable]="true"></p-column>
+        </p-dataTable>
+      </div>
+    </div>
+  </div>

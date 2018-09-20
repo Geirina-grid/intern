@@ -1,0 +1,37 @@
+drop query generator
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query generator ()
+for graph gsql_EMS {
+
+	SetAccum<Vertex<TopoND>> @@Gen_List;	
+	double GenP;
+	double GenQ;
+	double desired_volts;
+	double qUp;
+	double qLower;
+		
+	// print "id", "bus_name", "bus_id", "generation_p", "generation_Q", "base_kV", "desired_volts", "MAX_Q", "Min_Q", "control_bus_number", "pos_x", "pos_y" > outputfile;	
+	T0 = {TopoND.*};
+    T1 = SELECT s
+	      FROM T0:s
+		  where (s.busType==2 or s.busType==3) and s.island == 1
+		  ACCUM @@Gen_List+= s
+		  ;
+ 		  
+	foreach x in @@Gen_List do
+	GenP = x.GenP*100;
+	GenQ = x.GenQ*100;
+	qUp = x.qUp;
+	qLower = x.qLower;
+	desired_volts = x.desired_volts;
+	print x.bus_name, x.exId, GenP, GenQ, desired_volts, qUp, qLower, x.control_bus_number; // > outputfile;	
+	end
+	;
+    
+	// print T1;
+		 
+}
+
+//install query generator

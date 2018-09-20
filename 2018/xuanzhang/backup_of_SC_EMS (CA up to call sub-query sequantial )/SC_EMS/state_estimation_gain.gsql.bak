@@ -1,0 +1,416 @@
+// **********************************************************************************************************************************
+// **********************************************************************************************************************************
+// Developed by: Chen Yuan, chen.yuan@geirina.net
+// Version Node-based state estimation: Used to connect/communicate with Network Topology Processing query and following power flow and contingency analysis queries
+
+// History:
+// 06/17/2017 [Chen Yuan] This is query is written for parallel node-based state estimation; Currently, I use tupple to store each column
+//						  information in H matrix and Gain matrix. Later maybe the way directly store each element in H marix and Gain matrix has a better performance.
+// 05/30/2018 [Chen Yuan] This version is modified to communicate/work with Network Topology Processing query and following power flow and contingency analysis queries.
+
+drop query state_estimation_weight_gain
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================	
+
+create query state_estimation_weight_gain() // TotalM is the number of the system's total measurements
+for graph gsql_EMS{
+	
+// ------------------------------------------------------------------------------------------------
+// 				Define variables and arrays
+// ------------------------------------------------------------------------------------------------
+ 
+ // define the tuple for Gain matrix
+ // sort_id_vertex:     for the G array (key1 based on exId) 
+ //                     - contains information on the nodes and also for the pointer arrays 
+ //typedef tuple<int index, double value, int> sort_id_gain; 
+ // Create ArrayAccum for H matrix and Gain matrix
+ 
+ // define the tuple for Va and Vm
+ // sort_id_vertex:     for the h array (key1 based on exId) 
+ //                     - contains information on the nodes and also for the pointer arrays 
+ typedef tuple<int index1, double value1> sort_id; 
+ 
+ // sort_rpi_cpi_matrix:for the L'U' and L"U" matrix HeapAccums (key1 based on rpi and cpi)
+ //                     - contains factorized LU values of B' and B" (both edge and node) 
+ //typedef tuple<int key1, int cpi, double value> sort_rpi_cpi_matrix;
+ 
+ // sort_rpi_vertex:    for the L'U' and L"U" matrix vertex HeapAccums (key1 based on rpi) 
+ //                     - contains pointers, permutation and scaling info  
+ //typedef tuple<int key1, int Lp, int Up, int rp, int cpi, double row_scaling, double col_scaling> sort_rpi_vertex;
+
+ 
+ // SumAccum<int> @@Gsize;
+ // SumAccum<int> @Col_Num = 0; // Calculate Number of columns in Hi matrix
+ // SumAccum<int> @Slack = 0; // Check if there is slack bus
+ // SumAccum<int> @Row_Num = 3; // Calculate Number of columns in Hi matrix, each bus/vertex has 3 measurements (Vi, Pi, Qi), 
+  					 //	so the beginning number is set as 3.				 
+ 
+ string cal_result;
+ 
+ SumAccum<double> @sumB = 0; // store for each node the total B on all of its edges
+ SumAccum<double> @sumBedge = 0; // store for each node the total e.B
+ SumAccum<double> @sumG = 0; // store for each node the total G on all of its edges
+ SumAccum<double> @sumBi = 0; // store for each node the total 1/X (BIJ) on all of its edges		
+ SumAccum<double> @sumGii_P = 0; // store for each diagonal element in Gain matrix
+ SumAccum<double> @sumGij_P = 0; // store for each off-diagonal element in Gain matrix
+ SumAccum<double> @sumGii_Q = 0; // store for each diagonal element in Gain matrix
+ SumAccum<double> @sumGij_Q = 0; // store for each off-diagonal element in Gain matrix
+ 
+ 
+ //SumAccum<double> @Vm = 0; // store each bus updated Vm
+ //SumAccum<double> @Vs = 0; // store each bus updated Vs
+ //SumAccum<double> @deltaVm = 0; // store each bus deltaVm, which is the comparison between Vm's measurement and calcualtion
+ //SumAccum<double> @deltaVa = 0; // store each bus deltaVm, which is the comparison between Vm's measurement and calcualtion
+ 
+ //SumAccum<double> @2_neighbor_B = 0; // store 2-neighbor info
+ //SumAccum<double> @2_neighbor_BIJ = 0; // store 2-neighbor info
+ MapAccum<int, double> @neighbor_B;  // store connected edges info (B)
+ MapAccum<int, double> @neighbor_BIJ;  // store connected edges info (BIJ)
+ MapAccum<int, double> @neighbor_Pweight; // store weight of neighbor's injection P
+ MapAccum<int, double> @neighbor_Qweight; // store weight of neighbor's injection Q
+ //MapAccum<int, double> @P_TLPF; // store weight of neighbor's injection P
+ //MapAccum<int, double> @Q_TLPF; // store weight of neighbor's injection Q
+ 
+ 
+ MapAccum<int, double> @G_offdiag_B;  // store node_based gain matrix offdiag_B
+ MapAccum<int, double> @G_offdiag_BIJ;  // store node_based gain matrix offdiag_BIJ
+ MapAccum<int, double> @G_2_neighbor_B;  // store node_based gain matrix offdiag_B
+ MapAccum<int, double> @G_2_neighbor_BIJ;  // store node_based gain matrix offdiag_BIJ
+ //ArrayAccum<SumAccum<double>> @@H_r_P[];  // store H_P matrix multiplies r_P
+ //ArrayAccum<SumAccum<double>> @@H_r_Q[];  // store H_Q matrix multiplies r_Q
+ ArrayAccum<ListAccum<sort_id>> @@GainP[];  // store column index and value in GainP matrix, like CSR's ai and ax
+ ArrayAccum<ListAccum<sort_id>> @@GainQ[];  // store column index and value in GainQ matrix, like CSR's ai and ax
+ SumAccum<int> @@slackbus = 0;
+ //MaxAccum<double> @@max_dVm = 1000000;
+ //MaxAccum<double> @@max_dVa = 1000000;
+ 
+ // store the number of non-zeros in GainP and GainQ
+ SumAccum<int> @@nnz_GainP = 0;
+ SumAccum<int> @@nnz_GainQ = 0; 
+ 
+ //SumAccum<int>    @nnz_P = 0;   // the degree/non-zeros of a node in GainP
+ //SumAccum<int>    @nnz_Q = 0;   // the degree/non-zeros of a node in GainQ
+ //SumAccum<int>    @pqdgr = 0;    // the degree (number of edges connecting PQ buses) of a PQ bus
+ 
+ // store the number of non-zeros in each row of GainP and GainQ, like CSR's ap
+ ArrayAccum<SumAccum<int>> @@GainP_p[];
+ ArrayAccum<SumAccum<int>> @@GainQ_p[]; 
+ //ArrayAccum<SumAccum<double>> @@Va[];
+ //ArrayAccum<SumAccum<double>> @@Vm[];
+ //SumAccum<int> @@counter = 0;
+
+ // Generate HeapAccum for GainP and GainQ LU Decomposition. 
+ // Later, they can be replaced by ListAccum or ArrayAccum.
+ //STATIC HeapAccum<sort_rpi_cpi_matrix>(100000000, key1 asc) @@GainP_L_matrix;   
+ //STATIC HeapAccum<sort_rpi_cpi_matrix>(100000000, key1 asc) @@GainP_U_matrix;
+ //STATIC HeapAccum<sort_rpi_cpi_matrix>(100000000, key1 asc) @@GainQ_L_matrix;
+ //STATIC HeapAccum<sort_rpi_cpi_matrix>(100000000, key1 asc) @@GainQ_U_matrix;
+ //STATIC HeapAccum<sort_rpi_vertex>(100000000, key1 asc) @@GainP_LU_vertex;
+ //STATIC HeapAccum<sort_rpi_vertex>(100000000, key1 asc) @@GainQ_LU_vertex;
+
+ //ListAccum<edge> @@edgeList;
+ 
+ 
+ //testing
+ //ArrayAccum<SumAccum<double>> @@B[118][118];
+ //ArrayAccum<SumAccum<double>> @@G[118][118];
+ MapAccum<int, int> @@counterMap;
+ SumAccum<int> @outdegree = 0;
+ // ArrayAccum<SumAccum<double>> @h[][]; // node-based H matrix
+ ListAccum<sort_id> @Gip;
+ ListAccum<sort_id> @Giq;
+ 
+ // ********************************* Continuous ID Attributes ************************
+ //SetAccum<Vertex<TopoND>> @@nodeList;
+ ListAccum<int> @@nodeList;
+ SumAccum<int> @@counter = 0;
+ 
+ // ************************************************************************************
+ // End of variable definition
+ // ************************************************************************************
+ 
+ T0 = {TopoND.*}; //start from all vertices in the graph
+ 
+
+ //@@Va.reallocate(T0.size()-1);
+ //@@Vm.reallocate(T0.size());
+ //@@H_r_P.reallocate(T0.size()-1);
+ //@@H_r_Q.reallocate(T0.size());
+ 
+ 
+ //@@GainP_L_matrix += sort_rpi_cpi_matrix(1, 1, 1);
+ //@@GainP_U_matrix += sort_rpi_cpi_matrix(1, 1, 1);
+ //@@GainQ_L_matrix += sort_rpi_cpi_matrix(1, 1, 1);
+ //@@GainQ_U_matrix += sort_rpi_cpi_matrix(1, 1, 1);
+ //@@GainP_LU_vertex += sort_rpi_vertex(1, 1, 1, 1, 1, 1, 1);
+ //@@GainQ_LU_vertex += sort_rpi_vertex(1, 1, 1, 1, 1, 1, 1);
+
+
+//clear the STATIC HeapAccums 
+ 
+ //@@GainP_L_matrix.clear();
+ //@@GainP_U_matrix.clear(); 
+ //@@GainQ_L_matrix.clear();     
+ //@@GainQ_U_matrix.clear();
+ //@@GainP_LU_vertex.clear();
+ //@@GainQ_LU_vertex.clear();
+ 
+ // // ********************************* Continuous ID ************************************
+ 
+  T0 = SELECT s
+	  FROM T0:s-(topo_connect:e)->TopoND:t
+	  WHERE s.island == 1 and t.island == 1
+	  post-accum
+	  @@nodeList += s.TOPOID;
+  print @@nodeList.size();
+  
+ @@GainP.reallocate(@@nodeList.size()-1);
+ @@GainQ.reallocate(@@nodeList.size());
+ @@GainP_p.reallocate(@@nodeList.size()-1);
+ @@GainQ_p.reallocate(@@nodeList.size());
+	  
+ // setCounterMap(@@counterMap, @@nodeList);
+ 
+ // T0 = select t 
+	  // from T0:t 
+	  // post-accum 
+	  // t.exId = @@counterMap.get(t.TOPOID);
+ 
+  // print T0.size();
+  
+ // T0 = SELECT s FROM T0:s
+	  // POST-ACCUM
+	  // log(true, "TOPOID", s.TOPOID, "exId", s.exId);
+
+ 
+ T0 = select s
+	  from T0:s-(topo_connect:e)->TopoND:t
+	  WHERE s.island == 1 and t.island == 1
+	  accum
+		s.@outdegree += 1,
+		case when (e.transformer_final_turns_ratio == 0) then 
+           //compute contribution of each branch to the diagonal terms 
+           s.@sumG += e.G,
+		   s.@sumB += -1*e.B + 0.5*e.hB,  // used to construct the B'' matrix for fast-decoupled method, for Q
+		   s.@sumBedge += e.B,  // edges' admittance summation for each node
+           s.@sumBi += -1*e.BIJ,
+		   
+		   
+		   s.@sumGii_Q += (e.B - e.hB)*(e.B - e.hB)*e.Ri_eQ,		   // used to construct the B' matrix for fast-decoupled method, for P
+		   t.@sumGii_Q += (e.B * e.B)*s.Ri_vQ + (e.B*e.B)*e.Ri_eQ,	
+		   
+		   s.@neighbor_B += (t.exId -> e.B)
+		   //@@B[s.exId-1][t.exId-1] += e.B,  //FOR TESTING...
+		   //@@G[s.exId-1][t.exId-1] += -e.G  //FOR TESTING...
+		when (e.transformer_final_turns_ratio > 0) then
+		//compute contribution of each branch to the diagonal terms
+           double tap_ratio_square = (e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount),
+		   double tap_ratio = e.transformer_final_turns_ratio/e.kcount,
+           s.@sumG += 1/(tap_ratio_square)*e.G,
+		   s.@sumB += 1/(tap_ratio_square)*(-1*e.B) + 0.5*e.hB, // for Q
+		   s.@sumBedge += e.B/tap_ratio, // edges' admittance summation for each node
+           s.@sumBi += -1*e.BIJ,  // for P
+		   
+		   
+		   s.@sumGii_Q += (e.B/tap_ratio - e.hB)*(e.B/tap_ratio - e.hB)*e.Ri_eQ,
+		   t.@sumGii_Q += ( e.B * e.B / tap_ratio_square)*s.Ri_vQ + ( e.B * e.B / tap_ratio_square)*e.Ri_eQ,
+		   
+		   
+		   s.@neighbor_B += (t.exId -> e.B/tap_ratio)
+		   //@@B[s.exId-1][t.exId-1] += e.B / tap_ratio,  //FOR TESTING...
+		   //@@G[s.exId-1][t.exId-1] += -e.G / tap_ratio  //FOR TESTING...
+		else
+		   double tap_ratio_square = (e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount),
+		   double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+		   s.@sumG += e.G,
+		   s.@sumB += -1*e.B + 0.5*e.hB,  // used to construct the B'' matrix for fast-decoupled method, for Q
+		   s.@sumBedge += e.B/tap_ratio, // edges' admittance summation for each node
+           s.@sumBi += -1*e.BIJ,
+		   
+		   
+		   s.@sumGii_Q += (e.B/tap_ratio - e.hB)*(e.B/tap_ratio - e.hB)*e.Ri_eQ,
+		   t.@sumGii_Q += (e.B * e.B / tap_ratio_square)*s.Ri_vQ + ( e.B * e.B / tap_ratio_square)*e.Ri_eQ,
+		   
+		   
+		   s.@neighbor_B += (t.exId -> e.B / tap_ratio)
+		   //@@B[s.exId-1][t.exId-1] += e.B / tap_ratio,  //FOR TESTING...
+		   //@@G[s.exId-1][t.exId-1] += -e.G / tap_ratio  //FOR TESTING...
+		end,
+		s.@sumGii_P += (e.BIJ * e.BIJ)*e.Ri_eP, // diagonal element in row i of system Gain matrix_P: Hii'*Hii + sum(Hji'*Hji)
+		t.@sumGii_P += (e.BIJ * e.BIJ)*e.Ri_eP + (e.BIJ * e.BIJ)*s.Ri_vP,
+		 // diagonal element in row i of system Gain matrix_Q: Hii'*Hii + sum(Hji'*Hji)
+		// the coefficient of 3 indicates Hii'*Hii will have one and Hji'*Hij will have 2     double check....
+		
+		//CASE WHEN (s.exId != @@slackbus and t.exId != @@slackbus) THEN
+		s.@neighbor_BIJ += (t.exId -> e.BIJ),   // 1-neighbor info store
+		//END,
+		
+		s.@neighbor_Pweight += (t.exId -> t.Ri_vP),
+		s.@neighbor_Qweight += (t.exId -> t.Ri_vQ)
+		
+		/* CASE WHEN (e.transformer_final_turns_ratio == 0) THEN
+			s.@neighbor_B += (t.exId -> e.B)
+		ELSE
+			double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+			s.@neighbor_B += (t.exId -> e.B/tap_ratio)
+		END, */
+		
+		
+		//log(true, "TopoId", s.TOPOID, "exId", s.exId, "Ri_eP", e.Ri_eP, "Ri_eQ", e.Ri_eQ)	    
+	  post-accum
+		//log(true, "TopoId", s.TOPOID, "exId", s.exId, "outdegree", s.@outdegree),
+
+	  
+		s.@sumGii_P += (s.@sumBi * s.@sumBi)*s.Ri_vP, // diagonal element in row i of system Gain matrix: Hii'*Hii + sum(Hji'*Hji), double check...
+		s.@sumB += s.B,
+		s.@sumG += s.G,
+		s.@sumGii_Q += (- 2 * s.@sumB - s.@sumBedge) * (- 2 * s.@sumB - s.@sumBedge) * s.Ri_vQ + 1 * s.Ri_V, // diagonal element in row i of system Gain matrix: Hii'*Hii + sum(Hji'*Hji), double check...
+		if s.busType != 3 then
+			s.@Gip += sort_id (s.exId, s.@sumGii_P)
+		end,
+		s.@Giq += sort_id (s.exId, s.@sumGii_Q),
+		//@@B[s.exId-1][s.exId-1] += s.@sumB,  // FOR TESTING...
+		//@@G[s.exId-1][s.exId-1] += s.@sumG,  // FOR TESTING...
+		CASE WHEN (s.busType == 3) THEN
+			@@slackbus += s.exId
+		END;
+		
+		
+		print @@slackbus;
+		//log(true, s.exId, s.@neighbor_BIJ, s.@Gip);
+
+ // Find 1-step-neighbor and 2-step_neighbor info and save	
+ T0 = select s
+	  from T0:s-(topo_connect:e)->TopoND:t
+	  WHERE s.island == 1 and t.island == 1
+	  accum
+	  // Find 1-step-neighbor info and save	
+	  CASE WHEN (s.exId != @@slackbus and t.exId != @@slackbus) THEN   // avoid slack bus
+		FOREACH (key,val) IN s.@neighbor_BIJ DO
+			CASE WHEN (t.@neighbor_BIJ.containsKey(key)) THEN
+				s.@G_offdiag_BIJ += (t.exId -> s.@neighbor_BIJ.get(key) * t.@neighbor_BIJ.get(key) * s.@neighbor_Pweight.get(key))
+			END
+		END,
+	
+		s.@G_offdiag_BIJ += (t.exId -> (s.@sumBi * e.BIJ * s.Ri_vP + t.@sumBi * e.BIJ * t.Ri_vP - e.BIJ * e.BIJ * e.Ri_eP)),
+		t.@G_offdiag_BIJ += (s.exId -> (- e.BIJ * e.BIJ * e.Ri_eP))
+	  END,
+		
+		FOREACH (key,val) IN s.@neighbor_B DO
+			CASE WHEN (t.@neighbor_B.containsKey(key)) THEN
+				s.@G_offdiag_B += (t.exId -> s.@neighbor_B.get(key) * t.@neighbor_B.get(key) * s.@neighbor_Qweight.get(key))
+			END
+		END,
+		
+		case when (e.transformer_final_turns_ratio == 0) then 
+			s.@G_offdiag_B += (t.exId ->  ((2 * s.@sumB + s.@sumBedge) * e.B * s.Ri_vQ + (2 * t.@sumB + t.@sumBedge) * e.B * t.Ri_vQ - (e.B - e.hB) * e.B * e.Ri_eQ)),
+			t.@G_offdiag_B += (s.exId ->  (- (e.B - e.hB) * e.B * e.Ri_eQ))
+		else
+			double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+			//double tap_ratio_square = (e.transformer_final_turns_ratio/e.kcount)*(e.transformer_final_turns_ratio/e.kcount),
+			s.@G_offdiag_B += (t.exId ->  ((2 * s.@sumB + s.@sumBedge) * e.B / tap_ratio * s.Ri_vQ + (2 * t.@sumB + t.@sumBedge) * e.B / tap_ratio * t.Ri_vQ - (e.B / tap_ratio - e.hB) * e.B / tap_ratio * e.Ri_eQ)), // off-diagonal element in row i of system Gain matrix: Hii'*Hij + Hji'*Hjj
+			t.@G_offdiag_B += (s.exId ->  (-(e.B / tap_ratio - e.hB) * e.B / tap_ratio * e.Ri_eQ))
+		end,
+		 
+		 
+		 
+	   // Find 2-step-neighbor info and save	
+	   double two_neighbor_P = 0,
+	   double two_neighbor_Q = 0,
+	   CASE WHEN (s.exId != @@slackbus) THEN   // avoid slack bus
+		 FOREACH (key,val) in t.@neighbor_BIJ DO
+			 CASE WHEN (key != s.exId and s.@neighbor_BIJ.containsKey(key) == false and key!= @@slackbus) THEN
+				// two_neighbor_P = e.BIJ * val,
+				 s.@G_2_neighbor_BIJ += (key -> e.BIJ * val * t.Ri_vP) ///////
+			 END
+		 END
+	   END,
+	  
+	  // @G_2_neighbor_B
+	  
+	  FOREACH (key,val) in t.@neighbor_B DO
+			CASE WHEN (key != s.exId and s.@neighbor_B.containsKey(key) == false) THEN
+				//two_neighbor_Q = e.B * val,
+				case when (e.transformer_final_turns_ratio == 0) then 
+					s.@G_2_neighbor_B += (key -> e.B * val * t.Ri_vQ)
+				else
+					double tap_ratio = abs(e.transformer_final_turns_ratio/e.kcount),
+					s.@G_2_neighbor_B += (key -> val * e.B / tap_ratio * t.Ri_vQ)
+				end
+			END
+		END
+		
+	post-accum
+		
+		Map2List(s.@G_offdiag_BIJ, s.@G_offdiag_B, s.@G_2_neighbor_BIJ, s.@G_2_neighbor_B, s.@Gip, s.@Giq),
+		//Map2List(s.@G_offdiag_BIJ, s.@Gip),
+		//Map2List(s.@G_offdiag_B, s.@Giq),
+		//Map2List(s.@G_2_neighbor_BIJ, s.@Gip),
+		//Map2List(s.@G_2_neighbor_B, s.@Giq),
+		
+		// store 1-step neighbor info in Gain matrix
+	
+	    //FOREACH (key1,val) IN s.@G_offdiag_BIJ DO
+			//s.@Gip += sort_id (key1, val)
+		//END,
+		
+		//FOREACH (key1,val) IN s.@G_offdiag_B DO
+			//s.@Giq += sort_id (key1, val)
+		//END,
+		
+		
+		
+		// store 2-step neighbor info in Gain matrix
+		//FOREACH (key1,val) in s.@G_2_neighbor_BIJ DO
+			//CASE WHEN (key1 != s.exId and s.@neighbor_BIJ.containsKey(key1) == false) THEN
+				//two_neighbor_P = e.BIJ * val,
+				//s.@Gip += sort_id (key1, val)
+			//END
+		//END,
+		
+		//FOREACH (key1,val) in s.@G_2_neighbor_B DO
+			//CASE WHEN (key1 != s.exId and s.@neighbor_B.containsKey(key1) == false) THEN
+				//two_neighbor_Q = e.B * val,
+				//s.@Giq += sort_id (key1, val)
+			//END
+		//END,
+		
+		
+		// store all in the gain matrix array
+		
+		CASE WHEN (s.exId < @@slackbus) THEN
+			@@GainP[s.exId-1] += s.@Gip,
+			@@GainP_p[s.exId-1] += s.@Gip.size(),
+			@@nnz_GainP += s.@Gip.size()
+		WHEN (s.exId > @@slackbus) THEN
+			@@GainP[s.exId-2] += s.@Gip,
+			@@GainP_p[s.exId-2] += s.@Gip.size(),
+			@@nnz_GainP += s.@Gip.size()
+		END,
+		
+		//log(true, "exId", s.exId, "ap", s.@Gip.size()),
+		
+
+		//@@nnz_GainP += s.@Gip.size(),
+		@@GainQ[s.exId-1] += s.@Giq,
+		@@GainQ_p[s.exId-1] += s.@Giq.size(),   // get the number of each row's nonzero elements, like ap for CSR
+		@@nnz_GainQ += s.@Giq.size();
+		//log(false, s.exId, s.@Gip, s.@Giq);	
+
+
+
+ // ************************************** Sorting GainP & GainQ and Factorize *********************************************
+ cal_result = GainMatrix_factorize_static(@@slackbus, @@nnz_GainP, @@nnz_GainQ, @@GainP_p, @@GainQ_p, @@GainP, @@GainQ);		 // needing more tuple.........
+ //print @@GainP_L_matrix.size(), @@GainP_U_matrix.size(), @@GainP_LU_vertex.size();
+ //print @@GainQ_L_matrix.size(), @@GainQ_U_matrix.size(), @@GainQ_LU_vertex.size();
+ 
+ //print @@GainP > outputfile;
+ //print @@GainQ > outputfile;
+ 
+	
+}
+
+install query -ui state_estimation_weight_gain
+//install query -OPTIMIZE

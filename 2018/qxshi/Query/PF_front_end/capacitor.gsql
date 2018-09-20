@@ -1,0 +1,39 @@
+drop query capacitor
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query capacitor ()
+for graph gsql_EMS {
+
+    TYPEDEF TUPLE <string CP_ID, int bus, double Reg_bus, double desired_volts, double Q > cap;
+	
+	ListAccum<cap> @@Capacitor_List;
+	SumAccum<int> @@id = 0;
+	SumAccum<double> @Q = 0;
+	SumAccum<double> @desired_volts = 0;	
+
+	
+	T0 = {TopoND.*};
+    T1 = SELECT s
+	      FROM T0:s
+		  where (s.B!=0) and s.island == 1
+		  POST-ACCUM 
+		  // @@id += 1,	  
+		  s.@Q = s.B*100,
+		  s.@desired_volts = s.desired_volts,
+		  @@Capacitor_List += cap(s.bus_name, s.exId, s.control_bus_number,s.@desired_volts, s.@Q)
+		  // print @@id, s.bus_name, s.exId, s.control_bus_number,s.@Q
+		  ;
+ 		  
+ 	foreach x in @@Capacitor_List do
+	//print '/\n';
+	@@id += 1;
+	print @@id, x.CP_ID, x.bus, x.Reg_bus,x.desired_volts, x.Q; // > outputfile;	
+	end;
+     
+	
+	// print @@Capacitor_List;
+		 
+}
+
+//install query capacitor

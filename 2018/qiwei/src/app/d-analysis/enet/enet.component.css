@@ -1,0 +1,14 @@
+.texts {
+
+    list-style-type: none;
+    font-size: xx-large;
+  }
+
+  .topochart {
+    width: 100%;
+    height: 90vh;
+}
+.linechart {
+    width: 100%;
+    height: 70vh;
+}

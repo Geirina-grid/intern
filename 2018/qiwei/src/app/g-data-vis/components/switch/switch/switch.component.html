@@ -1,0 +1,108 @@
+<div #hccontainer></div>
+
+<div id="wrapper">
+
+  <div id="sidebar-wrapper">
+    <ul class="sidebar-nav">
+      <li class="sidebar-brand">
+        <span>配电网网络重构</span>
+      </li>
+      <li class="sidebar-button">
+        <span>
+          <button class="button" (click)="showUpdateNode()">
+            更改开关状态
+          </button>
+        </span>
+      </li>
+      <li class="sidebar-button">
+        <span>
+          <button class="button" (click)="saveConfirm()">
+            更新配网结构
+          </button>
+        </span>
+      </li>
+      <li class="sidebar-button">
+        <span>
+          <button class="button" (click)="saveLayout()">
+            保存网络拓扑
+          </button>
+        </span>
+      </li>
+
+      
+    </ul>
+  </div>
+
+  <div id="page-content-wrapper">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-4">
+          <div #container1 class="graphchart1">
+          </div>
+          <p-confirmDialog header="Confirmation" icon="fa fa-question-circle" width="425"></p-confirmDialog>
+
+          <p-dialog [contentStyle]="{'overflow':'visible'}" modal="modal" width="450" [responsive]="true" [(visible)]="addNodeDisplay">
+            <p-header>Node Editor</p-header>
+            <app-graph-switch-form [questions]="nodeQuestions" #nodeDiag></app-graph-switch-form>
+            <p-footer>
+              <div style="margin-bottom: 1em">
+                <button type="submit" (click)="updateSwitchNode()" [disabled]="!nodeForm.form.valid" class="btn btn-success">保存</button> &nbsp;
+                <button type="reset" (click)="revert()" [disabled]="!nodeForm.form.valid" class="btn btn-warning">返回</button> &nbsp;
+                <button type="reset" (click)="cancel()" class="btn btn-danger">取消</button>
+              </div>
+            </p-footer>
+          </p-dialog>
+        </div>
+
+
+        <div class="col-lg-4">
+          <div #container class="graphchart2">
+          </div>
+        </div>
+
+        <div class="col-lg-4" style="text-align:right">
+          <font size="4">
+            <p-dataTable #dt [value]="switches" exportFilename="Switch Status" selectionMode="multiple" [metaKeySelection]="false" scrollable="true" [scrollHeight]="h1" 
+            [(selection)]="selectedSwitches" (onRowSelect)="onRowSelect1($event)" (onRowUnselect)="onRowUnselect1($event)" dataKey="switch_name" sortMode="single">
+              <p-header>
+                  <div class="ui-helper-clearfix">
+                      <button type="button" pButton icon="fa-file-o" iconPos="left" label="All Data" (click)="dt.exportCSV()" style="float:left"></button>
+                      开关状态               
+                      <button type="button" pButton icon="fa-file" iconPos="left" label="Selection Only" (click)="dt.exportCSV({selectionOnly:true})" style="float:right"></button>
+                  </div>
+              </p-header>
+              <p-column field="switch_name" header="开关名" font="36px" [sortable]="true"></p-column>
+              <p-column field="from_bus" header="起始节点" [sortable]="true"></p-column>
+              <p-column field="to_bus" header="终端节点" [sortable]="true"></p-column>
+              <p-column field="status" header="状态" [sortable]="true"></p-column>
+            </p-dataTable>
+            <div  style="font-size: 1.1em; height:69px; text-align:left">
+                <button pButton type="button" style="font-size: 1.1em;margin:10px" label="执行配网重构" (click)="excute()"></button>  
+                <button pButton type="button" style="font-size: 1.1em;margin:10px" label="生成方案" (click)="config()"></button>                              
+            </div>
+
+            <p-dataTable [value]="changedswes" selectionMode="single" [metaKeySelection]="false" scrollable="true" [scrollHeight]="h2"  [(selection)]="selectedConfig" 
+            (onRowSelect)="onRowSelect2($event)" (onRowUnselect)="onRowUnselect2($event)" dataKey="id" sortMode="single">
+            <p-header>当前可行的配网重构方案</p-header>
+            <p-column [style]="{'width':'38px'}" selectionMode="single"></p-column>
+            <p-column field="id" header="重构方案" font="36px" [sortable]="true"></p-column>
+            <p-column field="swtoopen" header="开断开关" [sortable]="true"></p-column>
+            <p-column field="swtoclose" header="闭合开关" [sortable]="true"></p-column>
+          </p-dataTable>
+          </font>
+        </div>
+
+        <!-- <div style="font-size: 1.5em">
+        Number of Iterations:
+          <input type="text" [(ngModel)]="ItNo" pInputText placeholder="">   
+        </div>
+        <div style="font-size: 1.5em">
+          Computational Accuracy:
+          <input type="text" [(ngModel)]="Accuracy" pInputText placeholder="">  
+          p.u. 
+    </div> -->
+      </div>
+    </div>
+
+  </div>
+</div>

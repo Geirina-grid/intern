@@ -1,0 +1,95 @@
+import { Component, OnInit, ViewChild, AfterViewInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Router } from '@angular/router';
+import { WholeGraphService } from '../whole-graph.service';
+import { ConfirmDialogModule, ConfirmationService } from 'primeng/primeng';
+import { GraphManageService } from '../graph-manage.service';
+import { MovableLoadService } from '../movable-load.service'
+import { GraphChartService } from '../graph-chart.service';
+
+import * as gvis from 'gvis';
+const GraphChart = (<any>gvis).GraphChart;
+
+@Component({
+  selector: 'app-movable-load',
+  templateUrl: './movable-load.component.html',
+  styleUrls: ['./movable-load.component.css'],
+  providers: [MovableLoadService]
+})
+export class MovableLoadComponent implements OnInit, AfterViewInit {
+
+  // @ViewChild('topocontainer') container1: any;
+
+  public chart: any;
+  public line1: any;
+  sdate: Date;
+  edate: Date;
+  defaultDates = new Date('03/01/2013');
+  defaultDatee = new Date('03/31/2013');
+  selectedmeter: number;
+  selectedphase: number;
+  options3: any;
+  meters: any;
+  phases: any;
+
+  private graph;
+
+  constructor(
+    private router: Router,
+    private wholeGraphService: WholeGraphService,
+    private graphManageService: GraphManageService,
+    private confirmationService: ConfirmationService,
+    private movableloadService: MovableLoadService,
+  ) {
+    this.sdate = this.defaultDates;
+    this.edate = this.defaultDatee;
+    this.selectedmeter=49;
+    this.meters = [];
+    this.phases = [{ label: "A", value: 1 }, { label: "B", value: 2 }, { label: "C", value: 3 }]
+    this.selectedphase = 1;
+    let ids = [];
+    this.wholeGraphService.getGraph()
+      .then(graph => {
+        graph.forEach(elem => {
+          ids.push(Number(elem.v_id));
+        })
+        ids.sort((n1, n2) => n1 - n2);
+        ids.forEach(elem => {
+          this.meters.push({ label: elem, value: elem })
+        })
+      })
+    this.options3 = {
+      title: { text: 'Hourly Average' },
+      chart: {
+        zoomType: 'x',
+        height: 600
+      },
+      xAxis: {
+        categories: [0]
+      },
+      yAxis: {
+        title: {
+          text: " "
+        }
+      },
+      series: [{
+        showInLegend: false,
+        type: 'column',
+        data: [0],
+        allowPointSelect: true
+      }]
+    }
+  }
+  ngOnInit() {
+  }
+  ngAfterViewInit(): void {
+    this.plote();
+  }
+
+  plote(): void {
+    this.movableloadService.le_dat(this.selectedmeter, this.selectedphase, this.sdate.getTime(), this.edate.getTime())
+      .then(line => {
+        this.options3 = line;
+      })
+  }
+
+}

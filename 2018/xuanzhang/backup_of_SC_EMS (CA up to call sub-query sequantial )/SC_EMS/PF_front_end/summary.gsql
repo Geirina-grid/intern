@@ -1,0 +1,91 @@
+drop query summary
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query summary ()
+for graph gsql_EMS {
+
+	SetAccum<Vertex<TopoND>> @@summary_List;
+	SumAccum<int> @@BSid = 0;
+	SumAccum<int> @@LNid = 0;
+	SumAccum<int> @@XFid = 0;
+	SumAccum<int> @@UNid = 0;
+	SumAccum<int> @@LDid = 0;
+	SumAccum<int> @@ISid = 0;
+	SumAccum<double> @@TotalGen= 0;
+	SumAccum<double> @@TotalLoad= 0;
+	SumAccum<double> @@TotalLoss= 0;
+	SumAccum<string> @@SYSid;
+	SumAccum<string> @@Status;
+	SumAccum<int> @mark = 0;
+	MaxAccum<int> @@ID = 1;	
+	// print "id", "bus_name", "bus_id", "generation_p", "generation_Q", "base_kV", "desired_volts", "MAX_Q", "Min_Q", "control_bus_number", "pos_x", "pos_y" > outputfile;	
+	
+	T0 = {TopoND.*};
+    T1 = SELECT s
+	      FROM T0:s-(topo_connect:e)->TopoND:t
+		  where s.island == 1 and t.island == 1
+		  
+		 ACCUM 	      
+		 case when (e.reverse ==1) then
+			   @@LNid +=1
+	     end,
+		 case when ((e.flag != 0)and(e.reverse ==1)) then
+		       @@XFid +=1
+			   
+		 end
+		 
+		 POST-ACCUM
+		       @@BSid +=1,
+			   @@TotalLoad += s.LdP,
+			   @@TotalLoss += s.cal_P,	
+		 case when ((s.busType==2 or s.busType==3)) then
+		       @@UNid +=1		   
+		      when (s.busType==0) then
+		       @@LDid +=1				   
+		 end
+		 ;
+		 
+		 
+	T0 = {TopoND.*};
+
+	while (T0.size() != 0)
+	{
+		T1 = select s
+			 from T0:s
+			 where s.exId == @@ID and s.island == 1
+			 post-accum
+				s.@mark = 1;
+		T0 = T0 minus T1;
+
+		while(T1.size() != 0)
+		{
+			T1 = select t
+				 from T1:s-(topo_connect:e)->TopoND:t
+				 where t.@mark == 0 and s.island == 1 and t.island == 1
+				 accum
+					t.@mark = 1;
+			T0 = T0 minus T1;
+		}
+		
+		@@ID = 0;
+		
+		T2 = select s
+			 from T0:s
+			 where s.island == 1
+			 post-accum
+				@@ID += s.exId;
+		        @@ISid += 1;	
+    }
+		
+	     @@SYSid="系统1";
+	     @@Status="收敛";
+		 @@TotalGen=@@TotalLoss+@@TotalLoad;
+		 
+	
+	// print T1;
+	print @@SYSid, @@BSid, @@LNid, @@XFid, @@UNid, @@LDid, @@ISid, @@TotalGen, @@TotalLoad, @@TotalLoss, @@Status ; // > outputfile;		 
+}
+
+//install query summary

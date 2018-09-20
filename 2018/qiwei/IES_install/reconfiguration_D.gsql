@@ -1,0 +1,162 @@
+drop query reconfiguration_D
+
+// ==================================================================================================================================
+//		                          Main Function of the Code
+// ==================================================================================================================================
+create query reconfiguration_D ()
+for graph powerflow_graph {
+	
+	TYPEDEF TUPLE <string swtoopen, string swtoclose> row;
+	ListAccum<row> @@Switch_List;
+	ListAccum<STRING> @@switchnode;
+	ListAccum<STRING> @@openedsw;
+	SumAccum<int> @@id = 0;
+	string checkswitch1="found";
+	string openswitchsn1="none";
+	string openswitchsn2="none";
+	string switch1_to_bus="none";
+	string switch1_from_bus="none";
+	string selectedswitch="none";
+	string startnode;
+	int sourceflag1=0;
+	int downnodeflag1=0;	
+	int VRflag=0;
+
+    
+	T0 = {bus_D.*};
+	T1 = {switchnode_D.*};
+	
+	@@switchnode.clear();
+	@@openedsw.clear();
+	@@Switch_List.clear();
+	
+	startNodeSet = SELECT n
+	      FROM T0:n
+	      where n.outdegree("backe_D") == 0 // till here, the startNodeSet is the substation node
+	      POST-ACCUM
+	      startnode=n.exId;
+		  
+	Tstart = SELECT s
+	      FROM T0:s
+		  POST-ACCUM 
+		  s.startnode=startnode;
+	
+	opswitch = SELECT n
+	FROM T1: n
+	where n.switch_status=="OPEN"
+	POST-ACCUM
+	@@openedsw += n.exId;
+	
+	T2 = SELECT n
+	FROM T0: n
+	where n.flag == 3
+	POST-ACCUM
+	   @@switchnode += n.exId;
+	
+  foreach y in @@openedsw do //for each opened switch, find the possible open/close switch pair
+	
+	switch1 = SELECT n
+	FROM T1: n
+	where n.exId == y
+	POST-ACCUM
+	switch1_to_bus=n.to_bus,
+	switch1_from_bus=n.from_bus;
+	
+	
+	
+	
+	foreach x in @@switchnode do //for each closed switch, check if the open/close switch pair is valid
+	
+	child = SELECT n
+	 FROM T0:n
+	 where n.exId==x
+	 POST-ACCUM
+	 selectedswitch = x;
+	 
+	 checkswitch1="found";
+	 sourceflag1=0;
+	 downnodeflag1=0;
+	 VRflag=0;
+     //check if the switch can be open
+	 WHILE child.size() > 0 DO	
+		child = SELECT f
+		FROM child:cc - (foree_D:e) - bus_D:f  	  
+		POST-ACCUM
+		 CASE WHEN (f.exId == switch1_from_bus or f.exId == switch1_to_bus) THEN	 
+		  IF (f.exId == switch1_from_bus) THEN	   
+			 	openswitchsn1=switch1_to_bus,
+				openswitchsn2=switch1_from_bus,
+				downnodeflag1=1
+		  ELSE IF (f.exId == switch1_to_bus) THEN
+		        openswitchsn1=switch1_from_bus,
+				openswitchsn2=switch1_to_bus,
+				downnodeflag1=1		   
+		  END
+		  
+		 END;
+	 END;
+	 
+	 IF (downnodeflag1==0) THEN
+	     openswitchsn1="none";
+		 openswitchsn2="none";
+	 END;
+	 
+    IF (openswitchsn1=="none" or openswitchsn2=="none") THEN
+	 checkswitch1="none";
+	ELSE
+	 child1 = SELECT m
+			FROM T0: m 
+			where m.exId == openswitchsn1;
+	 WHILE child1.size() > 0 DO	
+		     child1 = SELECT f1
+		     FROM child1:cc1 - (backe_D:e1) - bus_D:f1  	  
+		     POST-ACCUM
+			 CASE WHEN (f1.exId == selectedswitch) THEN 
+			   checkswitch1="none"
+			 END,
+			 CASE WHEN (f1.exId == startnode) THEN 
+			   sourceflag1=1
+			 END;
+			 
+	 END;
+	 
+	 child2 = SELECT m
+			FROM T0: m 
+			where m.exId == openswitchsn2;
+	 WHILE child2.size() > 0 DO	
+		     child2 = SELECT f2
+		     FROM child2:cc2 - (backe_D:e2) - bus_D:f2  	  
+		     POST-ACCUM
+			 IF (f2.exId != selectedswitch) THEN
+			  CASE WHEN (f2.flag == 2) THEN 
+			   VRflag=1
+			  END
+			 ELSE IF (f2.exId == selectedswitch) THEN
+			  CASE WHEN (VRflag == 1) THEN 
+			   checkswitch1="none"
+			  END
+			 END;
+			 
+	 END;
+	 
+	 
+	 IF (sourceflag1==0 or downnodeflag1==0) THEN
+	     checkswitch1="none";
+	 END;
+	 
+	END;
+	 CASE WHEN (checkswitch1=="found") THEN
+	 @@Switch_List+=row(selectedswitch,y);
+	 END;
+	 //print y,x,switch1_to_bus, switch1_from_bus,openswitchsn1,openswitchsn2,checkswitch1,sourceflag1,VRflag, startnode;
+	end;
+  end;
+	foreach k in @@Switch_List do
+	@@id += 1;
+	print @@id, k.swtoopen, k.swtoclose; // > outputfile;	
+	end;
+    
+    
+}
+
+//install query reconfiguration_D
